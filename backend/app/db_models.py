@@ -5,12 +5,29 @@
 from sqlmodel import SQLModel , Field
 from typing import Optional   # To allow fields to be NULL
 from datetime import datetime # Default timestamps
+from pathlib import Path
 
 
 # File paths for Default Stock images for Profile Picture
-default_pfp_path = "profile_pictures/default.png"
-default_relailer_shop = "profile_pictures/retailer_pfps/default_shop.png"
-default_wholesaler_shop = "profile_pictures/wholesaler_pfps/default_shop.png"
+STATIC_BASE = Path(".") # Represents the root of the static directory
+
+# Profile Pictures
+PFP_DIR = STATIC_BASE / "profile_pictures"
+default_pfp_path = str(PFP_DIR / "default.png")
+
+RETAILER_PFP_DIR = PFP_DIR / "retailer_pfps"
+default_relailer_shop = str(RETAILER_PFP_DIR / "default_shop.png")
+
+WHOLESALER_PFP_DIR = PFP_DIR / "wholesaler_pfps"
+default_wholesaler_shop = str(WHOLESALER_PFP_DIR / "default_shop.png")
+
+# Product/Category Images
+PRODUCT_IMG_DIR = STATIC_BASE / "product_images"
+default_product_image = str(PRODUCT_IMG_DIR / "default.png")
+
+CATEGORY_IMG_DIR = STATIC_BASE / "category_images"
+default_category_image = str(CATEGORY_IMG_DIR / "default.png")
+
 
 # --------------------------------------------------------------------------------------------------------------------
 # Customer Table Definition
@@ -26,7 +43,7 @@ class Customer(SQLModel , table=True):
     name: str
     mail: str
     hashed_password: str  # Hashed password for secure authenticaion
-    profile_pic : Optional[str] = default_pfp_path
+    profile_pic : Optional[str] = Field(default=default_pfp_path)
 
     date_joined: datetime = Field(default_factory=datetime.utcnow , nullable=False)
 
@@ -35,6 +52,8 @@ class Customer(SQLModel , table=True):
     city : Optional[str] = None
     state : Optional[str] = None
     pincode: Optional[str] = None
+    lat: Optional[float] = None
+    lon: Optional[float] = None
 
     # Contact Details
     phone_number: Optional[str] = None
@@ -56,14 +75,14 @@ class Retailer(SQLModel , table=True):
     name: str
     mail : str
     hashed_password : str
-    profile_pic : Optional[str] = default_pfp_path
+    profile_pic : Optional[str] = Field(default=default_pfp_path)
 
     date_joined: datetime = Field(default_factory=datetime.utcnow , nullable=False)
 
 
     # Contact
     business_name : str
-    business_logo : Optional[str] = default_relailer_shop
+    business_logo : Optional[str] = Field(default=default_relailer_shop)
     business_description : Optional[str] = None
     phone_number: Optional[str] = None
     tax_id : Optional[str] = None
@@ -73,6 +92,8 @@ class Retailer(SQLModel , table=True):
     city: str
     state: str
     pincode: str
+    lat: Optional[float] = None
+    lon: Optional[float] = None
 
     is_active : bool = True
 
@@ -89,13 +110,13 @@ class Wholesaler(SQLModel, table=True):
     name: str
     mail: str
     hashed_password: str
-    profile_pic : Optional[str] = default_pfp_path
+    profile_pic : Optional[str] = Field(default=default_pfp_path)
 
     date_joined: datetime = Field(default_factory=datetime.utcnow, nullable=False)
 
     # Contact
     business_name: str
-    business_logo: Optional[str] = default_wholesaler_shop
+    business_logo: Optional[str] = Field(default=default_wholesaler_shop)
     business_description: Optional[str] = None
 
     tax_id: Optional[str] = None # For business verification
@@ -107,6 +128,8 @@ class Wholesaler(SQLModel, table=True):
     city: str
     state: str
     pincode: str
+    lat: Optional[float] = None
+    lon: Optional[float] = None
     
     is_active: bool = True
 
@@ -168,6 +191,8 @@ class Product(SQLModel , table=True):
 
     price: float
     stock: int
+    
+    image_url: Optional[str] = Field(default=default_product_image)
 
     # Linking product to retailer who sells it
     retailer_id : int = Field(foreign_key="retailer.id")
@@ -180,6 +205,7 @@ class Category(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(unique=True, index=True)
     description: Optional[str] = None
+    image_url: Optional[str] = Field(default=default_category_image)
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -262,6 +288,3 @@ class Feedback(SQLModel, table=True):
     comment: Optional[str] = None
     
     created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
-
-
-

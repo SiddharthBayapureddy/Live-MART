@@ -4,6 +4,7 @@ from sqlmodel import SQLModel,create_engine , Session , select
 # SQLModel - for ORM
 # Session - for DB Sessions
 # select - for queries
+from typing import Optional
 
 from db_models import (
     Customer, 
@@ -43,7 +44,8 @@ def create_db_and_tables():
 
 # Function to make a customer table
 def add_customer(name: str , mail: str , hashed_password: str , delivery_address: str = None , city:str = None , state:str = None , 
-                 pincode:str = None , phone_number:str = None , profile_pic : str = None):
+                 pincode:str = None , phone_number:str = None , profile_pic : str = None, 
+                 lat: Optional[float] = None, lon: Optional[float] = None):
     
 
      customer = Customer(
@@ -56,7 +58,9 @@ def add_customer(name: str , mail: str , hashed_password: str , delivery_address
         state = state,                     
         pincode = pincode,                 
         phone_number = phone_number,      
-        no_of_purchases = 0                 # Initial purchases is zero
+        no_of_purchases = 0,                 # Initial purchases is zero
+        lat = lat,
+        lon = lon
      )
 
      # Creating the table
@@ -82,7 +86,8 @@ def get_customer_by_email(mail: str):
 
 # Function to make retailer table
 def add_retailer(name: str, mail: str, hashed_password: str, business_name: str,address: str, city: str, state: str, pincode: str,
-                 phone_number: str = None, tax_id: str = None, profile_pic: str = None, business_logo: str = None):
+                 phone_number: str = None, tax_id: str = None, profile_pic: str = None, business_logo: str = None,
+                 lat: Optional[float] = None, lon: Optional[float] = None):
     
     retailer = Retailer(
         name=name,
@@ -96,7 +101,9 @@ def add_retailer(name: str, mail: str, hashed_password: str, business_name: str,
         phone_number=phone_number,
         tax_id=tax_id,
         profile_pic=profile_pic,
-        business_logo=business_logo
+        business_logo=business_logo,
+        lat = lat,
+        lon = lon
     )
 
     with Session(engine) as session:
@@ -122,7 +129,8 @@ def get_retailer_by_email(mail: str):
 def add_wholesaler(name: str, mail: str, hashed_password: str, business_name: str,
                    address: str, city: str, state: str, pincode: str,
                    phone_number: str = None, tax_id: str = None, 
-                   profile_pic: str = None, business_logo: str = None):
+                   profile_pic: str = None, business_logo: str = None,
+                   lat: Optional[float] = None, lon: Optional[float] = None):
     
     wholesaler = Wholesaler(
         name=name,
@@ -136,7 +144,9 @@ def add_wholesaler(name: str, mail: str, hashed_password: str, business_name: st
         phone_number=phone_number,
         tax_id=tax_id,
         profile_pic=profile_pic,
-        business_logo=business_logo
+        business_logo=business_logo,
+        lat = lat,
+        lon = lon
     )
     with Session(engine) as session:
         session.add(wholesaler)
@@ -153,12 +163,23 @@ def get_wholesaler_by_email(mail: str):
         ).first()
         return wholesaler
 
+#--------------------------------------------------------------------------------------------------------------------------------------------
+# Category Functions
+
+# Function to add a category
+def add_category(name: str, description: Optional[str] = None, image_url: Optional[str] = None) -> Category:
+    with Session(engine) as session:
+        category = Category(name=name, description=description, image_url=image_url)
+        session.add(category)
+        session.commit()
+        session.refresh(category)
+        return category
 
 #--------------------------------------------------------------------------------------------------------------------------------------------
 # Product Functions
 
 # Function to make a product item
-def add_product(name: str, price: float, stock: int, retailer_id: int , description: str = None, category_id: int = None):
+def add_product(name: str, price: float, stock: int, retailer_id: int , description: str = None, category_id: int = None, image_url: Optional[str] = None):
     
     product = Product(
         name=name,
@@ -166,7 +187,8 @@ def add_product(name: str, price: float, stock: int, retailer_id: int , descript
         description=description,
         category_id=category_id,
         price=price,
-        stock=stock
+        stock=stock,
+        image_url=image_url
     )
     with Session(engine) as session:
         session.add(product)

@@ -1,4 +1,4 @@
-    # Used for validating and structuring the data my API recieves and returns
+# Used for validating and structuring the data my API recieves and returns
 
 
     # BaseModel for defining request/response schemas
@@ -23,6 +23,8 @@ class CustomerCreate(BaseModel):
     state: Optional[str] = None           
     pincode: Optional[str] = None         
     phone_number: Optional[str] = None
+    lat: Optional[float] = None
+    lon: Optional[float] = None
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -39,6 +41,8 @@ class CustomerRead(BaseModel):
     phone_number: Optional[str] = None
     no_of_purchases : int 
     preferences: Optional[str] = None
+    lat: Optional[float] = None
+    lon: Optional[float] = None
 
     profile_pic : Optional[str]
     date_joined : datetime
@@ -60,6 +64,8 @@ class RetailerCreate(BaseModel):
     pincode: str
     phone_number: Optional[str] = None
     tax_id: Optional[str] = None
+    lat: Optional[float] = None
+    lon: Optional[float] = None
 
 class RetailerRead(BaseModel):
     id: int
@@ -77,6 +83,8 @@ class RetailerRead(BaseModel):
     state: str
     pincode: str
     is_active: bool
+    lat: Optional[float] = None
+    lon: Optional[float] = None
 
     class Config:
         orm_mode = True
@@ -96,6 +104,8 @@ class WholesalerCreate(BaseModel):
     pincode: str
     phone_number: Optional[str] = None
     tax_id: Optional[str] = None
+    lat: Optional[float] = None
+    lon: Optional[float] = None
 
 class WholesalerRead(BaseModel):
     id: int
@@ -113,6 +123,8 @@ class WholesalerRead(BaseModel):
     state: str
     pincode: str
     is_active: bool
+    lat: Optional[float] = None
+    lon: Optional[float] = None
 
     class Config:
         orm_mode = True
@@ -130,8 +142,10 @@ class ProductCreate(BaseModel):
     name: str
     price: float
     stock: int
+    retailer_id: int 
     description: Optional[str] = None
     category_id: Optional[int] = None
+    image_url: Optional[str] = None
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -143,6 +157,7 @@ class ProductRead(BaseModel):
     description: Optional[str] = None
     category_id: Optional[int] = None
     retailer_id: int
+    image_url: Optional[str]
 
     class Config:
         orm_mode = True
@@ -151,10 +166,16 @@ class ProductRead(BaseModel):
 
 # Category Schemas
 
+class CategoryCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    image_url: Optional[str] = None
+
 class CategoryRead(BaseModel):
     id: int
     name: str
     description: Optional[str] = None
+    image_url: Optional[str]
 
     class Config:
         orm_mode = True
