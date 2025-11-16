@@ -1,0 +1,235 @@
+/* ===================================================== */
+/* === FUTURISTIC CYBERPUNK BACKGROUND ================= */
+/* ===================================================== */
+
+body {
+  font-family: Arial, sans-serif;
+  background: #0a0a0a;
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(0, 255, 255, 0.15) 0%, transparent 60%),
+    radial-gradient(circle at 80% 80%, rgba(255, 0, 80, 0.15) 0%, transparent 60%),
+    linear-gradient(135deg, #101010 0%, #050505 100%);
+  color: white;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 100vh;
+  margin: 0;
+  padding-bottom: 100px;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: 
+    linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ===================================================== */
+/* === MAIN CYBERPUNK PANEL (.div – replaces orange) === */
+/* ===================================================== */
+
+.div {
+  background:linear-gradient(to right,rgba(71, 190, 206, 0.699),rgba(69, 39, 39, 0.649));
+  padding: 25px;
+  border-radius: 15px;
+  width: 380px;
+  text-align: center;
+
+  border: 2px solid rgba(0, 90, 255, 0.7);
+  backdrop-filter: blur(6px);
+
+  box-shadow:
+    0 0 25px rgba(0, 89, 255, 0.253),
+    0 0 45px rgba(0, 50, 255, 0.5);
+
+  animation: panelGlow 6s ease-in-out infinite alternate;
+  padding-bottom: 1px;
+}
+
+/* Update your panelGlow keyframes to reflect blue tones */
+@keyframes panelGlow {
+  0% {
+    box-shadow:
+      0 0 20px rgba(0, 90, 255, 0.4),
+      0 0 45px rgba(0, 150, 255, 0.3);
+    border-color: rgba(0, 90, 255, 0.6);
+  }
+  100% {
+    box-shadow:
+      0 0 35px rgba(0, 150, 255, 0.7),
+      0 0 65px rgba(0, 90, 255, 0.8);
+    border-color: rgba(0, 150, 255, 0.8);
+  }
+}
+
+
+
+/* ===================================================== */
+/* === HEADINGS WITH NEON GLOW ========================= */
+/* ===================================================== */
+
+h1, h2 {
+  color: #00eaff;
+  text-shadow: 0 0 12px rgba(0,255,255,0.5);
+}
+
+/* ===================================================== */
+/* === FORM CONTAINER (Matches button color) =========== */
+/* ===================================================== */
+
+.form-container {
+  background:#0a3dff;
+  padding: 1.5rem 2rem;
+  border-radius: 1px;
+  width: 320px;
+  backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+
+/* ===================================================== */
+/* === FORM TEXT / LABELS ============================== */
+/* ===================================================== */
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  width: 100%;
+}
+
+form h2 {
+  width: 100%;
+}
+
+/* ===================================================== */
+/* === STANDARD INPUT FIELDS =========================== */
+/* ===================================================== */
+
+input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 1rem;
+  border: 1px solid #333;
+  background: #0f0f0f;
+  color: #fff;
+  border-radius: 5px;
+}
+
+/* ===================================================== */
+/* === LOGIN BUTTON (Still needed) ===================== */
+/* ===================================================== */
+
+
+
+/* ===================================================== */
+/* === SITE LOGO ======================================= */
+/* ===================================================== */
+
+.site-logo {
+  width: 8rem;
+  height: 8rem;
+  filter: drop-shadow(0 0 10px rgba(0,255,255,0.4));
+}
+
+/* ===================================================== */
+/* === FOOTER (unchanged but recolored) ================ */
+/* ===================================================== */
+
+.footer {
+  position: relative;
+  width: 100%;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #aaa;
+  background: #000;                  /* <-- black footer */
+  border-radius: 10px;
+  padding: 10px 0;
+  margin-top: 20px;
+  width:380px;
+  border-top: 1px solid rgba(255,255,255,0.15);
+
+  border-bottom-left-radius: 12px;   /* match your panel */
+  border-bottom-right-radius: 12px;
+}
+
+
+
+/* ===================================================== */
+/* === GLITCH BUTTONS (unchanged) ====================== */
+/* ===================================================== */
+
+.button-49,
+.button-49:after {
+  width: 150px;
+  height: 76px;
+  line-height: 78px;
+  font-size: 20px;
+  font-family: 'Bebas Neue', sans-serif;
+  background: linear-gradient(45deg, transparent 5%, #FF013C 5%);
+  border: 0;
+  color: #fff;
+  letter-spacing: 3px;
+  box-shadow: 6px 0px 0px #00E6F6;
+  outline: transparent;
+  position: relative;
+  user-select: none;
+  touch-action: manipulation;
+  margin: 0.25rem;
+}
+
+.button-49:after {
+  --slice-0: inset(50% 50% 50% 50%);
+  --slice-1: inset(80% -6px 0 0);
+  --slice-2: inset(50% -6px 30% 0);
+  --slice-3: inset(10% -6px 85% 0);
+  --slice-4: inset(40% -6px 43% 0);
+  --slice-5: inset(80% -6px 5% 0);
+  
+  content: attr(data-text);
+  display: block;
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(45deg, transparent 3%, #00E6F6 3%, #00E6F6 5%, #FF013C 5%);
+  text-shadow: -3px -3px 0px #F8F005, 3px 3px 0px #00E6F6;
+  clip-path: var(--slice-0);
+}
+
+.button-49:hover:after {
+  animation: 1s glitch steps(2, end);
+}
+
+@keyframes glitch {
+  0% { clip-path: var(--slice-1); transform: translate(-20px, -10px); }
+  10% { clip-path: var(--slice-3); transform: translate(10px, 10px); }
+  20% { clip-path: var(--slice-1); transform: translate(-10px, 10px); }
+  30% { clip-path: var(--slice-3); transform: translate(0px, 5px); }
+  40% { clip-path: var(--slice-2); transform: translate(-5px, 0px); }
+  50% { clip-path: var(--slice-3); transform: translate(5px, 0px); }
+  60% { clip-path: var(--slice-4); transform: translate(5px, 10px); }
+  70% { clip-path: var(--slice-2); transform: translate(-10px, 10px); }
+  80% { clip-path: var(--slice-5); transform: translate(20px, -10px); }
+  90% { clip-path: var(--slice-1); transform: translate(-10px, 0px); }
+  100% { clip-path: var(--slice-1); transform: translate(0); }
+}
+
+@media (min-width: 768px) {
+  .button-49,
+  .button-49:after {
+    width: 200px;
+    height: 86px;
+    line-height: 88px;
+  }
+}
