@@ -12,7 +12,7 @@ from jose import jwt, JWTError
 from schemas import CustomerRead, RetailerRead, WholesalerRead
 from database import get_customer_by_email, get_retailer_by_email, get_wholesaler_by_email
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2Bearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.concurrency import run_in_threadpool
 from db_models import Customer, Retailer, Wholesaler
 
@@ -41,7 +41,7 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 # 1 day
 
 # This tells FastAPI to look for the "Authorization: Bearer <token>" header
-oauth2_scheme = OAuth2Bearer(tokenUrl="login/customer")
+bearer_scheme = HTTPBearer()
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
@@ -56,12 +56,13 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 # Dependency to get the current logged-in customer
-async def get_current_customer(token: str = Depends(oauth2_scheme)) -> Customer:
+async def get_current_customer(creds: HTTPAuthorizationCredentials = Depends(bearer_scheme)) -> Customer:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    token = creds.credentials
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_mail: str = payload.get("sub")
@@ -77,12 +78,13 @@ async def get_current_customer(token: str = Depends(oauth2_scheme)) -> Customer:
     return user
 
 # Dependency to get the current logged-in retailer
-async def get_current_retailer(token: str = Depends(oauth2_scheme)) -> Retailer:
+async def get_current_retailer(creds: HTTPAuthorizationCredentials = Depends(bearer_scheme)) -> Retailer:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    token = creds.credentials
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_mail: str = payload.get("sub")
@@ -98,12 +100,13 @@ async def get_current_retailer(token: str = Depends(oauth2_scheme)) -> Retailer:
     return user
 
 # Dependency to get the current logged-in wholesaler
-async def get_current_wholesaler(token: str = Depends(oauth2_scheme)) -> Wholesaler:
+async def get_current_wholesaler(creds: HTTPAuthorizationCredentials = Depends(bearer_scheme)) -> Wholesaler:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    token = creds.credentials
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_mail: str = payload.get("sub")

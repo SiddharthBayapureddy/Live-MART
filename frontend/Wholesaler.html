@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/whole_style.css">
+  <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+  <title>Login | Signup</title>
+  <style>
+    .message {
+      font-size: 14px;
+      margin-top: 15px;
+    }
+    .message.success { color: #3c763d; }
+    .message.error { color: #a94442; }
+  </style>
+</head>
+<body>
+  <h1>Welcome to Live-MART</h1><br><br>
+<div class="container" id="container">
+	<div class="form-container sign-up-container">
+		<form id="sign-up-form">
+			<h2>Create Wholesaler Account</h2>
+			<span style="font-size: 1rem;">Use your wholesaler-email for registration</span>
+			<input type="text" id="signup-name" placeholder="Your Full Name" required />
+      <input type="text" id="signup-business-name" placeholder="Business Name" required />
+			<input type="email" id="signup-email" placeholder="Business Email" required />
+			<input type="password" id="signup-password" placeholder="Password" required />
+      <input type="text" id="signup-address" placeholder="Business Address" required />
+      <input type="text" id="signup-city" placeholder="City" required />
+      <input type="text" id="signup-state" placeholder="State" required />
+      <input type="text" id="signup-pincode" placeholder="Pincode" required />
+      <input type="text" id="signup-tax-id" placeholder="Tax ID / License" />
+			<button type="submit">Sign Up</button>
+      <p id="signup-message" class="message"></p>
+		</form>
+	</div>
+	<div class="form-container sign-in-container">
+		<form id="sign-in-form">
+			<h2>Wholesaler Sign-in</h2>
+			<div class="social-container">
+				</div>
+			<span>or use your account</span>
+			<input type="email" id="signin-email" placeholder="Email" required/>
+			<input type="password" id="signin-password" placeholder="Password" required/>
+			<a href="#">Forgot your password?</a>
+			<button type-="submit">Sign In</button>
+      <p id="signin-message" class="message"></p>
+		</form>
+	</div>
+	<div class="overlay-container">
+		<div class="overlay">
+			<div class="overlay-panel overlay-left">
+				<h1>Welcome Back!</h1>
+				<p>To keep connected with us please login with your personal info</p>
+				<button class="ghost" id="signIn">Sign In</button>
+			</div>
+			<div class="overlay-panel overlay-right">
+				<h1>Hello, Friend!</h1>
+				<p>Enter your personal details and start journey with Live MART</p>
+				<button class="ghost" id="signUp">Sign Up</button>
+			</div>
+		</div>
+	</div>
+</div>
+  <footer>
+    <p>© 2025 Live-MART. All rights reserved.</p>
+  </footer>
+
+  <script src="js/js.js"></script>
+
+  <script>
+    // --- Sign-Up Logic ---
+    document.getElementById('sign-up-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const messageEl = document.getElementById('signup-message');
+
+        const data = {
+            name: document.getElementById('signup-name').value,
+            mail: document.getElementById('signup-email').value,
+            password: document.getElementById('signup-password').value,
+            business_name: document.getElementById('signup-business-name').value,
+            address: document.getElementById('signup-address').value,
+            city: document.getElementById('signup-city').value,
+            state: document.getElementById('signup-state').value,
+            pincode: document.getElementById('signup-pincode').value,
+            tax_id: document.getElementById('signup-tax-id').value
+        };
+
+        try {
+            const response = await fetch('/signup/wholesaler', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                messageEl.textContent = 'Success! Welcome, ' + result.name;
+                messageEl.className = 'message success';
+            } else {
+                const error = await response.json();
+                messageEl.textContent = 'Error: ' + error.detail;
+                messageEl.className = 'message error';
+            }
+        } catch (error) {
+            messageEl.textContent = 'An error occurred. Please try again.';
+            messageEl.className = 'message error';
+        }
+    });
+
+    // --- Sign-In Logic ---
+    document.getElementById('sign-in-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const messageEl = document.getElementById('signin-message');
+
+        const data = {
+            mail: document.getElementById('signin-email').value,
+            password: document.getElementById('signin-password').value
+        };
+
+        try {
+            const response = await fetch('/login/wholesaler', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                localStorage.setItem('token', result.access_token);
+                messageEl.textContent = 'Login successful!';
+                messageEl.className = 'message success';
+                // Redirect to a wholesaler dashboard
+                // window.location.href = '/wholesaler-dashboard.html'; 
+            } else {
+                const error = await response.json();
+                messageEl.textContent = 'Error: ' + error.detail;
+                messageEl.className = 'message error';
+            }
+        } catch (error) {
+            messageEl.textContent = 'An error occurred. Please try again.';
+            messageEl.className = 'message error';
+        }
+    });
+  </script>
+</body>
+</html>
