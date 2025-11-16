@@ -1,7 +1,7 @@
 # Used for validating and structuring the data my API recieves and returns
 
 
-    # BaseModel for defining request/response schemas
+# BaseModel for defining request/response schemas
 from pydantic import BaseModel , EmailStr   # EmailStr helps validate proper email structure
 from typing import Optional , List
 from datetime import datetime
@@ -48,7 +48,7 @@ class CustomerRead(BaseModel):
     date_joined : datetime
 
     class Config:
-        orm_mode = True    # Allows returning SQLModel objects directlty
+        from_attributes = True    # Allows returning SQLModel objects directlty
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
 # Retailer Schemas
@@ -87,7 +87,7 @@ class RetailerRead(BaseModel):
     lon: Optional[float] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -127,7 +127,7 @@ class WholesalerRead(BaseModel):
     lon: Optional[float] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
@@ -135,6 +135,10 @@ class WholesalerRead(BaseModel):
 class LoginRequest(BaseModel):
     mail: EmailStr
     password: str
+    
+class Token(BaseModel):
+    access_token: str
+    token_type: str
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -142,7 +146,7 @@ class ProductCreate(BaseModel):
     name: str
     price: float
     stock: int
-    retailer_id: int 
+    # retailer_id is removed, will be taken from auth token
     description: Optional[str] = None
     category_id: Optional[int] = None
     image_url: Optional[str] = None
@@ -160,7 +164,7 @@ class ProductRead(BaseModel):
     image_url: Optional[str]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -178,17 +182,25 @@ class CategoryRead(BaseModel):
     image_url: Optional[str]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
 
 
+# Schema for reading a detailed cart item
+class CartItemReadWithProduct(BaseModel):
+    cart_item_id: int
+    quantity: int
+    product: ProductRead
 
+    class Config:
+        from_attributes = True
 
-# --------------------------------------------------------------------------------------------------------------------------------------------
-
-
-
+# Schema for reading the full cart
+class CartRead(BaseModel):
+    items: List[CartItemReadWithProduct]
+    total_size: int
+    
 # --------------------------------------------------------------------------------------------------------------------------------------------
 
 # Schema for creating a ShoppingCartItem
@@ -208,7 +220,7 @@ class ShoppingCartItemRead(BaseModel):
     cart_id: int
 
     class Config:
-        orm_mode = True          
+        from_attributes = True          
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -222,7 +234,7 @@ class OrderItemRead(BaseModel):
     price_at_purchase: float
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # Schema for creating a new order (checkout)
 class OrderCreate(BaseModel):
@@ -252,7 +264,7 @@ class OrderRecordsRead(BaseModel):
                                 # but we will populate it in our API endpoint
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
 # Feedback Schemas 
@@ -273,7 +285,7 @@ class FeedbackRead(BaseModel):
     customer_name: str 
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 

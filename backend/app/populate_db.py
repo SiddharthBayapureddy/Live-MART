@@ -57,28 +57,28 @@ SAMPLE_LAT_LON = [
 ]
 
 SAMPLE_CATEGORIES = [
-    ("Electronics", "Gadgets, computers, and more", "category_images/electronics.png"),
-    ("Groceries", "Fresh produce, dairy, and pantry items", "category_images/groceries.png"),
-    ("Fashion", "Apparel, shoes, and accessories", "category_images/fashion.png"),
-    ("Home & Kitchen", "Furniture, decor, and appliances", "category_images/home.png"),
-    ("Books", "Fiction, non-fiction, and textbooks", "category_images/books.png"),
-    ("Sports & Outdoors", "Equipment, activewear, and gear", "category_images/sports.png")
+    ("Electronics", "Gadgets, computers, and more", "category_images/electronics.jpg"),
+    ("Groceries", "Fresh produce, dairy, and pantry items", "category_images/groceries.jpg"),
+    ("Fashion", "Apparel, shoes, and accessories", "category_images/fashion.jpg"),
+    ("Home & Kitchen", "Furniture, decor, and appliances", "category_images/home.jpg"),
+    ("Books", "Fiction, non-fiction, and textbooks", "category_images/books.jpg"),
+    ("Sports & Outdoors", "Equipment, activewear, and gear", "category_images/sports.jpg")
 ]
 SAMPLE_PRODUCT_ADJECTIVES = ["Wireless", "Smart", "Ergonomic", "Organic", "Handcrafted", "Heavy Duty", "Premium", "Bluetooth", "LED", "Eco-Friendly"]
 SAMPLE_PRODUCT_NOUNS = ["Mouse", "Keyboard", "Headphones", "T-Shirt", "Coffee Beans", "Running Shoes", "Backpack", "Water Bottle", "Desk Lamp", "Yoga Mat"]
 
 # Sample product images
 SAMPLE_PRODUCT_IMAGES = [
-    "product_images/mouse.png",
-    "product_images/keyboard.png",
-    "product_images/headphones.png",
-    "product_images/tshirt.png",
-    "product_images/coffee.png",
-    "product_images/shoes.png",
-    "product_images/backpack.png",
-    "product_images/bottle.png",
-    "product_images/lamp.png",
-    "product_images/yogamat.png"
+    "product_images/mouse.jpg",
+    "product_images/keyboard.jpg",
+    "product_images/headphones.jpg",
+    "product_images/tshirt.jpg",
+    "product_images/coffee.jpg",
+    "product_images/shoes.jpg",
+    "product_images/backpack.jpg",
+    "product_images/bottle.jpg",
+    "product_images/lamp.jpg",
+    "product_images/yogamat.jpg"
 ]
 
 SAMPLE_BIZ_ADJECTIVES = ["Global", "National", "Apex", "Summit", "Dynamic", "Pinnacle", "United", "Premier", "Elite"]
@@ -185,7 +185,7 @@ def get_random_address() -> dict:
 # --- Main Seeder Function ---
 
 def seed():
-    DB_FILE = "./data/livemart.db" # Adjusted path to match your project
+    DB_FILE = "../data/livemart.db" # Adjusted path to match your project
     DB_DIR = os.path.dirname(DB_FILE)
     
     if not os.path.exists(DB_DIR):
@@ -367,7 +367,7 @@ def seed():
         add_wholesale_order(
             retailer_id=retailer.id,
             wholesaler_id=wholesaler.id,
-            address=retailer.address,
+            address=retailer.address,   
             items=items_in_order
         )
     print("Created 20 wholesale orders.")
