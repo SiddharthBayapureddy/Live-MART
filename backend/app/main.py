@@ -19,9 +19,7 @@ from auth import (
     get_current_retailer,
     get_current_customer,
     get_current_wholesaler,
-    customer_oauth2_scheme, # Import the new schemes
-    retailer_oauth2_scheme,
-    wholesaler_oauth2_scheme
+    # Remove the form-based schemes
 )
 
 # Importing custom-built database models and functions
@@ -70,27 +68,25 @@ async def lifespan(app: FastAPI):
     create_db_and_tables()
     yield
 
-# This tells the /docs UI how to set up the "Authorize" button
-security_schemes = {
-    "Customer": customer_oauth2_scheme,
-    "Retailer": retailer_oauth2_scheme,
-    "Wholesaler": wholesaler_oauth2_scheme,
-}
 app = FastAPI(
     title="Live MART" , 
-    lifespan=lifespan,
-    swagger_ui_parameters={"securitySchemes": security_schemes}
+    lifespan=lifespan
 )
 
 
 # Mounting the app to folder at "../data"
 app.mount("/static" , StaticFiles(directory="../data") , name="static")
 
+# Mount your frontend
+app.mount("/", StaticFiles(directory="../frontend", html=True), name="frontend")
+
+
 # Creating endpoints
 
 # Root 
 @app.get("/")
 def root():
+    # This will now be overridden by the StaticFiles mount if you have an index.html
     return "Hello Word!"
 
 
@@ -135,15 +131,14 @@ async def signup_customer(customer : CustomerCreate):
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------
 
-# Login Endpoint - POST ---> Accepts Form Data
+# Login Endpoint - POST ---> Accepts JSON Body
 @app.post("/login/customer", response_model=Token, tags=["Customer Auth"])
 async def login_customer(
-    username: Annotated[str, Form()], 
-    password: Annotated[str, Form()]
+    req: LoginRequest
 ):
 
     # Checking if customer exists
-    customer = await run_in_threadpool(get_customer_by_email , username)
+    customer = await run_in_threadpool(get_customer_by_email , req.mail)
 
     if not customer:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED , detail="Invalid Credentials: Mail not found")
@@ -151,7 +146,7 @@ async def login_customer(
 
     # Checking password
     # Password incorrect
-    if not verify_password(password, customer.hashed_password):
+    if not verify_password(req.password, customer.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED , detail="Invalid Credentials: Password not found")
     
     # Create and return JWT token
@@ -195,15 +190,14 @@ async def signup_retailer(retailer: RetailerCreate):
 
 @app.post("/login/retailer", response_model=Token, tags=["Retailer Auth"])
 async def login_retailer(
-    username: Annotated[str, Form()], 
-    password: Annotated[str, Form()]
+    req: LoginRequest
 ):
     
-    retailer = await run_in_threadpool(get_retailer_by_email, username)
+    retailer = await run_in_threadpool(get_retailer_by_email, req.mail)
     if not retailer:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Credentials")
 
-    if not verify_password(password, retailer.hashed_password):
+    if not verify_password(req.password, retailer.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Credentials")
 
     # Create and return JWT token
@@ -246,15 +240,14 @@ async def signup_wholesaler(wholesaler: WholesalerCreate):
 
 @app.post("/login/wholesaler", response_model=Token, tags=["Wholesaler Auth"])
 async def login_wholesaler(
-    username: Annotated[str, Form()], 
-    password: Annotated[str, Form()]
+    req: LoginRequest
 ):
     
-    wholesaler = await run_in_threadpool(get_wholesaler_by_email, username)
+    wholesaler = await run_in_threadpool(get_wholesaler_by_email, req.mail)
     if not wholesaler:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Credentials")
 
-    if not verify_password(password, wholesaler.hashed_password):
+    if not verify_password(req.password, wholesaler.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Credentials")
 
     # Create and return JWT token

@@ -12,7 +12,7 @@ from jose import jwt, JWTError
 from schemas import CustomerRead, RetailerRead, WholesalerRead
 from database import get_customer_by_email, get_retailer_by_email, get_wholesaler_by_email
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer, OAuth2Bearer
 from fastapi.concurrency import run_in_threadpool
 from db_models import Customer, Retailer, Wholesaler
 
@@ -40,11 +40,8 @@ SECRET_KEY = "your-super-secret-key-for-this-project" # Change this!
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 # 1 day
 
-# This defines the URL where the client will send a username/password to log in
-# We now have one for each user role
-customer_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login/customer")
-retailer_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login/retailer")
-wholesaler_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login/wholesaler")
+# This tells FastAPI to look for the "Authorization: Bearer <token>" header
+oauth2_scheme = OAuth2Bearer(tokenUrl="login/customer")
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
@@ -59,7 +56,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 # Dependency to get the current logged-in customer
-async def get_current_customer(token: str = Depends(customer_oauth2_scheme)) -> Customer:
+async def get_current_customer(token: str = Depends(oauth2_scheme)) -> Customer:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -80,7 +77,7 @@ async def get_current_customer(token: str = Depends(customer_oauth2_scheme)) -> 
     return user
 
 # Dependency to get the current logged-in retailer
-async def get_current_retailer(token: str = Depends(retailer_oauth2_scheme)) -> Retailer:
+async def get_current_retailer(token: str = Depends(oauth2_scheme)) -> Retailer:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -101,7 +98,7 @@ async def get_current_retailer(token: str = Depends(retailer_oauth2_scheme)) -> 
     return user
 
 # Dependency to get the current logged-in wholesaler
-async def get_current_wholesaler(token: str = Depends(wholesaler_oauth2_scheme)) -> Wholesaler:
+async def get_current_wholesaler(token: str = Depends(oauth2_scheme)) -> Wholesaler:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
