@@ -1,7 +1,7 @@
 # Used for validating and structuring the data my API recieves and returns
 
 
-# BaseModel for defining request/response schemas
+    # BaseModel for defining request/response schemas
 from pydantic import BaseModel , EmailStr   # EmailStr helps validate proper email structure
 from typing import Optional , List
 from datetime import datetime
@@ -151,6 +151,14 @@ class ProductCreate(BaseModel):
     category_id: Optional[int] = None
     image_url: Optional[str] = None
 
+class ProductUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    price: Optional[float] = None
+    stock: Optional[int] = None
+    category_id: Optional[int] = None
+    image_url: Optional[str] = None
+
 # --------------------------------------------------------------------------------------------------------------------------------------------
 
 class ProductRead(BaseModel):
@@ -244,6 +252,10 @@ class OrderCreate(BaseModel):
     shipping_city: str
     shipping_pincode: str
     payment_mode: str # e.g., "Online" or "Offline" (source 51)
+    
+class OrderStatusUpdate(BaseModel):
+    status: str
+    payment_status: Optional[str] = None
 
 # Schema for reading a complete order record
 class OrderRecordsRead(BaseModel):

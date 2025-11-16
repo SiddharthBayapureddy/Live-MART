@@ -41,6 +41,12 @@ from database import (
     get_cart_by_customer_id,
     get_detailed_cart_items,
     process_checkout,
+    get_products_by_retailer,
+    get_product_by_id,
+    update_product_details,
+    get_orders_by_retailer,
+    get_order_by_id,
+    update_order_status,
 
     engine
 )
@@ -374,13 +380,65 @@ async def checkout(
 
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------
+# --- Retailer Workflow Endpoints ---
+# -------------------------------------------------------------------------------------------------------------------------------------------------
+
+@app.get("/retailer/my-products", response_model=List[ProductRead], tags=["Retailer Workflow"])
+async def get_my_products(current_retailer: Retailer = Depends(get_current_retailer)):
+    
+    products = await run_in_threadpool(get_products_by_retailer, retailer_id=current_retailer.id)
+    return products
+
+@app.put("/retailer/products/{product_id}", response_model=ProductRead, tags=["Retailer Workflow"])
+async def update_product(
+    product_id: int, 
+    update_data: ProductUpdate,
+    current_retailer: Retailer = Depends(get_current_retailer)
+):
+    
+    product = await run_in_threadpool(get_product_by_id, product_id=product_id)
+    
+    # Check if product exists and belongs to the retailer
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    if product.retailer_id != current_retailer.id:
+        raise HTTPException(status_code=403, detail="Not authorized to update this product")
+        
+    updated_product = await run_in_threadpool(update_product_details, product=product, update_data=update_data)
+    return updated_product
+
+@app.get("/retailer/orders", response_model=List[OrderRecordsRead], tags=["Retailer Workflow"])
+async def get_my_orders(current_retailer: Retailer = Depends(get_current_retailer)):
+    
+    orders = await run_in_threadpool(get_orders_by_retailer, retailer_id=current_retailer.id)
+    # Note: This returns orders without the 'items' list populated.
+    return orders
+
+@app.put("/retailer/orders/{order_id}/status", response_model=OrderRecordsRead, tags=["Retailer Workflow"])
+async def update_order(
+    order_id: int,
+    status_update: OrderStatusUpdate,
+    current_retailer: Retailer = Depends(get_current_retailer)
+):
+    
+    # First, verify this order actually belongs to the retailer
+    retailer_orders = await run_in_threadpool(get_orders_by_retailer, retailer_id=current_retailer.id)
+    order_ids = [order.id for order in retailer_orders]
+    
+    if order_id not in order_ids:
+        raise HTTPException(status_code=403, detail="Not authorized to update this order")
+        
+    order = await run_in_threadpool(get_order_by_id, order_id=order_id)
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+        
+    updated_order = await run_in_threadpool(update_order_status, order=order, status_update=status_update)
+    return updated_order
 
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-
-# -------------------------------------------------------------------------------------------------------------------------------------------------
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------
 
