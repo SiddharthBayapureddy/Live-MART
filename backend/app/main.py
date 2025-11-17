@@ -12,6 +12,16 @@ from contextlib import asynccontextmanager
 
 from fastapi.concurrency import run_in_threadpool
 
+# Add datetime for Google Auth
+from datetime import datetime
+
+from starlette.middleware.sessions import SessionMiddleware
+from starlette.requests import Request
+from starlette.responses import RedirectResponse
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
 from auth import (
     hash_password, 
     verify_password, 
@@ -19,6 +29,8 @@ from auth import (
     get_current_retailer,
     get_current_customer,
     get_current_wholesaler,
+
+    oauth # Google OAuth
 )
 
 # Importing custom-built database models and functions
@@ -71,6 +83,9 @@ app = FastAPI(
     title="Live MART" , 
     lifespan=lifespan
 )
+
+SECRET_KEY = os.getenv("SECRET_KEY", "unsafe-random-string-for-dev")
+app.add_middleware(SessionMiddleware , secret_key = SECRET_KEY)
 
 
 # Mounting the app to folder at "../data"
@@ -149,6 +164,11 @@ async def login_customer(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
+@app.get("/customer/me", response_model=CustomerRead, tags=["Customer Auth"])
+async def get_me(customer: Customer = Depends(get_current_customer)):
+    return customer
+
+
 # -------------------------------------------------------------------------------------------------------------------------------------------------
 # --- Retailer Auth Endpoints ---
 # -------------------------------------------------------------------------------------------------------------------------------------------------
@@ -198,6 +218,12 @@ async def login_retailer(
     # Create and return JWT token
     access_token = create_access_token(data={"sub": retailer.mail, "role": "retailer"})
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@app.get("/retailer/me", response_model=RetailerRead, tags=["Retailer Auth"])
+async def get_me(retailer: Retailer = Depends(get_current_retailer)):
+    return retailer
+
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------
 # --- Wholesaler Auth Endpoints ---
@@ -250,6 +276,62 @@ async def login_wholesaler(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
+@app.get("/wholesaler/me", response_model=WholesalerRead, tags=["Wholesaler Auth"])
+async def get_me(wholesaler: Wholesaler = Depends(get_current_wholesaler)):
+    return wholesaler
+
+
+# -------------------------------------------------------------------------------------------------------------------------------------------------
+# --- Social Login Endpoints ---
+# -------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+# Google Auth Endpoints
+@app.get("/login/google", tags=["Social Auth"])
+async def login_google(request: Request):
+    # This creates the redirect URL: http://127.0.0.1:8000/auth/google
+    redirect_uri = request.url_for('auth_google')
+    return await oauth.google.authorize_redirect(request, redirect_uri)
+
+@app.get("/auth/google", tags=["Social Auth"])
+async def auth_google(request: Request):
+    try:
+        # 1. Exchange the auth code for a token
+        token = await oauth.google.authorize_access_token(request)
+        
+        # 2. Get the user's info from Google
+        user_info = token.get('userinfo')
+        if not user_info:
+            user_info = await oauth.google.userinfo(token=token)
+            
+        email = user_info.get('email')
+        name = user_info.get('name')
+        
+        # 3. Check if this customer already exists in our DB
+        customer = await run_in_threadpool(get_customer_by_email, mail=email)
+        
+        if not customer:
+            # 4. If not, create a new account automatically
+            # We generate a random secure password since they login via Google
+            random_pass = hash_password(email + datetime.utcnow().isoformat())
+            customer = await run_in_threadpool(
+                add_customer,
+                name=name,
+                mail=email,
+                hashed_password=random_pass
+            )
+            
+        # 5. Generate a JWT token for our app
+        access_token = create_access_token(data={"sub": customer.mail, "role": "customer"})
+        
+        # 6. Redirect to the frontend Customer page, passing the token in the URL
+        return RedirectResponse(url=f"/Customer.html?token={access_token}")
+        
+    except Exception as e:
+        # If something goes wrong, show the error
+        raise HTTPException(status_code=400, detail=f"Google Login Failed: {str(e)}")
+
+
 # -------------------------------------------------------------------------------------------------------------------------------------------------
 # --- Product Endpoints ---
 # -------------------------------------------------------------------------------------------------------------------------------------------------
@@ -268,9 +350,6 @@ async def get_product(product_id: int):
         raise HTTPException(status_code=404, detail="Product not found")
     
     return prod
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 # Adding Product Endpoint - POST ---> Accepts JSON Body as response
@@ -423,6 +502,14 @@ async def update_order(
     updated_order = await run_in_threadpool(update_order_status, order=order, status_update=status_update)
     return updated_order
 
+
+# -------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+# -------------------------------------------------------------------------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------------------------------------------------------------------------
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------
 # --- THIS MUST BE AT THE END OF THE FILE ---

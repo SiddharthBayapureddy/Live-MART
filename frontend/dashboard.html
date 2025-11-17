@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            display: block; /* Override flex for simple page */
+            padding: 20px;
+            min-height: 0;
+            background: #f6f5f7;
+        }
+        .content {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 14px 28px rgba(0,0,0,0.25);
+            font-family: 'Montserrat', sans-serif;
+        }
+        pre {
+            background: #eee;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap; /* Wrap long lines */
+            word-wrap: break-word; /* Break long words */
+        }
+        .logout-btn {
+            border-radius: 20px;
+            border: 1px solid #FF4B2B;
+            background-color: #FF4B2B;
+            color: #FFFFFF;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 12px 45px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <h1>Login Successful</h1>
+        <p>This page shows that your login worked. The JWT token is saved in `localStorage` and was used to fetch this data from the backend.</p>
+        
+        <h2>Your User Data (JSON Dump):</h2>
+        <pre id="user-info">Loading...</pre>
+
+        <button id="logout-button" class="logout-btn">Log Out</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = localStorage.getItem('token');
+            const role = localStorage.getItem('user_role');
+            const userInfoEl = document.getElementById('user-info');
+
+            if (!token || !role) {
+                userInfoEl.textContent = 'Error: Not logged in. Redirecting to login...';
+                setTimeout(() => window.location.href = '/register.html', 2000);
+                return;
+            }
+
+            let fetchUrl = '';
+            if (role === 'customer') {
+                fetchUrl = '/customer/me';
+            } else if (role === 'retailer') {
+                fetchUrl = '/retailer/me';
+            } else if (role === 'wholesaler') {
+                fetchUrl = '/wholesaler/me';
+            } else {
+                userInfoEl.textContent = 'Error: Unknown user role.';
+                return;
+            }
+
+            try {
+                const response = await fetch(fetchUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    // Display the data as a formatted JSON string
+                    userInfoEl.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    const error = await response.json();
+                    userInfoEl.textContent = `Error: ${error.detail}`;
+                }
+
+            } catch (error) {
+                userInfoEl.textContent = `An error occurred: ${error.message}`;
+            }
+        });
+
+        document.getElementById('logout-button').addEventListener('click', () => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user_role');
+            window.location.href = '/register.html';
+        });
+    </script>
+</body>
+</html>

@@ -1,9 +1,16 @@
 # Password Managements and Session Managements
 
 import os
+from dotenv import load_dotenv
+load_dotenv()
+
 import hashlib # Use simple hashing
 from datetime import datetime, timedelta, timezone
 from typing import Optional
+
+# For Google/Facebook OAuth
+from authlib.integrations.starlette_client import OAuth
+from starlette.config import Config
 
 # For creating/decoding JWTs (JSON Web Tokens)
 from jose import jwt, JWTError
@@ -120,3 +127,20 @@ async def get_current_wholesaler(creds: HTTPAuthorizationCredentials = Depends(b
     if user is None:
         raise credentials_exception
     return user
+
+#--------------------------------------------------------------------------------------------------------------------------------------------
+
+# 3. Google Auth Configuration
+oauth = OAuth()
+
+oauth.register(
+    name = "google",
+    client_id = os.getenv("GOOGLE_CLIENT_ID"),
+    client_secret = os.getenv("GOOGLE_CLIENT_SECRET_KEY"),
+    server_metadata_url = "https://accounts.google.com/.well-known/openid-configuration",
+    client_kwargs = {
+        'scope' : 'openid email profile'
+    }
+)
+
+#--------------------------------------------------------------------------------------------------------------------------------------------

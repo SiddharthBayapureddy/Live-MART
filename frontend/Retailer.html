@@ -7,12 +7,14 @@
   <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
   <title>Login | Signup</title>
   <style>
-    .message {
-      font-size: 14px;
-      margin-top: 15px;
-    }
+    .message { font-size: 14px; margin-top: 15px; }
     .message.success { color: #3c763d; }
     .message.error { color: #a94442; }
+    .social img { width: 24px !important; height: 24px !important; object-fit: contain;}
+    /* Make form taller */
+    .container { min-height: 620px; }
+    .form-container form { padding: 0 40px; }
+    input { margin: 6px 0; }
   </style>
 </head>
 <body>
@@ -23,28 +25,32 @@
 			<h2>Create Retailer Account</h2>
 			<span>Use your business-email for registration</span>
 			<input type="text" id="signup-name" placeholder="Your Full Name" required />
-      <input type="text" id="signup-business-name" placeholder="Business Name" required />
+            <input type="text" id="signup-business-name" placeholder="Business Name" required />
 			<input type="email" id="signup-email" placeholder="Business Email" required />
 			<input type="password" id="signup-password" placeholder="Password" required />
-      <input type="text" id="signup-address" placeholder="Business Address" required />
-      <input type="text" id="signup-city" placeholder="City" required />
-      <input type="text" id="signup-state" placeholder="State" required />
-      <input type="text" id="signup-pincode" placeholder="Pincode" required />
+            <input type="text" id="signup-address" placeholder="Business Address" required />
+            <input type="text" id="signup-city" placeholder="City" required />
+            <input type="text" id="signup-state" placeholder="State" required />
+            <input type="text" id="signup-pincode" placeholder="Pincode" required />
+            <input type="tel" id="signup-phone" placeholder="Phone (Optional)" />
 			<button type="submit">Sign Up</button>
-      <p id="signup-message" class="message"></p>
+            <p id="signup-message" class="message"></p>
 		</form>
 	</div>
 	<div class="form-container sign-in-container">
 		<form id="sign-in-form">
 			<h2>Retailer Sign-in</h2>
 			<div class="social-container">
-				</div>
+				<a href="#" class="social facebook"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Facebook_Logo_%282019%29.png/1024px-Facebook_Logo_%282019%29.png" alt="Facebook"></a>
+                <a href="#" class="social google"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/768px-Google_%22G%22_logo.svg.png" alt="Google"></a>
+                <a href="#" class="social linkedin"><img src="https://upload.wikimedia.org/wikipedia/commons/c/ca/LinkedIn_logo_initials.png" alt="LinkedIn"></a>
+			</div>
 			<span>or use your account</span>
 			<input type="email" id="signin-email" placeholder="Email" required />
 			<input type="password" id="signin-password" placeholder="Password" required />
 			<a href="#">Forgot your password?</a>
 			<button type="submit">Sign In</button>
-      <p id="signin-message" class="message"></p>
+            <p id="signin-message" class="message"></p>
 		</form>
 	</div>
 	<div class="overlay-container">
@@ -62,18 +68,17 @@
 		</div>
 	</div>
 </div>
+  <!-- Footer -->
   <footer>
     <p>© 2025 Live-MART. All rights reserved.</p>
   </footer>
 
   <script src="js/js.js"></script>
-
   <script>
     // --- Sign-Up Logic ---
     document.getElementById('sign-up-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const messageEl = document.getElementById('signup-message');
-
         const data = {
             name: document.getElementById('signup-name').value,
             mail: document.getElementById('signup-email').value,
@@ -82,16 +87,15 @@
             address: document.getElementById('signup-address').value,
             city: document.getElementById('signup-city').value,
             state: document.getElementById('signup-state').value,
-            pincode: document.getElementById('signup-pincode').value
+            pincode: document.getElementById('signup-pincode').value,
+            phone_number: document.getElementById('signup-phone').value
         };
-
         try {
             const response = await fetch('/signup/retailer', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(data)
             });
-
             if (response.ok) {
                 const result = await response.json();
                 messageEl.textContent = 'Success! Welcome, ' + result.name;
@@ -111,26 +115,23 @@
     document.getElementById('sign-in-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const messageEl = document.getElementById('signin-message');
-
         const data = {
             mail: document.getElementById('signin-email').value,
             password: document.getElementById('signin-password').value
         };
-
         try {
             const response = await fetch('/login/retailer', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(data)
             });
-
             if (response.ok) {
                 const result = await response.json();
                 localStorage.setItem('token', result.access_token);
-                messageEl.textContent = 'Login successful!';
+                localStorage.setItem('user_role', 'retailer'); // Set role
+                messageEl.textContent = 'Login successful! Redirecting...';
                 messageEl.className = 'message success';
-                // Redirect to a retailer dashboard
-                // window.location.href = '/retailer-dashboard.html'; 
+                setTimeout(() => window.location.href = '/dashboard.html', 1000);
             } else {
                 const error = await response.json();
                 messageEl.textContent = 'Error: ' + error.detail;
