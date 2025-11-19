@@ -288,3 +288,16 @@ class Feedback(SQLModel, table=True):
     comment: Optional[str] = None
     
     created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+
+
+
+# --------------------------------------------------------------------------------------------------------------------
+# OTP Model
+# --------------------------------------------------------------------------------------------------------------------
+
+class PasswordReset(SQLModel , table=True):
+    id : Optional[int] = Field(default=None , primary_key=True)
+    email: str = Field(index=True)
+    otp:str
+    expires_at : datetime
+    

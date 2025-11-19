@@ -1,7 +1,7 @@
 # App
 
 # Importing FastAPI
-from fastapi import FastAPI , HTTPException , status, Depends, Form
+from fastapi import FastAPI , HTTPException , status, Depends, Form , BackgroundTasks
 from typing import List, Annotated
 
 # For file management
@@ -13,7 +13,7 @@ from contextlib import asynccontextmanager
 from fastapi.concurrency import run_in_threadpool
 
 # Add datetime for Google Auth
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.requests import Request
@@ -30,7 +30,11 @@ from auth import (
     get_current_customer,
     get_current_wholesaler,
 
-    oauth # Google OAuth
+    oauth, # Google OAuth
+
+    # SMPT OTP Config
+    send_otp_email,
+    generate_otp
 )
 
 # Importing custom-built database models and functions
@@ -56,12 +60,13 @@ from database import (
     get_orders_by_retailer,
     get_order_by_id,
     update_order_status,
+    
 
     engine
 )
 
 # Importing the SQLModel classes
-from db_models import Customer, Product, ShoppingCart, ShoppingCartItem, Retailer, Wholesaler
+from db_models import Customer, Product, ShoppingCart, ShoppingCartItem, Retailer, Wholesaler , PasswordReset
 
 # Importing the Schemas
 from schemas import *
@@ -507,12 +512,133 @@ async def update_order(
 
 
 
+
 # -------------------------------------------------------------------------------------------------------------------------------------------------
+
+# Password Forgot Endpoint
+@app.post("/auth/forgot-password" , status_code=status.HTTP_200_OK , tags=["Auth"])
+async def forgot_password(request: ForgotPasswordRequest , background_tasks: BackgroundTasks):
+
+    email = request.email
+
+    customer = await run_in_threadpool(get_customer_by_email, email)
+    retailer = await run_in_threadpool(get_retailer_by_email, email)
+    wholesaler = await run_in_threadpool(get_wholesaler_by_email, email)
+
+    if not (customer or retailer or wholesaler):
+        raise HTTPException(status_code=404 , detail="User with this mail does not exist")
+    
+    otp = generate_otp()
+    expiration = datetime.utcnow() + timedelta(minutes=10) # OTP is valid for 10min
+
+    with Session(engine) as session:
+        
+        existing = session.exec(select(PasswordReset).where(PasswordReset.email == email)).all()
+
+        # Deleting the record if exists a already OTP request
+        for record in existing:
+            session.delete(record)
+
+        # Making a new one
+        reset_entry = PasswordReset(email=email, otp=otp, expires_at=expiration)
+        session.add(reset_entry)
+        session.commit()
+
+    await send_otp_email(email , otp, background_tasks)
+
+    return {"message": "OTP sent to your email."}
+
+
+# Password Reset Endpoint
+@app.post("/auth/reset-password" , status_code=status.HTTP_200_OK , tags=['Auth'])
+async def reset_password(request: ResetPasswordRequest):
+
+    # Checking if request has been made or not
+    with Session(engine) as session:
+
+        statement = select(PasswordReset).where(
+            (PasswordReset.email == request.email) &
+            (PasswordReset.otp == request.otp) 
+        )
+
+        reset_record  = session.exec(statement).first()
+
+        if not reset_record:
+            raise HTTPException(status_code=400, detail="Invalid OTP.")
+        
+        # If OTP expired
+        if reset_record.expires_at < datetime.utcnow():
+            session.delete(reset_record) # 
+            session.commit()
+            raise HTTPException(status_code=400, detail="OTP has expired.")
+        
+
+        # Updating the password
+        new_hashed_password = hash_password(request.new_password)
+        
+        # Finding the user
+        user_found = False
+
+        # Checking for customer
+        customer = session.exec(select(Customer).where(Customer.mail == request.email)).first()
+        if customer:
+            customer.hashed_password = new_hashed_password
+            session.add(customer)
+            user_found = True
+
+        # Checking for Retailer
+        if not user_found:
+            retailer = session.exec(select(Retailer).where(Retailer.mail == request.email)).first()
+            if retailer:
+                retailer.hashed_password = new_hashed_password
+                session.add(retailer)
+                user_found = True
+
+        # Checking for Wholesaler
+        if not user_found:
+            wholesaler = session.exec(select(Wholesaler).where(Wholesaler.mail == request.email)).first()
+            if wholesaler:
+                wholesaler.hashed_password = new_hashed_password
+                session.add(wholesaler)
+                user_found = True
+        
+        if not user_found:
+            raise HTTPException(status_code=404, detail="User account not found.")
+
+        # 3. Delete the OTP so it can't be used again
+        session.delete(reset_record)
+        session.commit()
+        
+        return {"message": "Password updated successfully. You can now login."}
+    
+
+# Verifying OTP
+@app.post("/auth/verify-otp-only", status_code=status.HTTP_200_OK, tags=["Auth"])
+async def verify_otp_only(request: OTPVerifyRequest):
+    """
+    Checks if OTP is valid without resetting password or deleting the OTP.
+    Used for the frontend 'Next' button.
+    """
+    with Session(engine) as session:
+        statement = select(PasswordReset).where(
+            (PasswordReset.email == request.email) & 
+            (PasswordReset.otp == request.otp)
+        )
+        reset_record = session.exec(statement).first()
+
+        if not reset_record:
+            raise HTTPException(status_code=400, detail="Invalid OTP Code.")
+
+        if reset_record.expires_at < datetime.utcnow():
+            session.delete(reset_record) # Cleanup expired
+            session.commit()
+            raise HTTPException(status_code=400, detail="OTP has expired.")
+            
+        return {"message": "OTP is valid."}
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------
-# --- THIS MUST BE AT THE END OF THE FILE ---
 # -------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Mount your frontend

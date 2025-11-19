@@ -3,248 +3,71 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Account Recovery</title>
+  <title>Verify OTP | Live-MART</title>
   
-  <!-- Icons and Fonts -->
   <link rel="stylesheet" href="assets/css/font-awesome.min.css">
   <link rel="stylesheet" href="assets/css/bootstrap.css">
   <link href='https://fonts.googleapis.com/css?family=Montserrat:400,800' rel='stylesheet'>
 
   <style>
-    /* =========================================
-       1. GLOBAL STYLES & RESET
-    ========================================= */
     * { box-sizing: border-box; }
-    
     body {
-      /* --- EXTRACTED BACKGROUND FROM CUSTOMER.HTML --- */
       background-color: #050505; 
       background-image: 
-        /* The Grid Lines */
         linear-gradient(rgba(0, 243, 255, 0.1) 1px, transparent 1px),
         linear-gradient(90deg, rgba(0, 243, 255, 0.1) 1px, transparent 1px),
-        /* The Blue Glow (Top Left) */
         radial-gradient(circle at 15% 50%, rgba(0, 255, 255, 0.15), transparent 50%),
-        /* The Red Glow (Bottom Right) */
         radial-gradient(circle at 85% 30%, rgba(255, 0, 60, 0.15), transparent 50%);
       background-size: 40px 40px, 40px 40px, 100% 100%, 100% 100%;
       background-attachment: fixed;
-      /* ----------------------------------------------- */
-      
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-      margin: 0;
-      color: #fff;
-      font-family: 'Montserrat', sans-serif;
+      display: flex; flex-direction: column; min-height: 100vh; margin: 0;
+      color: #fff; font-family: 'Montserrat', sans-serif;
     }
-
-    .main-content {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        width: 100%;
-        padding: 40px 0;
-    }
-
+    .main-content { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; padding: 40px 0; }
     h1 { font-weight: bold; margin: 0; }
     h2 { font-weight: bold; margin: 0 0 20px 0; color: #fff; text-align: center; }
     p { font-size: 14px; font-weight: 100; line-height: 20px; letter-spacing: 0.5px; margin: 20px 0 30px; }
     span { font-size: 12px; color: #ccc; }
-
-    /* =========================================
-       2. LOGIN CARD CONTAINER
-    ========================================= */
-    .login-container {
-      background-color: #000;
-      border-radius: 10px;
-      box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
-      position: relative;
-      overflow: hidden;
-      width: 768px;
-      max-width: 100%;
-      min-height: 480px;
-    }
-
-    /* =========================================
-       3. FORM SECTIONS
-    ========================================= */
-    .form-container {
-      position: absolute;
-      top: 0;
-      height: 100%;
-      transition: all 0.6s ease-in-out;
-    }
-
-    form {
-      background-color: #050505;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      padding: 0 50px;
-      height: 100%;
-      text-align: center;
-    }
-
-    input {
-      background-color: #222;
-      border: none;
-      padding: 12px 15px;
-      margin: 8px 0;
-      width: 100%;
-      color: #fff;
-      border-radius: 4px;
-      outline: none;
-    }
-
-    /* Hide Default Browser Password Eye */
-    input[type="password"]::-ms-reveal,
-    input[type="password"]::-ms-clear {
-        display: none;
-    }
-
-    .login-container button {
-      border-radius: 20px;
-      border: 1px solid #FF4B2B;
-      background-color: #FF4B2B;
-      color: #FFFFFF;
-      font-size: 12px;
-      font-weight: bold;
-      padding: 12px 45px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      transition: transform 80ms ease-in;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-
-    .login-container button:active { transform: scale(0.95); }
-    .login-container button:focus { outline: none; }
-    
-    .login-container button.ghost {
-      background-color: transparent;
-      border-color: #FFFFFF;
-    }
-
-    /* =========================================
-       4. SLIDING LOGIC & ANIMATIONS
-    ========================================= */
+    .login-container { background-color: #000; border-radius: 10px; box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22); position: relative; overflow: hidden; width: 768px; max-width: 100%; min-height: 480px; }
+    .form-container { position: absolute; top: 0; height: 100%; transition: all 0.6s ease-in-out; }
+    form { background-color: #050505; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 0 50px; height: 100%; text-align: center; width: 100%; }
+    input { background-color: #222; border: none; padding: 12px 15px; margin: 8px 0; width: 100%; color: #fff; border-radius: 4px; outline: none; }
+    input[type="password"]::-ms-reveal, input[type="password"]::-ms-clear { display: none; }
+    button { border-radius: 20px; border: 1px solid #FF4B2B; background-color: #FF4B2B; color: #FFFFFF; font-size: 12px; font-weight: bold; padding: 12px 45px; letter-spacing: 1px; text-transform: uppercase; transition: transform 80ms ease-in; cursor: pointer; margin-top: 10px; }
+    button:active { transform: scale(0.95); }
+    button:focus { outline: none; }
+    button:disabled { background-color: #555; border-color: #555; cursor: not-allowed; }
+    button.ghost { background-color: transparent; border-color: #FFFFFF; }
     .sign-in-container { left: 0; width: 50%; z-index: 2; }
     .sign-up-container { left: 0; width: 50%; opacity: 0; z-index: 1; }
-
     .login-container.right-panel-active .sign-in-container { transform: translateX(100%); }
-    .login-container.right-panel-active .sign-up-container {
-      transform: translateX(100%); opacity: 1; z-index: 5; animation: show 0.6s;
-    }
-
-    @keyframes show {
-      0%, 49.99% { opacity: 0; z-index: 1; }
-      50%, 100% { opacity: 1; z-index: 5; }
-    }
-
-    .overlay-container {
-      position: absolute;
-      top: 0; left: 50%; width: 50%; height: 100%;
-      overflow: hidden; transition: transform 0.6s ease-in-out; z-index: 100;
-    }
-
+    .login-container.right-panel-active .sign-up-container { transform: translateX(100%); opacity: 1; z-index: 5; animation: show 0.6s; }
+    @keyframes show { 0%, 49.99% { opacity: 0; z-index: 1; } 50%, 100% { opacity: 1; z-index: 5; } }
+    .overlay-container { position: absolute; top: 0; left: 50%; width: 50%; height: 100%; overflow: hidden; transition: transform 0.6s ease-in-out; z-index: 100; }
     .login-container.right-panel-active .overlay-container { transform: translateX(-100%); }
-
-    .overlay {
-      background: #FF416C;
-      background: -webkit-linear-gradient(to right, #FF4B2B, #FF416C);
-      background: linear-gradient(to right, #FF4B2B, #FF416C);
-      background-repeat: no-repeat; background-size: cover; background-position: 0 0;
-      color: #FFFFFF; position: relative; left: -100%; height: 100%; width: 200%;
-      transform: translateX(0); transition: transform 0.6s ease-in-out;
-    }
-
+    .overlay { background: linear-gradient(to right, #FF4B2B, #FF416C); background-repeat: no-repeat; background-size: cover; background-position: 0 0; color: #FFFFFF; position: relative; left: -100%; height: 100%; width: 200%; transform: translateX(0); transition: transform 0.6s ease-in-out; }
     .login-container.right-panel-active .overlay { transform: translateX(50%); }
-
-    .overlay-panel {
-      position: absolute; display: flex; align-items: center; justify-content: center;
-      flex-direction: column; padding: 0 40px; text-align: center; top: 0; height: 100%;
-      width: 50%; transform: translateX(0); transition: transform 0.6s ease-in-out;
-    }
-
+    .overlay-panel { position: absolute; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 0 40px; text-align: center; top: 0; height: 100%; width: 50%; transform: translateX(0); transition: transform 0.6s ease-in-out; }
     .overlay-left { transform: translateX(-20%); }
     .login-container.right-panel-active .overlay-left { transform: translateX(0); }
-
     .overlay-right { right: 0; transform: translateX(0); }
     .login-container.right-panel-active .overlay-right { transform: translateX(20%); }
-
-    /* Animations */
+    .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+    @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
     .tick-container { margin-bottom: 20px; }
-    .checkmark {
-        width: 80px; height: 80px; border-radius: 50%; display: block;
-        stroke-width: 2; stroke: #fff; stroke-miterlimit: 10;
-        box-shadow: inset 0px 0px 0px #7ac142;
-        animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s both;
-    }
-    .checkmark__circle {
-        stroke-dasharray: 166; stroke-dashoffset: 166; stroke-width: 2;
-        stroke-miterlimit: 10; stroke: #7ac142; fill: none;
-        animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
-    }
-    .checkmark__check {
-        transform-origin: 50% 50%; stroke-dasharray: 48; stroke-dashoffset: 48;
-        animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
-    }
+    .checkmark { width: 80px; height: 80px; border-radius: 50%; display: block; stroke-width: 2; stroke: #fff; stroke-miterlimit: 10; box-shadow: inset 0px 0px 0px #7ac142; animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s both; }
+    .checkmark__circle { stroke-dasharray: 166; stroke-dashoffset: 166; stroke-width: 2; stroke-miterlimit: 10; stroke: #7ac142; fill: none; animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards; }
+    .checkmark__check { transform-origin: 50% 50%; stroke-dasharray: 48; stroke-dashoffset: 48; animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards; }
     @keyframes stroke { 100% { stroke-dashoffset: 0; } }
     @keyframes scale { 0%, 100% { transform: none; } 50% { transform: scale3d(1.1, 1.1, 1); } }
     @keyframes fill { 100% { box-shadow: inset 0px 0px 0px 50px #7ac142; } }
-
-    .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
-    @keyframes shake {
-        10%, 90% { transform: translate3d(-1px, 0, 0); }
-        20%, 80% { transform: translate3d(2px, 0, 0); }
-        30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-        40%, 60% { transform: translate3d(4px, 0, 0); }
-    }
-
     .social-container { margin: 20px 0; }
-    .social {
-        border: 1px solid #DDDDDD; border-radius: 50%;
-        display: inline-flex; justify-content: center; align-items: center;
-        margin: 0 5px; height: 40px; width: 40px;
-        color: #fff; text-decoration: none;
-    }
-
-    /* =========================================
-       5. FOOTER STYLES
-    ========================================= */
-    .footer { 
-        width: 100%; 
-        background-color: #000; 
-        padding-top: 60px; 
-        border-top: 1px solid #222; 
-        padding-left: 50px;
-        padding-right: 50px;
-    }
+    .social { border: 1px solid #DDDDDD; border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; margin: 0 5px; height: 40px; width: 40px; color: #fff; text-decoration: none; }
+    .footer { width: 100%; background-color: #000; padding-top: 60px; border-top: 1px solid #222; padding-left: 50px; padding-right: 50px; }
     .footer p, .footer h5, .footer h6 { color: #fff; }
-    .widget_ab_item_text h6 { font-size: 16px; font-weight: bold; }
-    .widget_ab_item_text p { font-size: 13px; color: #999 !important; margin-top: 5px !important; }
-
-    #footer-newsletter-form input.form-control {
-        background-color: #1a1a1a !important;
-        border: 1px solid #333 !important;
-        color: #fff !important;
-    }
-    #footer-newsletter-form input.form-control::placeholder { color: #777 !important; }
-
-    #footer-newsletter-form button {
-        background-color: #111 !important;
-        border: 1px solid #333 !important;
-        color: #fff !important;
-        transition: all 0.3s ease;
-    }
-    #footer-newsletter-form button:hover {
-        background-color: #000 !important;
-        border-color: #FF4B2B !important;
-    }
+    #footer-newsletter-form input.form-control { background-color: #1a1a1a !important; border: 1px solid #333 !important; color: #fff !important; }
+    #footer-newsletter-form button { background-color: #111 !important; border: 1px solid #333 !important; color: #fff !important; transition: all 0.3s ease; }
+    #footer-newsletter-form button:hover { background-color: #000 !important; border-color: #FF4B2B !important; }
   </style>
 </head>
 <body>
@@ -254,7 +77,6 @@
 
       <div class="login-container" id="container">
         
-        <!-- SUCCESS SIDE (Slides in) -->
         <div class="form-container sign-up-container">
           <form action="#" onsubmit="return false;">
             <div class="tick-container">
@@ -264,108 +86,73 @@
                 </svg>
             </div>
             <h1>Verified</h1>
-            <p>Identity confirmed. Please set a new password.</p>
-            <input type="password" placeholder="New Password" />
-            <input type="password" placeholder="Confirm Password" />
-            <button onclick="alert('Password Reset Successfully!')">Update Password</button>
+            <p>Please set a new password.</p>
+            
+            <input type="password" id="new-password" placeholder="New Password" required />
+            <input type="password" id="confirm-password" placeholder="Confirm Password" required />
+            
+            <p id="pwd-error-msg" style="color: #ff4b2b; font-size: 12px; min-height: 20px; margin: 5px 0;"></p>
+
+            <button type="button" id="update-btn" onclick="submitReset()">Update Password</button>
           </form>
         </div>
 
-        <!-- OTP INPUT SIDE (Initial View) -->
         <div class="form-container sign-in-container">
           <form action="#" id="otpForm" onsubmit="return false;">
             <h1>Verify OTP</h1>
             <div class="social-container">
                 <a href="#" class="social"><i class="fa fa-lock"></i></a>
             </div>
-            <span>Enter the 6-digit code sent to your email</span>
+            <span id="email-display">Enter the 6-digit code sent to your email</span>
             
-            <!-- Updated Maxlength and Placeholder for 6 digits -->
             <input type="text" id="otp-input" placeholder="Ex: 123456" maxlength="6" style="text-align: center; letter-spacing: 5px; font-size: 20px;" />
             
             <p id="error-msg" style="color: #ff4b2b; font-size: 12px; min-height: 20px; margin: 5px 0;"></p>
             
-            <button type="button" onclick="verifyOTP()">Verify Code</button>
+            <button type="button" id="verify-btn" onclick="verifyAndSlide()">Verify Code</button>
           </form>
         </div>
 
-        <!-- OVERLAY -->
         <div class="overlay-container">
           <div class="overlay">
             <div class="overlay-panel overlay-left">
                 <h1>Success!</h1>
-                <p>You can now proceed to recover your account access.</p>
+                <p>Password updated. You can now login with your new credentials.</p>
+                <button class="ghost" onclick="window.location.href='Customer.html'">Go to Login</button>
             </div>
             <div class="overlay-panel overlay-right">
-                <h1>Hello, User!</h1>
-                <p>Enter your verification details to reset your password.</p>
-                <button class="ghost" onclick="window.history.back()">Back to Login</button>
+                <h1>Hello!</h1>
+                <p>Enter the code we just sent to <b id="overlay-email">your email</b>.</p>
+                <button class="ghost" onclick="window.location.href='otp.html'">Wrong Email?</button>
             </div>
           </div>
         </div>
       </div>
   </div>
 
-  <!-- FOOTER -->
   <footer id="contact" class="footer action-lage bg-black p-top-80">
     <div class="container">
         <div class="row">
             <div class="col-md-12">
                 <div class="footer-content" style="display: flex; justify-content: space-between; flex-wrap: wrap;">
-                    
                     <div class="col-md-6 col-sm-6">
                         <div class="widget_item widget_about">
                             <h5 class="text-white">About Us</h5>
-                            <p class="m-top-20">Connecting Retailers, Wholesalers, and Customers for a seamless shopping experience.</p>
-                            
-                            <div class="widget_ab_item m-top-30" style="display:flex; align-items: flex-start; margin-bottom: 15px;">
-                                <div class="item_icon" style="margin-right: 15px;"><i class="fa fa-location-arrow"></i></div>
-                                <div class="widget_ab_item_text">
-                                    <h6 class="text-white" style="margin:0;">Location</h6>
-                                    <p style="margin:0;">Shamirpet, Hyderabad</p>
-                                </div>
-                            </div>
-                            <div class="widget_ab_item m-top-30" style="display:flex; align-items: flex-start; margin-bottom: 15px;">
-                                <div class="item_icon" style="margin-right: 15px;"><i class="fa fa-phone"></i></div>
-                                <div class="widget_ab_item_text">
-                                    <h6 class="text-white" style="margin:0;">Phone</h6>
-                                    <p style="margin:0;">+9676744544</p>
-                                </div>
-                            </div>
-                            <div class="widget_ab_item m-top-30" style="display:flex; align-items: flex-start; margin-bottom: 15px;">
-                                <div class="item_icon" style="margin-right: 15px;"><i class="fa fa-envelope-o"></i></div>
-                                <div class="widget_ab_item_text">
-                                    <h6 class="text-white" style="margin:0;">Email</h6>
-                                    <p style="margin:0;">Livemart.bphc@gmail.com</p>
-                                </div>
-                            </div>
+                            <p class="m-top-20">Connecting Retailers, Wholesalers, and Customers.</p>
                         </div>
                     </div>
-
                     <div class="col-md-6 col-sm-6">
-                        <div class="widget_item widget_newsletter sm-m-top-50">
+                         <div class="widget_item widget_newsletter sm-m-top-50">
                             <h5 class="text-white">Newsletter</h5>
-                            <form class="form-inline m-top-30" id="footer-newsletter-form" style="margin-top: 20px;">
+                            <form class="form-inline m-top-30" id="footer-newsletter-form">
                                 <div class="form-group" style="width: 100%;">
                                     <input type="email" class="form-control" placeholder="Enter your Email" style="width: 100%; margin-bottom: 10px; padding: 10px;">
                                     <button type="submit" class="btn text-center" style="width: 100%; padding: 10px;">Subscribe</button>
                                 </div>
                             </form>
-                            
-                            <div class="widget_brand m-top-40" style="margin-top: 30px;">
-                                <h5 class="text-white">Follow Us</h5>
-                                <ul class="list-inline m-top-20" style="padding: 0; list-style: none; display: flex; gap: 15px;">
-                                    <li><a href="#"><i class="fa fa-facebook"></i></a></li>
-                                    <li><a href="#"><i class="fa fa-twitter"></i></a></li>
-                                    <li><a href="#"><i class="fa fa-linkedin"></i></a></li>
-                                    <li><a href="#"><i class="fa fa-google-plus"></i></a></li>
-                                </ul>
-                            </div>
                         </div>
                     </div>
-
                 </div>
-                
                 <div class="row">
                     <div class="col-md-12 text-center" style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 20px; padding-top: 20px;">
                         <p style="font-size: 12px;">© 2025 Live-MART. All rights reserved.</p>
@@ -381,26 +168,131 @@
     const otpInput = document.getElementById('otp-input');
     const otpForm = document.getElementById('otpForm');
     const errorMsg = document.getElementById('error-msg');
+    
+    let storedEmail = '';
+    let capturedOTP = '';
 
-    // Updated to 6-digit Mock OTP
-    const CORRECT_OTP = "123456"; 
+    window.onload = function() {
+        storedEmail = sessionStorage.getItem('reset_email');
+        
+        if (!storedEmail) {
+            alert("Session expired. Redirecting...");
+            window.location.href = 'otp.html';
+            return;
+        }
+        document.getElementById('overlay-email').textContent = storedEmail;
+    };
 
-    function verifyOTP() {
-        const val = otpInput.value;
-        if(val === CORRECT_OTP) {
-            errorMsg.textContent = "";
-            container.classList.add("right-panel-active"); 
-        } else {
-            errorMsg.textContent = "Incorrect OTP. Try 123456";
+    // --- UPDATED: Real Verification Before Sliding ---
+    async function verifyAndSlide() {
+        const val = otpInput.value.trim();
+        const verifyBtn = document.getElementById('verify-btn');
+
+        // 1. Length Check
+        if(val.length !== 6) {
+            errorMsg.textContent = "Please enter a 6-digit code.";
             otpForm.classList.add("shake");
             setTimeout(() => otpForm.classList.remove("shake"), 500);
+            return;
+        }
+
+        // 2. Backend Verification
+        const originalText = verifyBtn.textContent;
+        verifyBtn.textContent = "Verifying...";
+        verifyBtn.disabled = true;
+        errorMsg.textContent = "";
+
+        try {
+            const response = await fetch('/auth/verify-otp-only', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    email: storedEmail, 
+                    otp: val 
+                })
+            });
+
+            if (response.ok) {
+                // OTP is correct -> Slide to next screen
+                capturedOTP = val; 
+                container.classList.add("right-panel-active");
+            } else {
+                // OTP is incorrect
+                const err = await response.json();
+                errorMsg.textContent = err.detail || "Invalid OTP Code";
+                otpForm.classList.add("shake");
+                setTimeout(() => otpForm.classList.remove("shake"), 500);
+            }
+        } catch (error) {
+            console.error(error);
+            errorMsg.textContent = "Server connection error";
+        } finally {
+            verifyBtn.textContent = originalText;
+            verifyBtn.disabled = false;
+        }
+    }
+
+    async function submitReset() {
+        const newPass = document.getElementById('new-password').value;
+        const confirmPass = document.getElementById('confirm-password').value;
+        const pwdError = document.getElementById('pwd-error-msg');
+        const btn = document.getElementById('update-btn');
+
+        pwdError.textContent = "";
+
+        if (newPass !== confirmPass) {
+            pwdError.textContent = "Passwords do not match!";
+            return;
+        }
+        if (newPass.length < 4) {
+            pwdError.textContent = "Password must be at least 4 characters.";
+            return;
+        }
+
+        btn.textContent = "Updating...";
+        btn.disabled = true;
+
+        const payload = {
+            email: storedEmail,
+            otp: capturedOTP,
+            new_password: newPass
+        };
+
+        try {
+            const response = await fetch('/auth/reset-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                alert("Password updated successfully!");
+                sessionStorage.removeItem('reset_email'); 
+                window.location.href = 'Customer.html'; 
+            } else {
+                const errorData = await response.json();
+                if (errorData.detail && (errorData.detail.includes("OTP") || errorData.detail.includes("expired"))) {
+                    alert("Session Expired or OTP Invalid.");
+                    container.classList.remove("right-panel-active");
+                    otpInput.value = ""; 
+                } else {
+                    pwdError.textContent = errorData.detail || "Update failed.";
+                }
+                btn.textContent = "Update Password";
+                btn.disabled = false;
+            }
+        } catch (error) {
+            console.error(error);
+            pwdError.textContent = "Server connection failed.";
+            btn.textContent = "Update Password";
+            btn.disabled = false;
         }
     }
 
     otpInput.addEventListener("keypress", function(event) {
         if (event.key === "Enter") {
             event.preventDefault();
-            verifyOTP();
+            verifyAndSlide();
         }
     });
   </script>

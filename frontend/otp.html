@@ -3,178 +3,49 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Forgot Password</title>
+  <title>Forgot Password | Live-MART</title>
   
-  <!-- Icons and Fonts -->
   <link rel="stylesheet" href="assets/css/font-awesome.min.css">
   <link rel="stylesheet" href="assets/css/bootstrap.css">
   <link href='https://fonts.googleapis.com/css?family=Montserrat:400,800' rel='stylesheet'>
 
   <style>
-    /* =========================================
-       1. GLOBAL STYLES & RESET
-    ========================================= */
     * { box-sizing: border-box; }
-    
     body {
-      /* --- EXTRACTED BACKGROUND FROM CUSTOMER.HTML --- */
       background-color: #050505; 
       background-image: 
-        /* The Grid Lines */
         linear-gradient(rgba(0, 243, 255, 0.1) 1px, transparent 1px),
         linear-gradient(90deg, rgba(0, 243, 255, 0.1) 1px, transparent 1px),
-        /* The Blue Glow (Top Left) */
         radial-gradient(circle at 15% 50%, rgba(0, 255, 255, 0.15), transparent 50%),
-        /* The Red Glow (Bottom Right) */
         radial-gradient(circle at 85% 30%, rgba(255, 0, 60, 0.15), transparent 50%);
       background-size: 40px 40px, 40px 40px, 100% 100%, 100% 100%;
       background-attachment: fixed;
-      /* ----------------------------------------------- */
-      
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-      margin: 0;
-      color: #fff;
-      font-family: 'Montserrat', sans-serif;
+      display: flex; flex-direction: column; min-height: 100vh; margin: 0;
+      color: #fff; font-family: 'Montserrat', sans-serif;
     }
-
-    .main-content {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        width: 100%;
-        padding: 40px 0;
-    }
-
+    .main-content { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; padding: 40px 0; }
     h1 { font-weight: bold; margin: 0; }
     h2 { font-weight: bold; margin: 0 0 20px 0; color: #fff; text-align: center; }
     p { font-size: 14px; font-weight: 100; line-height: 20px; letter-spacing: 0.5px; margin: 20px 0 30px; }
     span { font-size: 12px; color: #ccc; }
-
-    /* =========================================
-       2. CARD CONTAINER
-    ========================================= */
-    .login-container {
-      background-color: #000;
-      border-radius: 10px;
-      box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
-      position: relative;
-      overflow: hidden;
-      width: 480px;
-      max-width: 100%;
-      min-height: 400px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    /* =========================================
-       3. FORM STYLES
-    ========================================= */
-    form {
-      background-color: #000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      padding: 0 50px;
-      height: 100%;
-      width: 100%;
-      text-align: center;
-    }
-
-    input {
-      background-color: #222;
-      border: none;
-      padding: 12px 15px;
-      margin: 15px 0;
-      width: 100%;
-      color: #fff;
-      border-radius: 4px;
-      outline: none;
-    }
-
-    button {
-      border-radius: 20px;
-      border: 1px solid #FF4B2B;
-      background-color: #FF4B2B;
-      color: #FFFFFF;
-      font-size: 12px;
-      font-weight: bold;
-      padding: 12px 45px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      transition: transform 80ms ease-in;
-      cursor: pointer;
-      margin-top: 20px;
-    }
-
+    .login-container { background-color: #000; border-radius: 10px; box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22); position: relative; overflow: hidden; width: 480px; max-width: 100%; min-height: 400px; display: flex; align-items: center; justify-content: center; }
+    form { background-color: #000; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 0 50px; height: 100%; width: 100%; text-align: center; }
+    input { background-color: #222; border: none; padding: 12px 15px; margin: 15px 0; width: 100%; color: #fff; border-radius: 4px; outline: none; }
+    button { border-radius: 20px; border: 1px solid #FF4B2B; background-color: #FF4B2B; color: #FFFFFF; font-size: 12px; font-weight: bold; padding: 12px 45px; letter-spacing: 1px; text-transform: uppercase; transition: transform 80ms ease-in; cursor: pointer; margin-top: 20px; }
     button:active { transform: scale(0.95); }
     button:focus { outline: none; }
-
-    /* Shake Animation for Error */
+    button:disabled { background-color: #555; border-color: #555; cursor: not-allowed; }
     .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
-    @keyframes shake {
-        10%, 90% { transform: translate3d(-1px, 0, 0); }
-        20%, 80% { transform: translate3d(2px, 0, 0); }
-        30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-        40%, 60% { transform: translate3d(4px, 0, 0); }
-    }
-
+    @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
     .social-container { margin: 20px 0; }
-    .social {
-        border: 1px solid #DDDDDD; border-radius: 50%;
-        display: inline-flex; justify-content: center; align-items: center;
-        margin: 0 5px; height: 40px; width: 40px;
-        color: #fff; text-decoration: none;
-    }
-
-    /* Back Link */
-    .back-link {
-        margin-top: 20px;
-        font-size: 12px;
-        color: #888;
-        text-decoration: none;
-        cursor: pointer;
-        transition: color 0.3s;
-    }
+    .social { border: 1px solid #DDDDDD; border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; margin: 0 5px; height: 40px; width: 40px; color: #fff; text-decoration: none; }
+    .back-link { margin-top: 20px; font-size: 12px; color: #888; text-decoration: none; cursor: pointer; transition: color 0.3s; }
     .back-link:hover { color: #fff; }
-
-    /* =========================================
-       4. FOOTER STYLES
-    ========================================= */
-    .footer { 
-        width: 100%; 
-        background-color: #000; 
-        padding-top: 60px; 
-        border-top: 1px solid #222; 
-        padding-left: 50px;
-        padding-right: 50px;
-    }
+    .footer { width: 100%; background-color: #000; padding-top: 60px; border-top: 1px solid #222; padding-left: 50px; padding-right: 50px; }
     .footer p, .footer h5, .footer h6 { color: #fff; }
-    .widget_ab_item_text h6 { font-size: 16px; font-weight: bold; }
-    .widget_ab_item_text p { font-size: 13px; color: #999 !important; margin-top: 5px !important; }
-
-    #footer-newsletter-form input.form-control {
-        background-color: #1a1a1a !important;
-        border: 1px solid #333 !important;
-        color: #fff !important;
-    }
-    #footer-newsletter-form input.form-control::placeholder { color: #777 !important; }
-
-    #footer-newsletter-form button {
-        background-color: #111 !important;
-        border: 1px solid #333 !important;
-        color: #fff !important;
-        transition: all 0.3s ease;
-    }
-    #footer-newsletter-form button:hover {
-        background-color: #000 !important;
-        border-color: #FF4B2B !important;
-    }
+    #footer-newsletter-form input.form-control { background-color: #1a1a1a !important; border: 1px solid #333 !important; color: #fff !important; }
+    #footer-newsletter-form button { background-color: #111 !important; border: 1px solid #333 !important; color: #fff !important; transition: all 0.3s ease; }
+    #footer-newsletter-form button:hover { background-color: #000 !important; border-color: #FF4B2B !important; }
   </style>
 </head>
 <body>
@@ -194,51 +65,24 @@
             
             <p id="error-msg" style="color: #ff4b2b; font-size: 12px; min-height: 20px; margin: 5px 0;"></p>
             
-            <button type="button" onclick="validateAndRedirect()">Send OTP</button>
+            <button type="button" id="send-btn" onclick="sendResetLink()">Send OTP</button>
             
-            <a href="javascript:history.back()" class="back-link">Back to Login</a>
+            <a href="index.html" class="back-link">Back to Home</a>
           </form>
       </div>
   </div>
 
-  <!-- FOOTER -->
   <footer id="contact" class="footer action-lage bg-black p-top-80">
     <div class="container">
         <div class="row">
             <div class="col-md-12">
                 <div class="footer-content" style="display: flex; justify-content: space-between; flex-wrap: wrap;">
-                    
-                    <!-- About -->
                     <div class="col-md-6 col-sm-6">
                         <div class="widget_item widget_about">
                             <h5 class="text-white">About Us</h5>
                             <p class="m-top-20">Connecting Retailers, Wholesalers, and Customers for a seamless shopping experience.</p>
-                            
-                            <div class="widget_ab_item m-top-30" style="display:flex; align-items: flex-start; margin-bottom: 15px;">
-                                <div class="item_icon" style="margin-right: 15px;"><i class="fa fa-location-arrow"></i></div>
-                                <div class="widget_ab_item_text">
-                                    <h6 class="text-white" style="margin:0;">Location</h6>
-                                    <p style="margin:0;">Shamirpet, Hyderabad</p>
-                                </div>
-                            </div>
-                            <div class="widget_ab_item m-top-30" style="display:flex; align-items: flex-start; margin-bottom: 15px;">
-                                <div class="item_icon" style="margin-right: 15px;"><i class="fa fa-phone"></i></div>
-                                <div class="widget_ab_item_text">
-                                    <h6 class="text-white" style="margin:0;">Phone</h6>
-                                    <p style="margin:0;">+9676744544</p>
-                                </div>
-                            </div>
-                            <div class="widget_ab_item m-top-30" style="display:flex; align-items: flex-start; margin-bottom: 15px;">
-                                <div class="item_icon" style="margin-right: 15px;"><i class="fa fa-envelope-o"></i></div>
-                                <div class="widget_ab_item_text">
-                                    <h6 class="text-white" style="margin:0;">Email</h6>
-                                    <p style="margin:0;">Livemart.bphc@gmail.com</p>
-                                </div>
-                            </div>
                         </div>
                     </div>
-
-                    <!-- Newsletter -->
                     <div class="col-md-6 col-sm-6">
                         <div class="widget_item widget_newsletter sm-m-top-50">
                             <h5 class="text-white">Newsletter</h5>
@@ -248,22 +92,9 @@
                                     <button type="submit" class="btn text-center" style="width: 100%; padding: 10px;">Subscribe</button>
                                 </div>
                             </form>
-                            
-                            <div class="widget_brand m-top-40" style="margin-top: 30px;">
-                                <h5 class="text-white">Follow Us</h5>
-                                <ul class="list-inline m-top-20" style="padding: 0; list-style: none; display: flex; gap: 15px;">
-                                    <li><a href="#"><i class="fa fa-facebook"></i></a></li>
-                                    <li><a href="#"><i class="fa fa-twitter"></i></a></li>
-                                    <li><a href="#"><i class="fa fa-linkedin"></i></a></li>
-                                    <li><a href="#"><i class="fa fa-google-plus"></i></a></li>
-                                </ul>
-                            </div>
                         </div>
                     </div>
-
                 </div>
-                
-                <!-- Copyright -->
                 <div class="row">
                     <div class="col-md-12 text-center" style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 20px; padding-top: 20px;">
                         <p style="font-size: 12px;">© 2025 Live-MART. All rights reserved.</p>
@@ -275,37 +106,65 @@
   </footer>
 
   <script>
-    function validateAndRedirect() {
+    async function sendResetLink() {
         const emailInput = document.getElementById('email');
         const errorMsg = document.getElementById('error-msg');
         const form = document.getElementById('emailForm');
+        const btn = document.getElementById('send-btn');
         
-        // Simple Email Regex
-        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        errorMsg.textContent = "";
 
-        if (emailPattern.test(emailInput.value)) {
-            // Valid Email
-            errorMsg.textContent = "";
-            // Simulate Sending Email (handled by backend usually)
-            // Redirect to OTP page
-            window.location.href = 'otp2.html';
-        } else {
-            // Invalid Email
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const email = emailInput.value.trim();
+
+        if (!emailPattern.test(email)) {
             errorMsg.textContent = "Please enter a valid email address.";
-            form.classList.add("shake");
-            
-            // Remove class after animation so it can run again
-            setTimeout(() => {
-                form.classList.remove("shake");
-            }, 500);
+            animateShake(form);
+            return;
+        }
+
+        btn.textContent = "Sending...";
+        btn.disabled = true;
+
+        try {
+            const response = await fetch('/auth/forgot-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email })
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                sessionStorage.setItem('reset_email', email); 
+                window.location.href = 'otp2.html'; // Redirects to Verify Page
+            } else {
+                const errorData = await response.json();
+                errorMsg.textContent = errorData.detail || "Failed to send OTP. Try again.";
+                animateShake(form);
+                btn.textContent = "Send OTP";
+                btn.disabled = false;
+            }
+
+        } catch (error) {
+            console.error("Network error:", error);
+            errorMsg.textContent = "Network error. Is the server running?";
+            animateShake(form);
+            btn.textContent = "Send OTP";
+            btn.disabled = false;
         }
     }
 
-    // Allow "Enter" key to submit
+    function animateShake(element) {
+        element.classList.add("shake");
+        setTimeout(() => {
+            element.classList.remove("shake");
+        }, 500);
+    }
+
     document.getElementById('email').addEventListener("keypress", function(event) {
         if (event.key === "Enter") {
             event.preventDefault();
-            validateAndRedirect();
+            sendResetLink();
         }
     });
   </script>

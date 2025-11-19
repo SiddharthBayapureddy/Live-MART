@@ -299,9 +299,17 @@ class FeedbackRead(BaseModel):
     class Config:
         from_attributes = True
 
-
-
-
-
-
 # --------------------------------------------------------------------------------------------------------------------------------------------
+
+# Password Reset Schemas
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class OTPVerifyRequest(BaseModel):
+    email: EmailStr
+    otp: str
+
+class ResetPasswordRequest(BaseModel):
+    email: EmailStr
+    otp: str
+    new_password: str

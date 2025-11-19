@@ -18,10 +18,50 @@ from jose import jwt, JWTError
 # Importing schemas for token data
 from schemas import CustomerRead, RetailerRead, WholesalerRead
 from database import get_customer_by_email, get_retailer_by_email, get_wholesaler_by_email
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status , BackgroundTasks
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.concurrency import run_in_threadpool
 from db_models import Customer, Retailer, Wholesaler
+
+#--------------------------------------------------------------------------------------------------------------------------------------------
+
+# SMTP
+import random
+import string
+from fastapi_mail import FastMail, MessageSchema, ConnectionConfig , MessageType
+
+# OTP Authentication 
+def generate_otp() -> str:
+    return "".join(random.choices(string.digits , k=6))
+
+mail_config = ConnectionConfig(
+    MAIL_USERNAME = os.getenv("MAIL_USERNAME"),
+    MAIL_PASSWORD = os.getenv("MAIL_PASSWORD"),
+    MAIL_FROM = os.getenv("MAIL_USERNAME"),
+    MAIL_PORT = int(os.getenv("MAIL_PORT", 587)),
+    MAIL_SERVER = os.getenv("MAIL_SERVER", "smtp.gmail.com"),
+    MAIL_STARTTLS = True,
+    MAIL_SSL_TLS = False,
+    USE_CREDENTIALS = True,
+    VALIDATE_CERTS = True
+)
+
+async def send_otp_email(email: str , otp : str , background_tasks : BackgroundTasks):
+    message = MessageSchema(
+        subject="Live MART - Password Reset OTP" , 
+        recipients=[email],
+        body = f"""
+        <h3>Password Reset Request</h3>
+        <p>Your OTP for resetting your password is:</p>
+        <h1 style='color: #FF4B2B;'>{otp}</h1>
+        <p>This OTP is valid for 10 minutes.</p>
+        <p>If you did not request this, please ignore this email.</p>
+        """,
+        subtype=MessageType.html
+    )
+
+    fm = FastMail(mail_config)
+    background_tasks.add_task(fm.send_message , message)
 
 
 #--------------------------------------------------------------------------------------------------------------------------------------------
