@@ -1,0 +1,253 @@
+<!doctype html>
+<html class="no-js" lang="en"> <head>
+        <meta charset="utf-8">
+        <title>Live MART</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="icon" type="image/png" href="favicon.ico">
+
+        <link href="https://fonts.googleapis.com/css?family=Raleway:100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+
+        <link rel="stylesheet" href="assets/css/slick/slick.css"> 
+        <link rel="stylesheet" href="assets/css/slick/slick-theme.css">
+        <link rel="stylesheet" href="assets/css/animate.css">
+        <link rel="stylesheet" href="assets/css/iconfont.css">
+        <link rel="stylesheet" href="assets/css/font-awesome.min.css">
+        <link rel="stylesheet" href="assets/css/bootstrap.css">
+        <link rel="stylesheet" href="assets/css/magnific-popup.css">
+        <link rel="stylesheet" href="assets/css/bootsnav.css">
+        <link rel="stylesheet" href="assets/css/style.css">
+        <link rel="stylesheet" href="assets/css/responsive.css" />
+
+        <script src="assets/js/vendor/modernizr-2.8.3-respond-1.4.2.min.js"></script>
+
+        <style>
+                        /* Glitch Button Style (Button-49) - REFINED FOR READABILITY */
+            .button-49,
+            .button-49:after {
+                width: 150px;
+                height: 76px;
+                line-height: 78px;
+                font-size: 20px;
+                font-family: 'Bebas Neue', sans-serif;
+                background: linear-gradient(45deg, transparent 5%, #FF013C 5%);
+                border: 0;
+                color: #fff;
+                letter-spacing: 3px;
+                box-shadow: 6px 0px 0px #00E6F6;
+                outline: transparent;
+                position: relative;
+                user-select: none;
+                touch-action: manipulation;
+                margin: 10px; 
+                cursor: pointer;
+            }
+
+            .button-49:after {
+                --slice-0: inset(50% 50% 50% 50%);
+                --slice-1: inset(80% -6px 0 0);
+                --slice-2: inset(50% -6px 30% 0);
+                --slice-3: inset(10% -6px 85% 0);
+                --slice-4: inset(40% -6px 43% 0);
+                --slice-5: inset(80% -6px 5% 0);
+                
+                content: attr(data-text);
+                display: block;
+                position: absolute;
+                inset: 0;
+                
+                /* REDUCED NOISE: Simplified gradient and smaller shadows */
+                background: linear-gradient(45deg, transparent 3%, #00E6F6 3%, #00E6F6 5%, #FF013C 5%);
+                text-shadow: -1.5px -1.5px 0px #F8F005, 1.5px 1.5px 0px #00E6F6; /* Reduced from 3px to 1.5px */
+                
+                clip-path: var(--slice-0);
+            }
+
+            .button-49:hover:after {
+                animation: 0.7s glitch steps(2, end);
+            }
+
+            /* REDUCED MOVEMENT: The text now jumps 5px instead of 20px */
+            @keyframes glitch {
+                0% { clip-path: var(--slice-1); transform: translate(-5px, -2px); }
+                10% { clip-path: var(--slice-3); transform: translate(2px, 2px); }
+                20% { clip-path: var(--slice-1); transform: translate(-2px, 2px); }
+                30% { clip-path: var(--slice-3); transform: translate(0px, 1px); }
+                40% { clip-path: var(--slice-2); transform: translate(-1px, 0px); }
+                50% { clip-path: var(--slice-3); transform: translate(1px, 0px); }
+                60% { clip-path: var(--slice-4); transform: translate(1px, 2px); }
+                70% { clip-path: var(--slice-2); transform: translate(-2px, 2px); }
+                80% { clip-path: var(--slice-5); transform: translate(5px, -2px); }
+                90% { clip-path: var(--slice-1); transform: translate(-2px, 0px); }
+                100% { clip-path: var(--slice-1); transform: translate(0); }
+            }
+
+            @media (min-width: 768px) {
+                .button-49,
+                .button-49:after {
+                    width: 200px;
+                    height: 86px;
+                    line-height: 88px;
+                }
+            }
+        </style>
+    </head>
+
+    <body data-spy="scroll" data-target=".navbar-collapse">
+
+        <div id="loading">
+            <div id="loading-center">
+                <div id="loading-center-absolute">
+                    <div class="object" id="object_one"></div>
+                    <div class="object" id="object_two"></div>
+                    <div class="object" id="object_three"></div>
+                    <div class="object" id="object_four"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="culmn">
+
+            <nav class="navbar navbar-default bootsnav navbar-fixed">
+                <div class="navbar-top bg-grey fix">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="navbar-callus text-left sm-text-center">
+                                    <ul class="list-inline">
+                                        <li><a href=""><i class="fa fa-phone"></i> Call us: 1234 5678 90</a></li>
+                                        <li><a href=""><i class="fa fa-envelope-o"></i> Contact us: Live-MART@gmail.com</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-md-6"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-menu">
+                        <i class="fa fa-bars"></i>
+                    </button>
+                    <a class="navbar-brand" href="#brand">
+                        <img src="assets/images/logo.jpg" class="logo" alt="" style="width:55px;">
+                    </a>
+                </div>
+                <div class="collapse navbar-collapse" id="navbar-menu">
+                    <ul class="nav navbar-nav navbar-right">
+                        <li><a href="#home">Home</a></li>                    
+                        <li><a href="#features">Buy or Sell</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+            </nav>
+
+            <section id="home" class="home bg-black fix">
+                <div class="overlay"></div>
+                <div class="container">
+                    <div class="row">
+                        <div class="main_home text-center">
+                            <div class="col-md-12">
+                                <div class="home_banner text-center m-top-40">
+                                    <div class="home_text">
+                                        <h2 class="text-white">Welcome to <strong>Live-MART</strong></h2>
+                                        <h1 class="text-white">Buy & Sell for Customers, Retailers & Wholesalers</h1>
+                                    </div>
+
+                                    <div class="home_btns m-top-40">
+                                        
+                                        <h3 class="text-white m-bottom-30" style="font-weight: 300;"><b>CHOOSE YOUR ROLE</b></h3>
+
+                                        <button class="button-49" role="button" data-text="Customer">Customer</button>
+                                        <button class="button-49" role="button" data-text="Retailer">Retailer</button>
+                                        <button class="button-49" role="button" data-text="Wholesaler">Wholesaler</button>
+
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <footer id="contact" class="footer action-lage bg-black p-top-80">
+                <div class="container">
+                    <div class="row">
+                        <div class="widget_area">
+                            <div class="col-md-3">
+                                <div class="widget_item widget_about">
+                                    <h5 class="text-white">About Us</h5>
+                                    <p class="m-top-20">We bridge the gap between Customers, 
+                                        Retailers, and Wholesalers. 
+                                        Streamlining the supply chain to highlight region-specific 
+                                        local products while ensuring a seamless, personalized shopping experience for everyone.
+                                    
+                                    </p>
+                                    <div class="widget_ab_item m-top-30">
+                                        <div class="item_icon"><i class="fa fa-location-arrow"></i></div>
+                                        <div class="widget_ab_item_text">
+                                            <h6 class="text-white">Location</h6>
+                                            <p>Shamirpet, Hyderabad</p>
+                                        </div>
+                                    </div>
+                                    <div class="widget_ab_item m-top-30">
+                                        <div class="item_icon"><i class="fa fa-phone"></i></div>
+                                        <div class="widget_ab_item_text">
+                                            <h6 class="text-white">Phone :</h6>
+                                            <p>+9676744544</p>
+                                        </div>
+                                    </div>
+                                    <div class="widget_ab_item m-top-30">
+                                        <div class="item_icon"><i class="fa fa-envelope-o"></i></div>
+                                        <div class="widget_ab_item_text">
+                                            <h6 class="text-white">Email Address :</h6>
+                                            <p>Live-MART@gmail.com</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <div class="widget_item widget_newsletter sm-m-top-50">
+                                    <h5 class="text-white">Newsletter</h5>
+                                    <form class="form-inline m-top-30">
+                                        <div class="form-group">
+                                            <input type="email" class="form-control" placeholder="Enter you Email">
+                                            <button type="submit" class="btn text-center"><i class="fa fa-arrow-right"></i></button>
+                                        </div>
+                                    </form>
+                                    <div class="widget_brand m-top-40">
+                                        <a href="" class="text-uppercase"></a>
+                                        
+                                    </div>
+                                    <ul class="list-inline m-top-20">
+                                        <li>-  <a href=""><i class="fa fa-facebook"></i></a></li>
+                                        <li><a href=""><i class="fa fa-twitter"></i></a></li>
+                                        <li><a href=""><i class="fa fa-linkedin"></i></a></li>
+                                        <li><a href=""><i class="fa fa-google-plus"></i></a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+
+        </div>
+
+        <script src="assets/js/vendor/jquery-1.11.2.min.js"></script>
+        <script src="assets/js/vendor/bootstrap.min.js"></script>
+        <script src="assets/js/owl.carousel.min.js"></script>
+        <script src="assets/js/jquery.magnific-popup.js"></script>
+        <script src="assets/js/jquery.easing.1.3.js"></script>
+        <script src="assets/css/slick/slick.js"></script>
+        <script src="assets/css/slick/slick.min.js"></script>
+        <script src="assets/js/jquery.collapse.js"></script>
+        <script src="assets/js/bootsnav.js"></script>
+        <script src="assets/js/plugins.js"></script>
+        <script src="assets/js/main.js"></script>
+
+    </body>
+</html>
