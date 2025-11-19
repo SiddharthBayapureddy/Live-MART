@@ -3,108 +3,386 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Dashboard</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>Live MART | Dashboard</title>
+    
+    <link rel="stylesheet" href="assets/css/bootstrap.css">
+    <link rel="stylesheet" href="assets/css/font-awesome.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    
     <style>
-        body {
-            display: block; /* Override flex for simple page */
-            padding: 20px;
-            min-height: 0;
-            background: #f6f5f7;
-        }
-        .content {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
+        /* --- MODULE 2 SPECIFIC STYLES --- */
+        body { background-color: #f9f9f9; font-family: 'Raleway', sans-serif; }
+        
+        /* Navbar & Header */
+        .navbar { background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.05); padding: 15px 0; margin-bottom: 0; }
+        .navbar-brand h3 { margin: 0; font-weight: 800; color: #333; }
+        
+        /* Top Navigable Category Bar (Sticky) */
+        .category-nav-container {
             background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 14px 28px rgba(0,0,0,0.25);
-            font-family: 'Montserrat', sans-serif;
+            border-bottom: 1px solid #eee;
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 99;
+            margin-bottom: 30px;
+            white-space: nowrap;
+            overflow-x: auto;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.04);
         }
-        pre {
-            background: #eee;
-            padding: 15px;
-            border-radius: 5px;
-            white-space: pre-wrap; /* Wrap long lines */
-            word-wrap: break-word; /* Break long words */
-        }
-        .logout-btn {
-            border-radius: 20px;
-            border: 1px solid #FF4B2B;
-            background-color: #FF4B2B;
-            color: #FFFFFF;
-            font-size: 12px;
-            font-weight: bold;
-            padding: 12px 45px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
+        
+        /* Hide scrollbar */
+        .category-nav-container::-webkit-scrollbar { height: 4px; }
+        .category-nav-container::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+        
+        .cat-pill {
+            display: inline-block;
+            padding: 8px 25px;
+            margin: 0 5px;
+            border-radius: 50px;
+            background: #f0f2f5;
+            color: #555;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+            border: 1px solid transparent;
             cursor: pointer;
-            margin-top: 20px;
+        }
+        .cat-pill:hover, .cat-pill.active {
+            background: #ff4b2b; 
+            color: #fff;
+            text-decoration: none;
+            box-shadow: 0 4px 10px rgba(255, 75, 43, 0.3);
+        }
+
+        /* Product Card */
+        .product-card {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #eee;
+            margin-bottom: 30px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            height: 100%;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        /* Image Area */
+        .card-img-wrap {
+            height: 200px;
+            background: #f4f4f4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .card-img-wrap img {
+            max-height: 100%;
+            max-width: 100%;
+            object-fit: cover;
+        }
+
+        /* Status Badges */
+        .badge-overlay {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #fff;
+            z-index: 10;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .bg-proxy { background: #f0ad4e; } /* Orange */
+        .bg-stock { background: #5cb85c; } /* Green */
+        .bg-out { background: #d9534f; }   /* Red */
+
+        /* Card Details */
+        .card-body { padding: 20px; }
+        .card-title { font-weight: 700; font-size: 16px; margin-bottom: 5px; color: #333; }
+        .card-price { color: #28a745; font-weight: 800; font-size: 18px; margin-bottom: 15px; display: block;}
+        
+        /* Buttons */
+        .btn-product {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 12px;
+            transition: 0.2s;
+            cursor: pointer;
+        }
+        .btn-add { background: #333; color: #fff; }
+        .btn-add:hover { background: #000; }
+        .btn-proxy { background: #f0ad4e; color: #fff; }
+        .btn-notify { background: #eee; color: #999; cursor: not-allowed; }
+        
+        .availability-notice { font-size: 11px; color: #e67e22; display: block; margin-top: 8px; text-align: center; font-weight: 600; }
+                
+                /* --- FLEXBOX GRID FIX --- */
+        .row-flex {
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: -ms-flexbox;
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .row-flex > [class*='col-'] {
+            display: flex;
+            flex-direction: column;
         }
     </style>
 </head>
 <body>
-    <div class="content">
-        <h1>Login Successful</h1>
-        <p>This page shows that your login worked. The JWT token is saved in `localStorage` and was used to fetch this data from the backend.</p>
-        
-        <h2>Your User Data (JSON Dump):</h2>
-        <pre id="user-info">Loading...</pre>
 
-        <button id="logout-button" class="logout-btn">Log Out</button>
+    <nav class="navbar navbar-default">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#">
+                    <h3>Live MART</h3>
+                </a>
+            </div>
+            <ul class="nav navbar-nav navbar-right" style="display: flex; align-items: center; height: 50px;">
+                <li style="margin-right: 20px; list-style: none;">
+                    <span style="color: #555; font-size: 14px;">Welcome, <b id="user-name-display">Guest</b></span>
+                </li>
+                <li style="list-style: none;">
+                    <button id="auth-button" style="border: 1px solid #d9534f; background: #fff; color: #d9534f; font-weight: bold; padding: 5px 15px; border-radius: 20px;">Login</button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="category-nav-container">
+        <div class="container text-center">
+            <a class="cat-pill active" onclick="filterProducts('all')">All</a>
+            <a class="cat-pill" onclick="filterProducts('books')">Books</a>
+            <a class="cat-pill" onclick="filterProducts('electronics')">Electronics</a>
+            <a class="cat-pill" onclick="filterProducts('fashion')">Fashion</a>
+            <a class="cat-pill" onclick="filterProducts('groceries')">Groceries</a>
+            <a class="cat-pill" onclick="filterProducts('home')">Home</a>
+            <a class="cat-pill" onclick="filterProducts('sports')">Sports</a>
+        </div>
     </div>
 
+    <div class="container" style="min-height: 600px;">
+        <div class="row">
+            <div class="col-md-12">
+                <h4 style="margin-bottom: 25px; font-weight: 300; text-transform: uppercase; letter-spacing: 1px;">Available Near You</h4>
+            </div>
+        </div>
+
+        <div class="row" id="product-grid">
+            <div class="col-md-12 text-center" style="padding: 50px;">
+                Loading Products...
+            </div>
+        </div>
+    </div>
+
+    <footer style="background: #222; color: #fff; padding: 30px 0; margin-top: 50px; text-align: center;">
+        <p>© 2025 Live MART. All rights reserved.</p>
+    </footer>
+
     <script>
+        // --- 1. AUTHENTICATION ---
         document.addEventListener('DOMContentLoaded', async () => {
             const token = localStorage.getItem('token');
             const role = localStorage.getItem('user_role');
-            const userInfoEl = document.getElementById('user-info');
-
+            const userNameDisplay = document.getElementById('user-name-display');
+            const authButton = document.getElementById('auth-button');
+            
             if (!token || !role) {
-                userInfoEl.textContent = 'Error: Not logged in. Redirecting to login...';
-                setTimeout(() => window.location.href = '/register.html', 2000);
-                return;
+                // GUEST MODE
+                userNameDisplay.innerHTML = "Guest <small style='color:#999; font-weight:400;'>(Login Recommended)</small>";
+                authButton.textContent = "Login";
+                authButton.style.borderColor = "#333";
+                authButton.style.color = "#333";
+                authButton.onclick = () => window.location.href = 'index.html';
+                
+                // Render everything by default on load
+                renderProducts('all');
+                return; 
             }
+
+            // LOGGED IN MODE
+            authButton.textContent = "Logout";
+            authButton.onclick = () => {
+                localStorage.clear();
+                window.location.href = 'index.html';
+            };
 
             let fetchUrl = '';
-            if (role === 'customer') {
-                fetchUrl = '/customer/me';
-            } else if (role === 'retailer') {
-                fetchUrl = '/retailer/me';
-            } else if (role === 'wholesaler') {
-                fetchUrl = '/wholesaler/me';
-            } else {
-                userInfoEl.textContent = 'Error: Unknown user role.';
-                return;
-            }
+            if (role === 'customer') fetchUrl = '/customer/me';
+            else if (role === 'retailer') fetchUrl = '/retailer/me';
+            else if (role === 'wholesaler') fetchUrl = '/wholesaler/me';
 
             try {
                 const response = await fetch(fetchUrl, {
                     method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
-
                 if (response.ok) {
                     const data = await response.json();
-                    // Display the data as a formatted JSON string
-                    userInfoEl.textContent = JSON.stringify(data, null, 2);
+                    userNameDisplay.textContent = data.name || "User";
                 } else {
-                    const error = await response.json();
-                    userInfoEl.textContent = `Error: ${error.detail}`;
+                    localStorage.clear();
+                    window.location.reload();
                 }
-
             } catch (error) {
-                userInfoEl.textContent = `An error occurred: ${error.message}`;
+                console.error('Error fetching user data:', error);
             }
+
+            renderProducts('all');
         });
 
-        document.getElementById('logout-button').addEventListener('click', () => {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user_role');
-            window.location.href = '/register.html';
-        });
+        // --- 2. NEW MOCK PRODUCT DATA (Updated to requested list) ---
+        // --- 2. NEW MOCK PRODUCT DATA (Local Paths) ---
+        const products = [
+            // ELECTRONICS
+            {
+                id: 101, title: "Headphones", price: "₹699.0", category: "electronics", stock: 10, isProxy: false,
+                image: "product_images//headphones.jpg"
+            },
+            {
+                id: 102, title: "Mechanical Keyboard", price: "₹1499.0", category: "electronics", stock: 5, isProxy: false,
+                image: "product_images//keyboard.jpg"
+            },
+            {
+                id: 103, title: "Wireless Mouse", price: "₹399.0", category: "electronics", stock: 20, isProxy: false,
+                image: "product_images//mouse.jpg"
+            },
+            {
+                id: 104, title: "Electric Desk Lamp", price: "₹499.0", category: "electronics", stock: 8, isProxy: false,
+                image: "product_images//lamp.jpg"
+            },
+
+            // FASHION
+            {
+                id: 201, title: "Urban Backpack", price: "₹799.0", category: "fashion", stock: 15, isProxy: false,
+                image: "product_images//backpack.jpg"
+            },
+            {
+                id: 202, title: "Running Shoes", price: "₹999.0", category: "fashion", stock: 0, availableDate: "Dec 1", isProxy: false,
+                image: "product_images//shoes.jpg"
+            },
+            {
+                id: 203, title: "Cotton T-Shirt", price: "₹249.0", category: "fashion", stock: 50, isProxy: false,
+                image: "product_images//tshirt.jpg"
+            },
+
+            // GROCERIES
+            {
+                id: 301, title: "Premium Coffee", price: "₹299.0", category: "groceries", stock: 30, isProxy: false,
+                image: "product_images//coffee.jpg"
+            },
+            {
+                id: 302, title: "Water Bottle (Pack limit 500)", price: "₹120.0/pc", category: "groceries", stock: 100, isProxy: true,
+                image: "product_images//bottle.jpg"
+            },
+
+            // HOME
+            {
+                id: 401, title: "Home Decor Lamp", price: "₹499.0", category: "home", stock: 8, isProxy: false,
+                image: "product_images//lamp.jpg"
+            },
+
+            // SPORTS
+            {
+                id: 501, title: "Yoga Mat", price: "₹450.0", category: "sports", stock: 12, isProxy: false,
+                image: "product_images//yogamat.jpg"
+            },
+            {
+                id: 502, title: "Sports Sipper Bottle", price: "₹150.0", category: "sports", stock: 25, isProxy: false,
+                image: "product_images//bottle.jpg"
+            },
+
+            // BOOKS (Empty category as requested)
+        ];
+
+        // --- 3. RENDER FUNCTION (Fixed Alignment) ---
+function renderProducts(filter) {
+    const grid = document.getElementById('product-grid');
+    grid.innerHTML = ''; // Clear existing content
+
+    // If 'all', show everything, else filter
+    let filteredProducts = filter === 'all' ? products : products.filter(p => p.category === filter);
+
+    if (filteredProducts.length === 0) {
+        grid.innerHTML = `
+            <div class="col-md-12 text-center" style="padding:50px;">
+                <h5 style="color:#777;">No items found in <b>${filter.charAt(0).toUpperCase() + filter.slice(1)}</b> yet.</h5>
+            </div>`;
+        return;
+    }
+
+    // Create a row div with the new FLEX class
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'row row-flex'; // <--- THIS IS THE KEY FIX
+
+    filteredProducts.forEach(product => {
+        let badgeHtml = '';
+        let btnHtml = '';
+
+        if (product.stock === 0) {
+            badgeHtml = `<span class="badge-overlay bg-out">Out of Stock</span>`;
+            btnHtml = `
+                <button class="btn-product btn-notify" disabled>Notify Me</button>
+                <span class="availability-notice"><i class="fa fa-clock-o"></i> Available: ${product.availableDate}</span>
+            `;
+        } else if (product.isProxy) {
+            badgeHtml = `<span class="badge-overlay bg-proxy"><i class="fa fa-truck"></i> Wholesaler Direct</span>`;
+            btnHtml = `<button class="btn-product btn-proxy">Order via Proxy</button>`;
+        } else {
+            badgeHtml = `<span class="badge-overlay bg-stock">In Stock</span>`;
+            btnHtml = `<button class="btn-product btn-add">Add to Cart</button>`;
+        }
+
+        const cardHtml = `
+            <div class="col-md-3 col-sm-6" style="margin-bottom: 30px;"> <div class="product-card">
+                    ${badgeHtml}
+                    <div class="card-img-wrap">
+                        <img src="${product.image}" alt="${product.title}">
+                    </div>
+                    <div class="card-body">
+                        <div class="card-title">${product.title}</div>
+                        <span class="card-price">${product.price}</span>
+                        ${btnHtml}
+                    </div>
+                </div>
+            </div>
+        `;
+        rowDiv.innerHTML += cardHtml;
+    });
+    grid.appendChild(rowDiv);
+}
+        // --- 4. FILTER CLICK HANDLER ---
+        function filterProducts(category) {
+            // Remove active from all pills
+            document.querySelectorAll('.cat-pill').forEach(el => el.classList.remove('active'));
+            
+            // Add active to the clicked pill or the "All" pill if not found
+            let targetPill = event.target;
+            if (targetPill && targetPill.classList.contains('cat-pill')) {
+                targetPill.classList.add('active');
+            } else {
+                // If somehow event.target isn't a pill (e.g., initial load or malformed click),
+                // ensure 'all' pill is active if 'all' category is requested
+                const allPill = document.querySelector('.cat-pill[onclick="filterProducts(\'all\')"]');
+                if (allPill) allPill.classList.add('active');
+            }
+            
+            renderProducts(category);
+        }
     </script>
 </body>
 </html>
