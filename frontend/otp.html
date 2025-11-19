@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Account Recovery</title>
+  
+  <!-- Icons and Fonts -->
+  <link rel="stylesheet" href="assets/css/font-awesome.min.css">
+  <!-- Added Bootstrap for Footer Grid System -->
+  <link rel="stylesheet" href="assets/css/bootstrap.css">
+  <link href='https://fonts.googleapis.com/css?family=Montserrat:400,800' rel='stylesheet'>
+
+  <style>
+    /* --- 1. BASIC RESET & BODY --- */
+    * { box-sizing: border-box; }
+    
+    body {
+      background: #050505; /* Dark Background */
+      background-image: 
+        linear-gradient(rgba(0, 243, 255, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 243, 255, 0.1) 1px, transparent 1px);
+      background-size: 40px 40px;
+      display: flex;
+      flex-direction: column; /* Stack content vertically */
+      min-height: 100vh;     /* Allow scrolling if needed */
+      margin: 0;
+      color: #fff;
+      font-family: 'Montserrat', sans-serif;
+    }
+
+    /* Wrapper to keep the Login Form centered vertically */
+    .main-content {
+        margin: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        padding: 20px 0;
+    }
+
+    h2 { font-weight: bold; margin: 0 0 20px 0; color: #fff; }
+    p { font-size: 14px; font-weight: 100; line-height: 20px; letter-spacing: 0.5px; margin: 20px 0 30px; }
+    span { font-size: 12px; color: #ccc; }
+
+    /* --- 2. MAIN CARD CONTAINER --- */
+    .login-container {
+      background-color: #000;
+      border-radius: 10px;
+      box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+      position: relative;
+      overflow: hidden;
+      width: 768px;
+      max-width: 100%;
+      min-height: 480px;
+    }
+
+    /* --- 3. FORM CONTAINERS --- */
+    .form-container {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      transition: all 0.6s ease-in-out;
+    }
+
+    form {
+      background-color: #050505;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      padding: 0 50px;
+      height: 100%;
+      text-align: center;
+    }
+
+    /* INPUTS & BUTTONS */
+    input {
+      background-color: #222;
+      border: none;
+      padding: 12px 15px;
+      margin: 8px 0;
+      width: 100%;
+      color: #fff;
+      border-radius: 4px;
+      outline: none;
+    }
+
+    /* Override Bootstrap button styles if needed */
+    .login-container button {
+      border-radius: 20px;
+      border: 1px solid #FF4B2B;
+      background-color: #FF4B2B;
+      color: #FFFFFF;
+      font-size: 12px;
+      font-weight: bold;
+      padding: 12px 45px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: transform 80ms ease-in;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .login-container button:active { transform: scale(0.95); }
+    .login-container button:focus { outline: none; }
+    
+    .login-container button.ghost {
+      background-color: transparent;
+      border-color: #FFFFFF;
+    }
+
+    /* --- 4. SLIDING LOGIC --- */
+    .sign-in-container {
+      left: 0;
+      width: 50%;
+      z-index: 2;
+    }
+
+    .sign-up-container {
+      left: 0;
+      width: 50%;
+      opacity: 0;
+      z-index: 1;
+    }
+
+    .login-container.right-panel-active .sign-in-container {
+      transform: translateX(100%);
+    }
+
+    .login-container.right-panel-active .sign-up-container {
+      transform: translateX(100%);
+      opacity: 1;
+      z-index: 5;
+      animation: show 0.6s;
+    }
+
+    @keyframes show {
+      0%, 49.99% { opacity: 0; z-index: 1; }
+      50%, 100% { opacity: 1; z-index: 5; }
+    }
+
+    /* --- 5. OVERLAY --- */
+    .overlay-container {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 50%;
+      height: 100%;
+      overflow: hidden;
+      transition: transform 0.6s ease-in-out;
+      z-index: 100;
+    }
+
+    .login-container.right-panel-active .overlay-container {
+      transform: translateX(-100%);
+    }
+
+    .overlay {
+      background: #FF416C;
+      background: -webkit-linear-gradient(to right, #FF4B2B, #FF416C);
+      background: linear-gradient(to right, #FF4B2B, #FF416C);
+      background-repeat: no-repeat;
+      background-size: cover;
+      background-position: 0 0;
+      color: #FFFFFF;
+      position: relative;
+      left: -100%;
+      height: 100%;
+      width: 200%;
+      transform: translateX(0);
+      transition: transform 0.6s ease-in-out;
+    }
+
+    .login-container.right-panel-active .overlay {
+      transform: translateX(50%);
+    }
+
+    .overlay-panel {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      padding: 0 40px;
+      text-align: center;
+      top: 0;
+      height: 100%;
+      width: 50%;
+      transform: translateX(0);
+      transition: transform 0.6s ease-in-out;
+    }
+
+    .overlay-left { transform: translateX(-20%); }
+    .login-container.right-panel-active .overlay-left { transform: translateX(0); }
+
+    .overlay-right { right: 0; transform: translateX(0); }
+    .login-container.right-panel-active .overlay-right { transform: translateX(20%); }
+
+    /* --- 6. ANIMATIONS --- */
+    .tick-container { margin-bottom: 20px; }
+    .checkmark {
+        width: 80px; height: 80px; border-radius: 50%;
+        display: block; stroke-width: 2; stroke: #fff; stroke-miterlimit: 10;
+        box-shadow: inset 0px 0px 0px #7ac142;
+        animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s both;
+    }
+    .checkmark__circle {
+        stroke-dasharray: 166; stroke-dashoffset: 166; stroke-width: 2;
+        stroke-miterlimit: 10; stroke: #7ac142; fill: none;
+        animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+    }
+    .checkmark__check {
+        transform-origin: 50% 50%; stroke-dasharray: 48; stroke-dashoffset: 48;
+        animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+    }
+    @keyframes stroke { 100% { stroke-dashoffset: 0; } }
+    @keyframes scale { 0%, 100% { transform: none; } 50% { transform: scale3d(1.1, 1.1, 1); } }
+    @keyframes fill { 100% { box-shadow: inset 0px 0px 0px 50px #7ac142; } }
+
+    .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+    @keyframes shake {
+        10%, 90% { transform: translate3d(-1px, 0, 0); }
+        20%, 80% { transform: translate3d(2px, 0, 0); }
+        30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+        40%, 60% { transform: translate3d(4px, 0, 0); }
+    }
+
+    /* Social Icons */
+    .social-container { margin: 20px 0; }
+    .social {
+        border: 1px solid #DDDDDD; border-radius: 50%;
+        display: inline-flex; justify-content: center; align-items: center;
+        margin: 0 5px; height: 40px; width: 40px;
+        color: #fff; text-decoration: none;
+    }
+
+    /* Footer Specific Overrides */
+    .footer p, .footer h5, .footer h6 {
+        color: #fff;
+    }
+    .widget_ab_item_text h6 { font-size: 16px; font-weight: bold; }
+    .widget_ab_item_text p { font-size: 13px; color: #999 !important; margin-top: 5px !important; }
+    /* --- Footer Specific Darker Styles --- */
+    
+    /* Darker Email Input */
+    #footer-newsletter-form input.form-control {
+        background-color: #1a1a1a !important; /* Very dark grey */
+        border: 1px solid #333 !important;     /* Subtle border */
+        color: #fff !important;                /* White text */
+    }
+    
+    /* Adjust placeholder text color */
+    #footer-newsletter-form input.form-control::placeholder {
+        color: #777 !important;
+    }
+
+    /* Darker Subscribe Button */
+    #footer-newsletter-form button {
+        background-color: #111 !important;     /* Almost black */
+        border: 1px solid #333 !important;
+        color: #fff !important;
+        transition: all 0.3s ease;
+    }
+
+    /* Hover Effect for Button */
+    #footer-newsletter-form button:hover {
+        background-color: #000 !important;     /* Pure black on hover */
+        border-color: #FF4B2B !important;      /* Red border to match theme */
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Main Content Wrapper to Center the Form -->
+  <div class="main-content">
+      <h2>Account Recovery</h2>
+
+      <!-- Main Container -->
+      <div class="login-container" id="container">
+        
+        <!-- SUCCESS SIDE (Hidden Initially, appears on Slide) -->
+        <div class="form-container sign-up-container">
+          <form action="#" onsubmit="return false;">
+            <div class="tick-container">
+                <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                    <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+                    <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                </svg>
+            </div>
+            <h1>Verified</h1>
+            <p>Identity confirmed. Please set a new password.</p>
+            <input type="password" placeholder="New Password" />
+            <input type="password" placeholder="Confirm Password" />
+            <button onclick="alert('Siddharth update this so password actually resets')">Update Password</button>
+          </form>
+        </div>
+
+        <!-- INPUT SIDE (Visible Initially) -->
+        <div class="form-container sign-in-container">
+          <form action="#" id="otpForm" onsubmit="return false;">
+            <h1>Verify OTP</h1>
+            <div class="social-container">
+                <a href="#" class="social"><i class="fa fa-lock"></i></a>
+            </div>
+            <span>Enter the 4-digit code sent to your email</span>
+            
+            <input type="text" id="otp-input" placeholder="Ex: 1234" maxlength="4" style="text-align: center; letter-spacing: 5px; font-size: 20px;" />
+            
+            <p id="error-msg" style="color: #ff4b2b; font-size: 12px; min-height: 20px; margin: 5px 0;"></p>
+            
+            <button type="button" onclick="verifyOTP()">Verify Code</button>
+          </form>
+        </div>
+
+        <!-- OVERLAY -->
+        <div class="overlay-container">
+          <div class="overlay">
+            
+            <!-- Left Overlay (Shows when verified) -->
+            <div class="overlay-panel overlay-left">
+                <h1>Success!</h1>
+                <p>You can now proceed to recover your account access.</p>
+            </div>
+            
+            <!-- Right Overlay (Shows initially) -->
+            <div class="overlay-panel overlay-right">
+                <h1>Hello, User!</h1>
+                <p>Enter your verification details to reset your password.</p>
+                <button class="ghost" onclick="window.history.back()">Back to Login</button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+  </div>
+
+  <!-- ================= NEW FOOTER ================= -->
+  <footer id="contact" class="footer action-lage bg-black p-top-80" style="margin-top: 60px; width: 100%; position: relative;">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="footer-content" style="display: flex; justify-content: space-between; flex-wrap: wrap;">
+                    
+                    <!-- LEFT SIDE: ABOUT -->
+                    <div class="col-md-6 col-sm-6">
+                        <div class="widget_item widget_about">
+                            <h5 class="text-white">About Us</h5>
+                            <p class="m-top-20">Connecting Retailers, Wholesalers, and Customers for a seamless shopping experience.</p>
+                            
+                            <div class="widget_ab_item m-top-30" style="display:flex; align-items: flex-start; margin-bottom: 15px;">
+                                <div class="item_icon" style="margin-right: 15px;"><i class="fa fa-location-arrow"></i></div>
+                                <div class="widget_ab_item_text">
+                                    <h6 class="text-white" style="margin:0;">Location</h6>
+                                    <p style="margin:0;">Shamirpet, Hyderabad</p>
+                                </div>
+                            </div>
+                            <div class="widget_ab_item m-top-30" style="display:flex; align-items: flex-start; margin-bottom: 15px;">
+                                <div class="item_icon" style="margin-right: 15px;"><i class="fa fa-phone"></i></div>
+                                <div class="widget_ab_item_text">
+                                    <h6 class="text-white" style="margin:0;">Phone</h6>
+                                    <p style="margin:0;">+9676744544</p>
+                                </div>
+                            </div>
+                            <div class="widget_ab_item m-top-30" style="display:flex; align-items: flex-start; margin-bottom: 15px;">
+                                <div class="item_icon" style="margin-right: 15px;"><i class="fa fa-envelope-o"></i></div>
+                                <div class="widget_ab_item_text">
+                                    <h6 class="text-white" style="margin:0;">Email</h6>
+                                    <p style="margin:0;">Livemart.bphc@gmail.com</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT SIDE: NEWSLETTER -->
+                    <div class="col-md-6 col-sm-6">
+                        <div class="widget_item widget_newsletter sm-m-top-50">
+                            <h5 class="text-white">Newsletter</h5>
+                            <!-- Footer Specific Form -->
+                            <form class="form-inline m-top-30" id="footer-newsletter-form" style="margin-top: 20px;">
+                                <div class="form-group" style="width: 100%;">
+                                    <input type="email" class="form-control" placeholder="Enter your Email" style="width: 100%; margin-bottom: 10px; padding: 10px;">
+                                    <button type="submit" class="btn text-center" style="width: 100%; padding: 10px;">Subscribe</button>
+                                </div>
+                            </form>
+                            
+                            <div class="widget_brand m-top-40" style="margin-top: 30px;">
+                                <h5 class="text-white">Follow Us</h5>
+                                <ul class="list-inline m-top-20" style="padding: 0; list-style: none; display: flex; gap: 15px;">
+                                    <li><a href="#"><i class="fa fa-facebook"></i></a></li>
+                                    <li><a href="#"><i class="fa fa-twitter"></i></a></li>
+                                    <li><a href="#"><i class="fa fa-linkedin"></i></a></li>
+                                    <li><a href="#"><i class="fa fa-google-plus"></i></a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                
+                <!-- COPYRIGHT -->
+                <div class="row">
+                    <div class="col-md-12 text-center" style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 20px; padding-top: 20px;">
+                        <p style="font-size: 12px;">© 2025 Live-MART. All rights reserved.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  </footer>
+
+  <script>
+    const container = document.getElementById('container');
+    const otpInput = document.getElementById('otp-input');
+    const otpForm = document.getElementById('otpForm');
+    const errorMsg = document.getElementById('error-msg');
+
+    const CORRECT_OTP = "1234"; 
+
+    function verifyOTP() {
+        const val = otpInput.value;
+        if(val === CORRECT_OTP) {
+            errorMsg.textContent = "";
+            container.classList.add("right-panel-active"); // Triggers the slide
+        } else {
+            errorMsg.textContent = "Incorrect OTP. Try 1234";
+            otpForm.classList.add("shake");
+            setTimeout(() => otpForm.classList.remove("shake"), 500);
+        }
+    }
+
+    otpInput.addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            verifyOTP();
+        }
+    });
+  </script>
+
+</body>
+</html>
