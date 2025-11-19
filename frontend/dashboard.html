@@ -4,243 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Live MART | Dashboard</title>
-    
+    <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="assets/css/bootstrap.css">
     <link rel="stylesheet" href="assets/css/font-awesome.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
     <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700|Orbitron:400,700&display=swap" rel="stylesheet">
     
     <style>
-        /* --- CYBERPUNK DASHBOARD THEME --- */
-        
-        /* 1. BACKGROUND & TYPOGRAPHY */
-        body {
-            background-color: #050505;
-            /* The Cyberpunk Grid Background */
-            background-image: 
-                linear-gradient(rgba(0, 243, 255, 0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 243, 255, 0.1) 1px, transparent 1px),
-                radial-gradient(circle at 15% 50%, rgba(0, 255, 255, 0.15), transparent 50%),
-                radial-gradient(circle at 85% 30%, rgba(255, 0, 60, 0.15), transparent 50%);
-            background-size: 40px 40px, 40px 40px, 100% 100%, 100% 100%;
-            background-attachment: fixed;
-            font-family: 'Montserrat', sans-serif;
-            color: #e0e0e0;
-        }
-
-        h3, h4, .navbar-brand {
-            font-family: 'Orbitron', sans-serif; /* Sci-fi font for headers */
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        /* 2. NAVBAR */
-        .navbar {
-            background: rgba(10, 10, 15, 0.95); /* Dark Glass */
-            border-bottom: 1px solid rgba(0, 243, 255, 0.3);
-            padding: 15px 0;
-            margin-bottom: 0;
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.1);
-        }
-        .navbar-brand h3 {
-            margin: 0;
-            font-weight: 800;
-            color: #fff;
-            text-shadow: 0 0 8px rgba(0, 243, 255, 0.8);
-        }
-
-        /* 3. CATEGORY BAR */
-        .category-nav-container {
-            background: rgba(10, 10, 15, 0.8);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 20px 0;
-            position: sticky;
-            top: 0;
-            z-index: 99;
-            margin-bottom: 30px;
-            white-space: nowrap;
-            overflow-x: auto;
-            backdrop-filter: blur(5px);
-        }
-        .category-nav-container::-webkit-scrollbar { height: 4px; }
-        .category-nav-container::-webkit-scrollbar-thumb { background: #00f3ff; border-radius: 4px; }
-
-        /* Neon Pills */
-        .cat-pill {
-            display: inline-block;
-            padding: 8px 25px;
-            margin: 0 5px;
-            border-radius: 50px;
-            background: transparent;
-            color: #00f3ff; /* Neon Cyan Text */
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s;
-            border: 1px solid #00f3ff;
-            cursor: pointer;
-            text-transform: uppercase;
-            font-size: 11px;
-            letter-spacing: 1px;
-        }
-        .cat-pill:hover, .cat-pill.active {
-            background: #00f3ff;
-            color: #000; /* Black text on active for contrast */
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.6);
-            text-decoration: none;
-        }
-
-        /* 4. PRODUCT CARDS */
-        .product-card {
-            background: rgba(20, 25, 35, 0.8); /* Semi-transparent dark blue */
-            border-radius: 10px;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: 30px;
-            transition: all 0.3s ease;
-            position: relative;
-            height: 100%;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-        .product-card:hover {
-            transform: translateY(-5px);
-            border-color: #00f3ff; /* Glow border on hover */
-            box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
-        }
-        
-        /* Image Area */
-        .card-img-wrap {
-            height: 200px;
-            background: rgba(0, 0, 0, 0.3);
-            display: flex;
+        /* Essential Search Button Style to fix alignment */
+        .nav-search-btn {
+            display: flex !important;
             align-items: center;
             justify-content: center;
+            width: 35px;
+            height: 35px;
+            padding: 0 !important;
+            margin: 0 !important;
+            border-radius: 50%;
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+            transition: all 0.3s ease;
+            text-decoration: none !important;
             position: relative;
-            overflow: hidden;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            top: 2px;
         }
-        .card-img-wrap img {
-            max-height: 80%;
-            max-width: 80%;
-            object-fit: contain;
-            filter: drop-shadow(0 0 5px rgba(255,255,255,0.1));
+        .nav-search-btn:hover {
+            background: #000; 
+            color: #00f3ff;   
+            border-color: #00f3ff;
         }
-
-        /* 5. TEXT & DETAILS */
-        .card-body { padding: 20px; }
-        .card-title { 
-            font-weight: 700; 
-            font-size: 16px; 
-            margin-bottom: 5px; 
-            color: #fff;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .card-price { 
-            color: #00f3ff; /* Neon Cyan Price */
-            font-weight: 700; 
-            font-size: 18px; 
-            margin-bottom: 15px; 
-            display: block;
-            text-shadow: 0 0 5px rgba(0, 243, 255, 0.3);
-        }
-        
-        /* 6. BUTTONS (Cyberpunk Style) */
-        .btn-product {
-            width: 100%;
-            padding: 10px;
-            border: none;
-            border-radius: 4px;
-            font-weight: 700;
-            text-transform: uppercase;
-            font-size: 12px;
-            letter-spacing: 1px;
-            transition: 0.3s;
-            cursor: pointer;
-            font-family: 'Orbitron', sans-serif;
-        }
-
-        /* Add to Cart */
-        .btn-add { 
-            background: transparent; 
-            border: 1px solid #00f3ff; 
-            color: #00f3ff; 
-        }
-        .btn-add:hover { 
-            background: #00f3ff; 
-            color: #000; 
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.5);
-        }
-
-        /* Proxy Order */
-        .btn-proxy { 
-            background: transparent;
-            border: 1px solid #f0ad4e; 
-            color: #f0ad4e; 
-        }
-        .btn-proxy:hover { 
-            background: #f0ad4e; 
-            color: #000; 
-            box-shadow: 0 0 15px rgba(240, 173, 78, 0.5);
-        }
-
-        /* Notify Me */
-        .btn-notify { 
-            background: rgba(255, 255, 255, 0.05); 
-            color: #777; 
-            border: 1px solid #444;
-            cursor: not-allowed; 
-        }
-
-        /* 7. BADGES & ALERTS */
-        .badge-overlay {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            padding: 5px 10px;
-            border-radius: 2px; /* Sharper edges for tech look */
-            font-size: 10px;
-            font-weight: bold;
-            text-transform: uppercase;
-            color: #000; /* Black text for contrast */
-            z-index: 10;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-        }
-        .bg-proxy { background: #f0ad4e; box-shadow: 0 0 10px rgba(240, 173, 78, 0.5); } 
-        .bg-stock { background: #00f3ff; box-shadow: 0 0 10px rgba(0, 243, 255, 0.5); }
-        .bg-out { background: #ff0055; color: #fff; box-shadow: 0 0 10px rgba(255, 0, 85, 0.5); } 
-
-        .availability-notice { font-size: 11px; color: #ff0055; display: block; margin-top: 8px; text-align: center; font-weight: 600; }
-
-        /* Authentication Button */
-        #auth-button {
-            border: 1px solid #ff0055 !important;
-            background: transparent !important;
-            color: #ff0055 !important;
-            transition: all 0.3s;
-        }
-        #auth-button:hover {
-            background: #ff0055 !important;
-            color: #fff !important;
-            box-shadow: 0 0 15px rgba(255, 0, 85, 0.6);
-        }
-        
-        /* Flex Fix for Grid */
-        .row-flex {
-            display: flex;
-            flex-wrap: wrap;
-        }
-        .row-flex > [class*='col-'] {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        /* Footer */
-        footer {
-            background: rgba(5, 5, 10, 0.9);
-            border-top: 1px solid rgba(255,255,255,0.1);
-            padding: 40px 0;
-            margin-top: 50px;
-            color: #777;
+        .nav-search-btn i {
+            font-size: 15px;
+            line-height: 1;
         }
     </style>
 </head>
@@ -253,9 +49,15 @@
                     <h3>Live MART</h3>
                 </a>
             </div>
+            <!-- Fixed Nested UL issue here -->
             <ul class="nav navbar-nav navbar-right" style="display: flex; align-items: center; height: 50px;">
+                <li style="list-style: none; margin-right: 15px;">
+                    <a href="search.html" class="nav-search-btn" title="Search Products">
+                        <i class="fa fa-search"></i>
+                    </a>
+                </li>
                 <li style="margin-right: 20px; list-style: none;">
-                    <span style="color: #ccc; font-size: 14px;">Welcome, <b id="user-name-display" style="color:#fff;">Guest</b></span>
+                    <span class="nav-welcome-text">Welcome, <b id="user-name-display">Guest</b></span>
                 </li>
                 <li style="list-style: none;">
                     <button id="auth-button" style="padding: 6px 20px; border-radius: 20px; font-weight: bold; text-transform:uppercase; font-size:11px;">Login</button>
@@ -279,14 +81,14 @@
     <div class="container" style="min-height: 600px;">
         <div class="row">
             <div class="col-md-12">
-                <h4 style="margin-bottom: 25px; color: #fff; text-shadow: 0 0 5px rgba(255,255,255,0.5);">Available Near You</h4>
+                <h4 style="margin-bottom: 25px; color: #000000; font-size: 2.5rem; text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);"><b>Available Near You</b></h4>
             </div>
         </div>
 
         <div class="row" id="product-grid">
             <div class="col-md-12 text-center" style="padding: 50px;">
                 <i class="fa fa-circle-o-notch fa-spin" style="font-size:24px; color:#00f3ff;"></i> 
-                <span style="color:#00f3ff; margin-left:10px;">Initializing System...</span>
+                <span style="color:#00f3ff; margin-left:10px;">Loading...</span>
             </div>
         </div>
     </div>
@@ -309,13 +111,7 @@
                 // GUEST MODE
                 userNameDisplay.innerHTML = "Guest <small style='color:#777; font-weight:400;'>(Login Recommended)</small>";
                 authButton.textContent = "Login";
-                authButton.style.borderColor = "#00f3ff"; // Cyan for login
-                authButton.style.color = "#00f3ff";
-                authButton.onmouseover = function() { this.style.background = "#00f3ff"; this.style.color = "#000"; };
-                authButton.onmouseout = function() { this.style.background = "transparent"; this.style.color = "#00f3ff"; };
-                
                 authButton.onclick = () => window.location.href = 'index.html';
-                
                 renderProducts('all');
                 return; 
             }
@@ -327,32 +123,12 @@
                 window.location.href = 'index.html';
             };
 
-            let fetchUrl = '';
-            if (role === 'customer') fetchUrl = '/customer/me';
-            else if (role === 'retailer') fetchUrl = '/retailer/me';
-            else if (role === 'wholesaler') fetchUrl = '/wholesaler/me';
-
-            try {
-                const response = await fetch(fetchUrl, {
-                    method: 'GET',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    userNameDisplay.textContent = data.name || "User";
-                } else {
-                    localStorage.clear();
-                    window.location.reload();
-                }
-            } catch (error) {
-                console.error('Error fetching user data:', error);
-            }
-
+            // Simple visual update based on stored role (Simulated fetch for speed)
+            userNameDisplay.textContent = role.charAt(0).toUpperCase() + role.slice(1); 
             renderProducts('all');
         });
 
-        // --- 2. PRODUCT DATA (Using local assets) ---
-        // --- 2. PRODUCT DATA (Updated Paths) ---
+        // --- 2. PRODUCT DATA (WITH IDs) ---
         const products = [
             // ELECTRONICS
             { id: 101, title: "Headphones", price: "₹599.9", category: "electronics", stock: 10, isProxy: false, image: "product_images/headphones.jpg" },
@@ -367,7 +143,7 @@
 
             // GROCERIES
             { id: 301, title: "Premium Coffee", price: "₹100.0", category: "groceries", stock: 30, isProxy: false, image: "product_images/coffee.jpg" },
-            { id: 302, title: "Water Bottle (Pack)", price: "₹50.0", category: "groceries", stock: 100, isProxy: true, image: "product_images/bottle.jpg" },
+            { id: 302, title: "Water Bottle (Pack)", price: "₹50.0/pc", category: "groceries", stock: 100, isProxy: true, image: "product_images/bottle.jpg" },
 
             // HOME
             { id: 401, title: "Home Decor Lamp", price: "₹250.0", category: "home", stock: 8, isProxy: false, image: "product_images/lamp.jpg" },
@@ -377,7 +153,7 @@
             { id: 502, title: "Sports Sipper Bottle", price: "₹80.0", category: "sports", stock: 25, isProxy: false, image: "product_images/bottle.jpg" },
         ];
 
-        // --- 3. RENDER FUNCTION ---
+        // --- 3. RENDER FUNCTION (UPDATED WITH LINKS) ---
         function renderProducts(filter) {
             const grid = document.getElementById('product-grid');
             grid.innerHTML = ''; 
@@ -387,7 +163,7 @@
             if (filteredProducts.length === 0) {
                 grid.innerHTML = `
                     <div class="col-md-12 text-center" style="padding:50px;">
-                        <h5 style="color:#777;">No items found in <b style="color:#fff;">${filter.charAt(0).toUpperCase() + filter.slice(1)}</b> yet.</h5>
+                        <h5 style="color:#777;">No items found in <b style="color:#000;">${filter.charAt(0).toUpperCase() + filter.slice(1)}</b> yet.</h5>
                     </div>`;
                 return;
             }
@@ -414,16 +190,26 @@
                     <div class="col-md-3 col-sm-6" style="margin-bottom: 30px;"> 
                         <div class="product-card">
                             ${badgeHtml}
+                            
+                            <!-- 1. IMAGE LINK (Uses ID) -->
                             <div class="card-img-wrap">
-                                <img src="${product.image}" alt="${product.title}">
+                                <a href="product-details.html?id=${product.id}">
+                                    <img src="${product.image}" alt="${product.title}" style="cursor: pointer;" onerror="this.src='https://via.placeholder.com/200?text=No+Image'">
+                                </a>
                             </div>
+
                             <div class="card-body">
-                                <div class="card-title">${product.title}</div>
+                                <!-- 2. TITLE LINK (Uses ID) -->
+                                <a href="product-details.html?id=${product.id}" style="text-decoration: none; color: inherit;">
+                                    <div class="card-title">${product.title}</div>
+                                </a>
+                                
                                 <span class="card-price">${product.price}</span>
                                 ${btnHtml}
                             </div>
                         </div>
                     </div>`;
+
                 rowDiv.innerHTML += cardHtml;
             });
             grid.appendChild(rowDiv);

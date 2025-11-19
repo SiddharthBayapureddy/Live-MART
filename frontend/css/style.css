@@ -28,7 +28,6 @@ body {
   background-position: center;
   background-attachment: fixed; /* Keeps background still while scrolling */
   
-  /* Standard Flexbox centering (Kept from your original code) */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -42,12 +41,13 @@ body {
 h1 {
   font-weight: bold;
   margin: 0;
-  color: #ffffff; /* White text */
+  color: #ffffff; /* Keep Title White */
   text-shadow: 0 0 10px rgba(0, 243, 255, 0.7); /* Cyberpunk neon glow */
 }
 
 h2 {
   text-align: center;
+  color: #ffffff; /* Invert Form Headers to White */
 }
 
 p {
@@ -56,17 +56,24 @@ p {
   line-height: 20px;
   letter-spacing: 0.5px;
   margin: 20px 0 30px;
+  color: #c4c4c4; /* Invert Paragraphs to Light Grey */
 }
 
 span {
   font-size: 12px;
+  color: #a0a0a0; /* Slightly dimmer text */
 }
 
 a {
-  color: #333;
+  color: #00C9FF; /* Neon Link Color */
   font-size: 14px;
   text-decoration: none;
   margin: 15px 0;
+  transition: 0.3s;
+}
+a:hover {
+  color: #92FE9D;
+  text-shadow: 0 0 5px rgba(146, 254, 157, 0.5);
 }
 
 
@@ -83,12 +90,13 @@ button {
   padding: 12px 45px;
   letter-spacing: 1px;
   text-transform: uppercase;
-  transition: transform 80ms ease-in, background 0.3s ease;
+  transition: transform 80ms ease-in, background 0.3s ease, box-shadow 0.3s;
   cursor: pointer;
 }
 
 button:hover {
   background-color: #ff6a50;
+  box-shadow: 0 0 15px rgba(255, 75, 43, 0.4); /* Glow on hover */
 }
 
 button:active {
@@ -106,10 +114,11 @@ button.ghost {
 
 
 /* -------------------------------------------------------
-   3. Forms
+   3. Forms - THE DARK MODE SWITCH
 ------------------------------------------------------- */
 form {
-  background-color: #FFFFFF;
+  /* Changed from #FFFFFF to Deep Tech Dark */
+  background-color: #0b0e14; 
   display: flex;
   align-items: center;
   justify-content: center;
@@ -120,11 +129,24 @@ form {
 }
 
 input {
-  background-color: #eee;
-  border: none;
+  /* Changed from #eee to Dark Gunmetal */
+  background-color: #1b1f2b; 
+  color: #00f3ff; /* Neon Cyan Text when typing */
+  border: 1px solid #2c3e50;
   padding: 12px 15px;
   margin: 8px 0;
   width: 100%;
+  transition: all 0.3s;
+}
+
+input::placeholder {
+  color: #666;
+}
+
+input:focus {
+  outline: none;
+  border-color: #00C9FF;
+  box-shadow: 0 0 8px rgba(0, 201, 255, 0.2);
 }
 
 
@@ -132,11 +154,13 @@ input {
    4. Main Container
 ------------------------------------------------------- */
 .container {
-  background-color: rgba(255, 255, 255, 0.95);
+  /* Changed from White to Dark Glassy Blue */
+  background-color: #0b0e14;
   border-radius: 10px;
   box-shadow: 
-      0 14px 28px rgba(0, 0, 0, 0.25), 
-      0 10px 10px rgba(0, 0, 0, 0.22);
+      0 14px 28px rgba(0, 0, 0, 0.5), 
+      0 10px 10px rgba(0, 0, 0, 0.4),
+      0 0 20px rgba(0, 243, 255, 0.1); /* Subtle Cyan Glow */
   position: relative;
   overflow: hidden;
   width: 768px;
@@ -214,7 +238,7 @@ input {
   background: #00C9FF; 
   
   /* Cyberpunk Gradient: Cyan Blue -> Deep Pink/Red */
-  background: -webkit-linear-gradient(to right, #00C9FF, #92FE9D); /* Optional lighter variant */
+  background: -webkit-linear-gradient(to right, #00C9FF, #92FE9D);
   background: linear-gradient(to right, #0b28b9, #7213a1); 
 
   background-repeat: no-repeat;
@@ -280,23 +304,27 @@ input {
   align-items: center;
   gap: 8px;
   padding: 10px 15px;
-  border: 1px solid #a600ff;
+  border: 1px solid #000000; /* Purple Border */
   border-radius: 5px;
   text-decoration: none;
-  color: #333;
+  color: #fff; /* White Text */
   font-weight: bold;
-  background-color: #ffffff76;
-  transition: background 0.3s ease;
+  /* Dark Glass Background */
+  background-color: rgba(255, 255, 255, 0.05);
+  transition: background 0.3s ease, border-color 0.3s;
 }
 
 .social:hover {
-  background-color: #f0f0f0;
+  background-color: rgba(166, 0, 255, 0.2); /* Purple tint on hover */
+  border-color: #d68cff;
 }
 
 .social img {
   width: 34px;
   height: 34px;
   object-fit: contain;
+  /* Invert colors if icons are black, optional */
+  /* filter: invert(1); */ 
 }
 
 
@@ -304,7 +332,7 @@ input {
    7. Footer
 ------------------------------------------------------- */
 footer {
-  background-color: #222;
+  background-color: #0b0e14; /* Match form color */
   color: #fff;
   font-size: 14px;
   bottom: 0;
@@ -313,10 +341,12 @@ footer {
   right: 0;
   text-align: center;
   z-index: 999;
+  border-top: 1px solid #222;
 }
 
 footer p {
   margin: 10px 0;
+  color: #777;
 }
 
 footer i {

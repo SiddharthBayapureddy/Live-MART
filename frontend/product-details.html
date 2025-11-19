@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live MART | Product Details</title>
+    
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.css">
+    <link rel="stylesheet" href="assets/css/font-awesome.min.css">
+    <link rel="stylesheet" href="assets/css/style.css"> <!-- Added style.css for global font overrides -->
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700|Orbitron:400,700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Ensure background matches Dashboard */
+        body {
+            background-color: #050505;
+            background-image: 
+                linear-gradient(rgba(0, 243, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+            background-attachment: fixed;
+            color: #e0e0e0;
+        }
+
+        .navbar-default {
+            background-color: #fff;
+            border-bottom: 1px solid #e7e7e7;
+        }
+
+        /* Specific Styles for Product Details */
+        .details-container {
+            margin-top: 80px;
+            background: rgba(20, 20, 20, 0.9);
+            border: 1px solid #333;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            margin-bottom: 50px;
+        }
+
+        .product-preview-img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            border: 2px solid #333;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+        }
+
+        .details-title {
+            font-family: 'Orbitron', sans-serif;
+            color: #fff;
+            font-size: 36px;
+            margin-top: 0;
+            letter-spacing: 1px;
+        }
+
+        .details-price {
+            font-size: 32px;
+            color: #00f3ff;
+            font-weight: bold;
+            margin: 15px 0;
+            display: block;
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+        }
+
+        .details-desc {
+            color: #ccc;
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .meta-info {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .btn-buy-now {
+            background: #00f3ff;
+            color: #000;
+            border: none;
+            padding: 12px 35px;
+            font-weight: bold;
+            font-size: 16px;
+            text-transform: uppercase;
+            margin-right: 15px;
+            transition: 0.3s;
+            border-radius: 2px;
+        }
+        .btn-buy-now:hover {
+            background: #fff;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.6);
+        }
+
+        .btn-add-cart {
+            background: transparent;
+            color: #00f3ff;
+            border: 2px solid #00f3ff;
+            padding: 10px 30px;
+            font-weight: bold;
+            font-size: 16px;
+            transition: 0.3s;
+            border-radius: 2px;
+        }
+        .btn-add-cart:hover {
+            background: rgba(0, 243, 255, 0.1);
+            color: #fff;
+        }
+        
+        /* Navbar Search Button alignment fix */
+        .nav-search-btn {
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            width: 35px;
+            height: 35px;
+            padding: 0 !important;
+            margin: 0 !important;
+            border-radius: 50%;
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+            position: relative;
+            top: 2px;
+        }
+        .nav-search-btn:hover {
+            background: #000; color: #00f3ff; border-color: #00f3ff;
+        }
+        .nav-search-btn i {
+            font-size: 15px;
+            line-height: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. NAVIGATION BAR -->
+    <nav class="navbar navbar-default">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="dashboard.html">
+                    <h3>Live MART</h3>
+                </a>
+            </div>
+            <ul class="nav navbar-nav navbar-right" style="display: flex; align-items: center; height: 50px; margin: 0;">
+                
+                <!-- Search Button -->
+                <li style="list-style: none; margin-right: 15px;">
+                    <a href="search.html" class="nav-search-btn" title="Search Products">
+                        <i class="fa fa-search"></i>
+                    </a>
+                </li>
+
+                <li style="margin-right: 20px; list-style: none;">
+                    <span class="nav-welcome-text" style="color: #333;">Welcome, <b id="user-name-display">User</b></span>
+                </li>
+                <li style="list-style: none;">
+                    <button onclick="logout()" style="border: 2px solid #333; background: transparent; color: #333; padding: 5px 15px; font-weight: bold;">Logout</button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- 2. MAIN PRODUCT CONTENT -->
+    <div class="container details-container">
+        <a href="dashboard.html" style="color: #fff; text-decoration: none; margin-bottom: 20px; display: inline-block; font-family: 'Montserrat', sans-serif;">
+            <i class="fa fa-arrow-left" style="color: #00f3ff;"></i> Back to Dashboard
+        </a>
+        
+        <div class="row" id="product-content-area">
+            <!-- Content injected by JS -->
+            <div class="col-md-12 text-center" style="padding: 50px;">
+                <i class="fa fa-circle-o-notch fa-spin" style="font-size:24px; color:#00f3ff;"></i>
+                <h3 style="color: #fff; margin-top: 20px;">Loading Product...</h3>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- MOCK DATA (Updated to match Dashboard IDs 101-502) ---
+        const products = [
+            // ELECTRONICS
+            { id: 101, title: "Headphones", price: "₹599.9", category: "electronics", image: "product_images/headphones.jpg", desc: "High-fidelity noise-cancelling headphones with 20-hour battery life. Perfect for immersive gaming and music sessions." },
+            { id: 102, title: "Mechanical Keyboard", price: "₹450.0", category: "electronics", image: "product_images/keyboard.jpg", desc: "RGB backlit mechanical keyboard with blue switches. Offers tactile feedback and durability for professional typists and gamers." },
+            { id: 103, title: "Wireless Mouse", price: "₹150.0", category: "electronics", image: "product_images/mouse.jpg", desc: "Ergonomic wireless mouse with adjustable DPI settings. Precision tracking and long-lasting battery performance." },
+            { id: 104, title: "Electric Desk Lamp", price: "₹250.0", category: "electronics", image: "product_images/lamp.jpg", desc: "Smart LED desk lamp with adjustable brightness and color temperature. Includes USB charging port for devices." },
+
+            // FASHION
+            { id: 201, title: "Urban Backpack", price: "₹350.0", category: "fashion", image: "product_images/backpack.jpg", desc: "Water-resistant urban backpack with laptop compartment. Stylish design suitable for daily commute or travel." },
+            { id: 202, title: "Running Shoes", price: "₹600.0", category: "fashion", image: "product_images/shoes.jpg", desc: "Lightweight running shoes with breathable mesh and shock-absorption sole. Engineered for speed and comfort." },
+            { id: 203, title: "Cotton T-Shirt", price: "₹120.0", category: "fashion", image: "product_images/tshirt.jpg", desc: "Premium 100% cotton T-shirt. Soft fabric, regular fit, and durable stitching. Available in multiple colors." },
+
+            // GROCERIES
+            { id: 301, title: "Premium Coffee", price: "₹100.0", category: "groceries", image: "product_images/coffee.jpg", desc: "Artisan roasted coffee beans. Rich aroma and bold flavor profile, sourced from organic high-altitude farms." },
+            { id: 302, title: "Water Bottle (Pack)", price: "₹50.0/pc", category: "groceries", image: "product_images/bottle.jpg", desc: "Pack of 6 mineral water bottles. Purified and enriched with essential minerals for hydration." },
+
+            // HOME
+            { id: 401, title: "Home Decor Lamp", price: "₹250.0", category: "home", image: "product_images/lamp.jpg", desc: "Modern artistic lamp that adds warmth to any room. Crafted with eco-friendly materials and ambient lighting." },
+
+            // SPORTS
+            { id: 501, title: "Yoga Mat", price: "₹200.0", category: "sports", image: "product_images/yogamat.jpg", desc: "Non-slip yoga mat with extra cushioning. Eco-friendly material, easy to clean, and perfect for all fitness levels." },
+            { id: 502, title: "Sports Sipper Bottle", price: "₹80.0", category: "sports", image: "product_images/bottle.jpg", desc: "Leak-proof sports sipper bottle. BPA-free plastic, ergonomic grip, and fast-flow cap for workouts." }
+        ];
+
+        // --- LOGIC TO FIND PRODUCT BY URL ID ---
+        window.onload = function() {
+            // 1. Check Auth
+            const userRole = localStorage.getItem('user_role') || 'Guest';
+            const userNameDisplay = document.getElementById('user-name-display');
+            userNameDisplay.textContent = userRole.charAt(0).toUpperCase() + userRole.slice(1);
+
+            // 2. Get ID from URL (e.g., ?id=101)
+            const urlParams = new URLSearchParams(window.location.search);
+            const productId = parseInt(urlParams.get('id'));
+
+            // 3. Find product
+            const product = products.find(p => p.id === productId);
+            const contentArea = document.getElementById('product-content-area');
+
+            if (product) {
+                // 4. Render Details
+                contentArea.innerHTML = `
+                    <div class="col-md-6">
+                        <!-- Added onerror fallback for images -->
+                        <img src="${product.image}" alt="${product.title}" class="product-preview-img" onerror="this.src='https://via.placeholder.com/600?text=No+Image'">
+                    </div>
+                    <div class="col-md-6">
+                        <h1 class="details-title">${product.title}</h1>
+                        <span class="details-price">${product.price}</span>
+                        
+                        <div class="meta-info">Category: <span style="color:#00f3ff; text-transform:capitalize;">${product.category}</span></div>
+                        <div class="meta-info">Product ID: #${product.id}8493</div>
+                        <div class="meta-info">Availability: <span style="color:#0f0;">In Stock</span></div>
+                        
+                        <hr style="border-color: #333; margin: 20px 0;">
+                        
+                        <p class="details-desc">
+                            ${product.desc}
+                        </p>
+                        
+                        <div style="margin-top: 40px;">
+                            <button class="btn-buy-now">Buy Now</button>
+                            <button class="btn-add-cart" onclick="addToCart('${product.title}')">Add to Cart</button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                contentArea.innerHTML = `
+                    <div class="col-md-12 text-center" style="margin-top:50px;">
+                        <h2 style="color: #fff;">Product Not Found</h2>
+                        <p style="color: #777;">The item you are looking for does not exist or has been removed.</p>
+                        <a href="dashboard.html" style="color: #00f3ff;">Return to Shop</a>
+                    </div>`;
+            }
+        };
+
+        function addToCart(title) {
+            alert('Added ' + title + ' to your cart!');
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user_role');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
