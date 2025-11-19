@@ -8,7 +8,27 @@
 }
 
 body {
-  background: #f6f5f7;
+  /* Dark Base */
+  background-color: #050505; 
+  
+  /* The Grid and the Blue/Red Glows */
+  background-image: 
+    /* The Grid Lines (Cyan tint, very subtle) */
+    linear-gradient(rgba(0, 243, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 243, 255, 0.1) 1px, transparent 1px),
+    
+    /* The Blue Glow (Top Left) */
+    radial-gradient(circle at 15% 50%, rgba(0, 255, 255, 0.15), transparent 50%),
+    
+    /* The Red Glow (Bottom Right) */
+    radial-gradient(circle at 85% 30%, rgba(255, 0, 60, 0.15), transparent 50%);
+
+  /* Size of the grid squares */
+  background-size: 40px 40px, 40px 40px, 100% 100%, 100% 100%;
+  background-position: center;
+  background-attachment: fixed; /* Keeps background still while scrolling */
+  
+  /* Standard Flexbox centering (Kept from your original code) */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -16,12 +36,14 @@ body {
   font-family: 'Montserrat', sans-serif;
   min-height: 100vh;
   margin: 0;
-  padding-bottom: 60px; /* prevents footer overlap */
+  padding-bottom: 60px;
 }
 
 h1 {
   font-weight: bold;
   margin: 0;
+  color: #ffffff; /* White text */
+  text-shadow: 0 0 10px rgba(0, 243, 255, 0.7); /* Cyberpunk neon glow */
 }
 
 h2 {
@@ -188,13 +210,21 @@ input {
 }
 
 .overlay {
-  background: linear-gradient(to right, #4000ff, #513b8d);
+  /* Fallback */
+  background: #00C9FF; 
+  
+  /* Cyberpunk Gradient: Cyan Blue -> Deep Pink/Red */
+  background: -webkit-linear-gradient(to right, #00C9FF, #92FE9D); /* Optional lighter variant */
+  background: linear-gradient(to right, #0b28b9, #7213a1); 
+
+  background-repeat: no-repeat;
   background-size: cover;
+  background-position: 0 0;
   color: #FFFFFF;
   position: relative;
   left: -100%;
-  width: 200%;
   height: 100%;
+  width: 200%;
   transform: translateX(0);
   transition: transform 0.6s ease-in-out;
 }

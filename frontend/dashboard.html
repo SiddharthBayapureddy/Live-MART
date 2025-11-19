@@ -8,138 +8,239 @@
     <link rel="stylesheet" href="assets/css/bootstrap.css">
     <link rel="stylesheet" href="assets/css/font-awesome.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700|Orbitron:400,700&display=swap" rel="stylesheet">
     
     <style>
-        /* --- MODULE 2 SPECIFIC STYLES --- */
-        body { background-color: #f9f9f9; font-family: 'Raleway', sans-serif; }
+        /* --- CYBERPUNK DASHBOARD THEME --- */
         
-        /* Navbar & Header */
-        .navbar { background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.05); padding: 15px 0; margin-bottom: 0; }
-        .navbar-brand h3 { margin: 0; font-weight: 800; color: #333; }
-        
-        /* Top Navigable Category Bar (Sticky) */
-        .category-nav-container {
-            background: #fff;
-            border-bottom: 1px solid #eee;
+        /* 1. BACKGROUND & TYPOGRAPHY */
+        body {
+            background-color: #050505;
+            /* The Cyberpunk Grid Background */
+            background-image: 
+                linear-gradient(rgba(0, 243, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.1) 1px, transparent 1px),
+                radial-gradient(circle at 15% 50%, rgba(0, 255, 255, 0.15), transparent 50%),
+                radial-gradient(circle at 85% 30%, rgba(255, 0, 60, 0.15), transparent 50%);
+            background-size: 40px 40px, 40px 40px, 100% 100%, 100% 100%;
+            background-attachment: fixed;
+            font-family: 'Montserrat', sans-serif;
+            color: #e0e0e0;
+        }
+
+        h3, h4, .navbar-brand {
+            font-family: 'Orbitron', sans-serif; /* Sci-fi font for headers */
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* 2. NAVBAR */
+        .navbar {
+            background: rgba(10, 10, 15, 0.95); /* Dark Glass */
+            border-bottom: 1px solid rgba(0, 243, 255, 0.3);
             padding: 15px 0;
+            margin-bottom: 0;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.1);
+        }
+        .navbar-brand h3 {
+            margin: 0;
+            font-weight: 800;
+            color: #fff;
+            text-shadow: 0 0 8px rgba(0, 243, 255, 0.8);
+        }
+
+        /* 3. CATEGORY BAR */
+        .category-nav-container {
+            background: rgba(10, 10, 15, 0.8);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px 0;
             position: sticky;
             top: 0;
             z-index: 99;
             margin-bottom: 30px;
             white-space: nowrap;
             overflow-x: auto;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.04);
+            backdrop-filter: blur(5px);
         }
-        
-        /* Hide scrollbar */
         .category-nav-container::-webkit-scrollbar { height: 4px; }
-        .category-nav-container::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
-        
+        .category-nav-container::-webkit-scrollbar-thumb { background: #00f3ff; border-radius: 4px; }
+
+        /* Neon Pills */
         .cat-pill {
             display: inline-block;
             padding: 8px 25px;
             margin: 0 5px;
             border-radius: 50px;
-            background: #f0f2f5;
-            color: #555;
+            background: transparent;
+            color: #00f3ff; /* Neon Cyan Text */
             font-weight: 600;
             text-decoration: none;
             transition: all 0.3s;
-            border: 1px solid transparent;
+            border: 1px solid #00f3ff;
             cursor: pointer;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 1px;
         }
         .cat-pill:hover, .cat-pill.active {
-            background: #ff4b2b; 
-            color: #fff;
+            background: #00f3ff;
+            color: #000; /* Black text on active for contrast */
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.6);
             text-decoration: none;
-            box-shadow: 0 4px 10px rgba(255, 75, 43, 0.3);
         }
 
-        /* Product Card */
+        /* 4. PRODUCT CARDS */
         .product-card {
-            background: #fff;
-            border-radius: 12px;
+            background: rgba(20, 25, 35, 0.8); /* Semi-transparent dark blue */
+            border-radius: 10px;
             overflow: hidden;
-            border: 1px solid #eee;
+            border: 1px solid rgba(255, 255, 255, 0.1);
             margin-bottom: 30px;
-            transition: transform 0.3s, box-shadow 0.3s;
+            transition: all 0.3s ease;
             position: relative;
             height: 100%;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
         .product-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-color: #00f3ff; /* Glow border on hover */
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
         }
         
         /* Image Area */
         .card-img-wrap {
             height: 200px;
-            background: #f4f4f4;
+            background: rgba(0, 0, 0, 0.3);
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
             overflow: hidden;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
         .card-img-wrap img {
-            max-height: 100%;
-            max-width: 100%;
-            object-fit: cover;
+            max-height: 80%;
+            max-width: 80%;
+            object-fit: contain;
+            filter: drop-shadow(0 0 5px rgba(255,255,255,0.1));
         }
 
-        /* Status Badges */
-        .badge-overlay {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 10px;
-            font-weight: bold;
-            text-transform: uppercase;
-            color: #fff;
-            z-index: 10;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-        .bg-proxy { background: #f0ad4e; } /* Orange */
-        .bg-stock { background: #5cb85c; } /* Green */
-        .bg-out { background: #d9534f; }   /* Red */
-
-        /* Card Details */
+        /* 5. TEXT & DETAILS */
         .card-body { padding: 20px; }
-        .card-title { font-weight: 700; font-size: 16px; margin-bottom: 5px; color: #333; }
-        .card-price { color: #28a745; font-weight: 800; font-size: 18px; margin-bottom: 15px; display: block;}
+        .card-title { 
+            font-weight: 700; 
+            font-size: 16px; 
+            margin-bottom: 5px; 
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .card-price { 
+            color: #00f3ff; /* Neon Cyan Price */
+            font-weight: 700; 
+            font-size: 18px; 
+            margin-bottom: 15px; 
+            display: block;
+            text-shadow: 0 0 5px rgba(0, 243, 255, 0.3);
+        }
         
-        /* Buttons */
+        /* 6. BUTTONS (Cyberpunk Style) */
         .btn-product {
             width: 100%;
             padding: 10px;
             border: none;
-            border-radius: 6px;
-            font-weight: 600;
+            border-radius: 4px;
+            font-weight: 700;
             text-transform: uppercase;
             font-size: 12px;
-            transition: 0.2s;
+            letter-spacing: 1px;
+            transition: 0.3s;
             cursor: pointer;
+            font-family: 'Orbitron', sans-serif;
         }
-        .btn-add { background: #333; color: #fff; }
-        .btn-add:hover { background: #000; }
-        .btn-proxy { background: #f0ad4e; color: #fff; }
-        .btn-notify { background: #eee; color: #999; cursor: not-allowed; }
+
+        /* Add to Cart */
+        .btn-add { 
+            background: transparent; 
+            border: 1px solid #00f3ff; 
+            color: #00f3ff; 
+        }
+        .btn-add:hover { 
+            background: #00f3ff; 
+            color: #000; 
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.5);
+        }
+
+        /* Proxy Order */
+        .btn-proxy { 
+            background: transparent;
+            border: 1px solid #f0ad4e; 
+            color: #f0ad4e; 
+        }
+        .btn-proxy:hover { 
+            background: #f0ad4e; 
+            color: #000; 
+            box-shadow: 0 0 15px rgba(240, 173, 78, 0.5);
+        }
+
+        /* Notify Me */
+        .btn-notify { 
+            background: rgba(255, 255, 255, 0.05); 
+            color: #777; 
+            border: 1px solid #444;
+            cursor: not-allowed; 
+        }
+
+        /* 7. BADGES & ALERTS */
+        .badge-overlay {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            border-radius: 2px; /* Sharper edges for tech look */
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #000; /* Black text for contrast */
+            z-index: 10;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        .bg-proxy { background: #f0ad4e; box-shadow: 0 0 10px rgba(240, 173, 78, 0.5); } 
+        .bg-stock { background: #00f3ff; box-shadow: 0 0 10px rgba(0, 243, 255, 0.5); }
+        .bg-out { background: #ff0055; color: #fff; box-shadow: 0 0 10px rgba(255, 0, 85, 0.5); } 
+
+        .availability-notice { font-size: 11px; color: #ff0055; display: block; margin-top: 8px; text-align: center; font-weight: 600; }
+
+        /* Authentication Button */
+        #auth-button {
+            border: 1px solid #ff0055 !important;
+            background: transparent !important;
+            color: #ff0055 !important;
+            transition: all 0.3s;
+        }
+        #auth-button:hover {
+            background: #ff0055 !important;
+            color: #fff !important;
+            box-shadow: 0 0 15px rgba(255, 0, 85, 0.6);
+        }
         
-        .availability-notice { font-size: 11px; color: #e67e22; display: block; margin-top: 8px; text-align: center; font-weight: 600; }
-                
-                /* --- FLEXBOX GRID FIX --- */
+        /* Flex Fix for Grid */
         .row-flex {
-            display: -webkit-box;
-            display: -webkit-flex;
-            display: -ms-flexbox;
             display: flex;
             flex-wrap: wrap;
         }
         .row-flex > [class*='col-'] {
             display: flex;
             flex-direction: column;
+        }
+        
+        /* Footer */
+        footer {
+            background: rgba(5, 5, 10, 0.9);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding: 40px 0;
+            margin-top: 50px;
+            color: #777;
         }
     </style>
 </head>
@@ -154,10 +255,10 @@
             </div>
             <ul class="nav navbar-nav navbar-right" style="display: flex; align-items: center; height: 50px;">
                 <li style="margin-right: 20px; list-style: none;">
-                    <span style="color: #555; font-size: 14px;">Welcome, <b id="user-name-display">Guest</b></span>
+                    <span style="color: #ccc; font-size: 14px;">Welcome, <b id="user-name-display" style="color:#fff;">Guest</b></span>
                 </li>
                 <li style="list-style: none;">
-                    <button id="auth-button" style="border: 1px solid #d9534f; background: #fff; color: #d9534f; font-weight: bold; padding: 5px 15px; border-radius: 20px;">Login</button>
+                    <button id="auth-button" style="padding: 6px 20px; border-radius: 20px; font-weight: bold; text-transform:uppercase; font-size:11px;">Login</button>
                 </li>
             </ul>
         </div>
@@ -178,19 +279,22 @@
     <div class="container" style="min-height: 600px;">
         <div class="row">
             <div class="col-md-12">
-                <h4 style="margin-bottom: 25px; font-weight: 300; text-transform: uppercase; letter-spacing: 1px;">Available Near You</h4>
+                <h4 style="margin-bottom: 25px; color: #fff; text-shadow: 0 0 5px rgba(255,255,255,0.5);">Available Near You</h4>
             </div>
         </div>
 
         <div class="row" id="product-grid">
             <div class="col-md-12 text-center" style="padding: 50px;">
-                Loading Products...
+                <i class="fa fa-circle-o-notch fa-spin" style="font-size:24px; color:#00f3ff;"></i> 
+                <span style="color:#00f3ff; margin-left:10px;">Initializing System...</span>
             </div>
         </div>
     </div>
 
-    <footer style="background: #222; color: #fff; padding: 30px 0; margin-top: 50px; text-align: center;">
-        <p>© 2025 Live MART. All rights reserved.</p>
+    <footer>
+        <div class="container text-center">
+            <p>© 2025 Live MART. All rights reserved.</p>
+        </div>
     </footer>
 
     <script>
@@ -203,13 +307,15 @@
             
             if (!token || !role) {
                 // GUEST MODE
-                userNameDisplay.innerHTML = "Guest <small style='color:#999; font-weight:400;'>(Login Recommended)</small>";
+                userNameDisplay.innerHTML = "Guest <small style='color:#777; font-weight:400;'>(Login Recommended)</small>";
                 authButton.textContent = "Login";
-                authButton.style.borderColor = "#333";
-                authButton.style.color = "#333";
+                authButton.style.borderColor = "#00f3ff"; // Cyan for login
+                authButton.style.color = "#00f3ff";
+                authButton.onmouseover = function() { this.style.background = "#00f3ff"; this.style.color = "#000"; };
+                authButton.onmouseout = function() { this.style.background = "transparent"; this.style.color = "#00f3ff"; };
+                
                 authButton.onclick = () => window.location.href = 'index.html';
                 
-                // Render everything by default on load
                 renderProducts('all');
                 return; 
             }
@@ -245,142 +351,93 @@
             renderProducts('all');
         });
 
-        // --- 2. NEW MOCK PRODUCT DATA (Updated to requested list) ---
-        // --- 2. NEW MOCK PRODUCT DATA (Local Paths) ---
+        // --- 2. PRODUCT DATA (Using local assets) ---
+        // --- 2. PRODUCT DATA (Updated Paths) ---
         const products = [
             // ELECTRONICS
-            {
-                id: 101, title: "Headphones", price: "₹699.0", category: "electronics", stock: 10, isProxy: false,
-                image: "product_images//headphones.jpg"
-            },
-            {
-                id: 102, title: "Mechanical Keyboard", price: "₹1499.0", category: "electronics", stock: 5, isProxy: false,
-                image: "product_images//keyboard.jpg"
-            },
-            {
-                id: 103, title: "Wireless Mouse", price: "₹399.0", category: "electronics", stock: 20, isProxy: false,
-                image: "product_images//mouse.jpg"
-            },
-            {
-                id: 104, title: "Electric Desk Lamp", price: "₹499.0", category: "electronics", stock: 8, isProxy: false,
-                image: "product_images//lamp.jpg"
-            },
+            { id: 101, title: "Headphones", price: "₹599.9", category: "electronics", stock: 10, isProxy: false, image: "product_images/headphones.jpg" },
+            { id: 102, title: "Mechanical Keyboard", price: "₹450.0", category: "electronics", stock: 5, isProxy: false, image: "product_images/keyboard.jpg" },
+            { id: 103, title: "Wireless Mouse", price: "₹150.0", category: "electronics", stock: 20, isProxy: false, image: "product_images/mouse.jpg" },
+            { id: 104, title: "Electric Desk Lamp", price: "₹250.0", category: "electronics", stock: 8, isProxy: false, image: "product_images/lamp.jpg" },
 
             // FASHION
-            {
-                id: 201, title: "Urban Backpack", price: "₹799.0", category: "fashion", stock: 15, isProxy: false,
-                image: "product_images//backpack.jpg"
-            },
-            {
-                id: 202, title: "Running Shoes", price: "₹999.0", category: "fashion", stock: 0, availableDate: "Dec 1", isProxy: false,
-                image: "product_images//shoes.jpg"
-            },
-            {
-                id: 203, title: "Cotton T-Shirt", price: "₹249.0", category: "fashion", stock: 50, isProxy: false,
-                image: "product_images//tshirt.jpg"
-            },
+            { id: 201, title: "Urban Backpack", price: "₹350.0", category: "fashion", stock: 15, isProxy: false, image: "product_images/backpack.jpg" },
+            { id: 202, title: "Running Shoes", price: "₹600.0", category: "fashion", stock: 0, availableDate: "Dec 1", isProxy: false, image: "product_images/shoes.jpg" },
+            { id: 203, title: "Cotton T-Shirt", price: "₹120.0", category: "fashion", stock: 50, isProxy: false, image: "product_images/tshirt.jpg" },
 
             // GROCERIES
-            {
-                id: 301, title: "Premium Coffee", price: "₹299.0", category: "groceries", stock: 30, isProxy: false,
-                image: "product_images//coffee.jpg"
-            },
-            {
-                id: 302, title: "Water Bottle (Pack limit 500)", price: "₹120.0/pc", category: "groceries", stock: 100, isProxy: true,
-                image: "product_images//bottle.jpg"
-            },
+            { id: 301, title: "Premium Coffee", price: "₹100.0", category: "groceries", stock: 30, isProxy: false, image: "product_images/coffee.jpg" },
+            { id: 302, title: "Water Bottle (Pack)", price: "₹50.0", category: "groceries", stock: 100, isProxy: true, image: "product_images/bottle.jpg" },
 
             // HOME
-            {
-                id: 401, title: "Home Decor Lamp", price: "₹499.0", category: "home", stock: 8, isProxy: false,
-                image: "product_images//lamp.jpg"
-            },
+            { id: 401, title: "Home Decor Lamp", price: "₹250.0", category: "home", stock: 8, isProxy: false, image: "product_images/lamp.jpg" },
 
             // SPORTS
-            {
-                id: 501, title: "Yoga Mat", price: "₹450.0", category: "sports", stock: 12, isProxy: false,
-                image: "product_images//yogamat.jpg"
-            },
-            {
-                id: 502, title: "Sports Sipper Bottle", price: "₹150.0", category: "sports", stock: 25, isProxy: false,
-                image: "product_images//bottle.jpg"
-            },
-
-            // BOOKS (Empty category as requested)
+            { id: 501, title: "Yoga Mat", price: "₹200.0", category: "sports", stock: 12, isProxy: false, image: "product_images/yogamat.jpg" },
+            { id: 502, title: "Sports Sipper Bottle", price: "₹80.0", category: "sports", stock: 25, isProxy: false, image: "product_images/bottle.jpg" },
         ];
 
-        // --- 3. RENDER FUNCTION (Fixed Alignment) ---
-function renderProducts(filter) {
-    const grid = document.getElementById('product-grid');
-    grid.innerHTML = ''; // Clear existing content
+        // --- 3. RENDER FUNCTION ---
+        function renderProducts(filter) {
+            const grid = document.getElementById('product-grid');
+            grid.innerHTML = ''; 
 
-    // If 'all', show everything, else filter
-    let filteredProducts = filter === 'all' ? products : products.filter(p => p.category === filter);
+            let filteredProducts = filter === 'all' ? products : products.filter(p => p.category === filter);
 
-    if (filteredProducts.length === 0) {
-        grid.innerHTML = `
-            <div class="col-md-12 text-center" style="padding:50px;">
-                <h5 style="color:#777;">No items found in <b>${filter.charAt(0).toUpperCase() + filter.slice(1)}</b> yet.</h5>
-            </div>`;
-        return;
-    }
+            if (filteredProducts.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-md-12 text-center" style="padding:50px;">
+                        <h5 style="color:#777;">No items found in <b style="color:#fff;">${filter.charAt(0).toUpperCase() + filter.slice(1)}</b> yet.</h5>
+                    </div>`;
+                return;
+            }
 
-    // Create a row div with the new FLEX class
-    const rowDiv = document.createElement('div');
-    rowDiv.className = 'row row-flex'; // <--- THIS IS THE KEY FIX
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'row row-flex'; 
 
-    filteredProducts.forEach(product => {
-        let badgeHtml = '';
-        let btnHtml = '';
+            filteredProducts.forEach(product => {
+                let badgeHtml = '', btnHtml = '';
 
-        if (product.stock === 0) {
-            badgeHtml = `<span class="badge-overlay bg-out">Out of Stock</span>`;
-            btnHtml = `
-                <button class="btn-product btn-notify" disabled>Notify Me</button>
-                <span class="availability-notice"><i class="fa fa-clock-o"></i> Available: ${product.availableDate}</span>
-            `;
-        } else if (product.isProxy) {
-            badgeHtml = `<span class="badge-overlay bg-proxy"><i class="fa fa-truck"></i> Wholesaler Direct</span>`;
-            btnHtml = `<button class="btn-product btn-proxy">Order via Proxy</button>`;
-        } else {
-            badgeHtml = `<span class="badge-overlay bg-stock">In Stock</span>`;
-            btnHtml = `<button class="btn-product btn-add">Add to Cart</button>`;
+                if (product.stock === 0) {
+                    badgeHtml = `<span class="badge-overlay bg-out">Out of Stock</span>`;
+                    btnHtml = `<button class="btn-product btn-notify" disabled>Notify Me</button>
+                               <span class="availability-notice"><i class="fa fa-clock-o"></i> Available: ${product.availableDate}</span>`;
+                } else if (product.isProxy) {
+                    badgeHtml = `<span class="badge-overlay bg-proxy"><i class="fa fa-truck"></i> Wholesaler Direct</span>`;
+                    btnHtml = `<button class="btn-product btn-proxy">Order via Proxy</button>`;
+                } else {
+                    badgeHtml = `<span class="badge-overlay bg-stock">In Stock</span>`;
+                    btnHtml = `<button class="btn-product btn-add">Add to Cart</button>`;
+                }
+
+                const cardHtml = `
+                    <div class="col-md-3 col-sm-6" style="margin-bottom: 30px;"> 
+                        <div class="product-card">
+                            ${badgeHtml}
+                            <div class="card-img-wrap">
+                                <img src="${product.image}" alt="${product.title}">
+                            </div>
+                            <div class="card-body">
+                                <div class="card-title">${product.title}</div>
+                                <span class="card-price">${product.price}</span>
+                                ${btnHtml}
+                            </div>
+                        </div>
+                    </div>`;
+                rowDiv.innerHTML += cardHtml;
+            });
+            grid.appendChild(rowDiv);
         }
 
-        const cardHtml = `
-            <div class="col-md-3 col-sm-6" style="margin-bottom: 30px;"> <div class="product-card">
-                    ${badgeHtml}
-                    <div class="card-img-wrap">
-                        <img src="${product.image}" alt="${product.title}">
-                    </div>
-                    <div class="card-body">
-                        <div class="card-title">${product.title}</div>
-                        <span class="card-price">${product.price}</span>
-                        ${btnHtml}
-                    </div>
-                </div>
-            </div>
-        `;
-        rowDiv.innerHTML += cardHtml;
-    });
-    grid.appendChild(rowDiv);
-}
         // --- 4. FILTER CLICK HANDLER ---
         function filterProducts(category) {
-            // Remove active from all pills
             document.querySelectorAll('.cat-pill').forEach(el => el.classList.remove('active'));
-            
-            // Add active to the clicked pill or the "All" pill if not found
             let targetPill = event.target;
-            if (targetPill && targetPill.classList.contains('cat-pill')) {
-                targetPill.classList.add('active');
-            } else {
-                // If somehow event.target isn't a pill (e.g., initial load or malformed click),
-                // ensure 'all' pill is active if 'all' category is requested
+            if (targetPill && targetPill.classList.contains('cat-pill')) targetPill.classList.add('active');
+            else {
                 const allPill = document.querySelector('.cat-pill[onclick="filterProducts(\'all\')"]');
                 if (allPill) allPill.classList.add('active');
             }
-            
             renderProducts(category);
         }
     </script>
