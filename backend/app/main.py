@@ -66,7 +66,15 @@ from database import (
 )
 
 # Importing the SQLModel classes
-from db_models import Customer, Product, ShoppingCart, ShoppingCartItem, Retailer, Wholesaler , PasswordReset
+from db_models import (Customer, 
+                       Product, 
+                       ShoppingCart,
+                        ShoppingCartItem, 
+                        Retailer,
+                        Wholesaler ,
+                        PasswordReset, 
+                        OrderRecords,
+                        Category)
 
 # Importing the Schemas
 from schemas import *
@@ -172,6 +180,37 @@ async def login_customer(
 @app.get("/customer/me", response_model=CustomerRead, tags=["Customer Auth"])
 async def get_me(customer: Customer = Depends(get_current_customer)):
     return customer
+
+
+
+# --- UPDATED ENDPOINT: Get Cart (Auto-creates if missing) ---
+@app.get("/cart", response_model=CartRead, tags=["Cart & Checkout"])
+async def get_customer_cart(
+    customer: Customer = Depends(get_current_customer)
+):
+    # Try to find existing cart
+    cart = await run_in_threadpool(get_cart_by_customer_id, customer_id=customer.id)
+    
+    # FIX: If cart doesn't exist, create it now instead of returning 404
+    if not cart:
+        cart = await run_in_threadpool(create_cart_for_customer, customer_id=customer.id)
+        
+    detailed_items = await run_in_threadpool(get_detailed_cart_items, cart_id=cart.id)
+    
+    # Calculate total size safely
+    total_size = sum(item['quantity'] for item in detailed_items)
+    
+    return {"items": detailed_items, "total_size": total_size}
+
+
+
+# Cart items of the customer
+@app.get("/customer/orders", response_model=List[OrderRecordsRead], tags=["Cart & Checkout"])
+async def get_my_orders(customer: Customer = Depends(get_current_customer)):
+    with Session(engine) as session:
+        statement = select(OrderRecords).where(OrderRecords.customer_id == customer.id)
+        orders = session.exec(statement).all()
+        return orders
 
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------
@@ -355,6 +394,32 @@ async def get_product(product_id: int):
         raise HTTPException(status_code=404, detail="Product not found")
     
     return prod
+
+
+# Getting all products
+@app.get("/products/all", response_model=List[ProductRead], tags=["Products"])
+async def get_all_products(
+    category: str = None, 
+    min_price: float = None, 
+    max_price: float = None
+):
+    with Session(engine) as session:
+        query = select(Product)
+        
+        # 1. Filter by Category Name
+        if category and category.lower() != "all":
+            # Join Product with Category to filter by category name
+            query = query.join(Category).where(Category.name == category)
+            
+        # 2. Filter by Price
+        if min_price is not None:
+            query = query.where(Product.price >= min_price)
+        if max_price is not None:
+            query = query.where(Product.price <= max_price)
+            
+        # 3. Execute
+        products = session.exec(query).all()
+        return products
 
 
 # Adding Product Endpoint - POST ---> Accepts JSON Body as response

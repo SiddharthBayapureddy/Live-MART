@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Cart | Live MART</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.css">
+    <link rel="stylesheet" href="assets/css/font-awesome.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700|Orbitron:400,700&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #050505; color: #e0e0e0; font-family: 'Montserrat', sans-serif; }
+        .cart-container { background: #111; padding: 30px; margin-top: 50px; border-radius: 5px; border: 1px solid #333; }
+        .cart-item { border-bottom: 1px solid #222; padding: 20px 0; display: flex; align-items: center; }
+        .cart-img { width: 80px; height: 80px; object-fit: cover; border-radius: 4px; margin-right: 20px; }
+        .total-section { background: #000; padding: 20px; margin-top: 20px; border: 1px solid #00f3ff; text-align: right; }
+        .btn-checkout { background: #00f3ff; color: #000; border: none; padding: 10px 30px; font-weight: bold; text-transform: uppercase; }
+        .btn-checkout:hover { background: #fff; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <a href="dashboard.html" style="color: #00f3ff; margin-top: 20px; display: inline-block;"><i class="fa fa-arrow-left"></i> Back to Shop</a>
+        
+        <div class="cart-container">
+            <h2 style="color: #fff; font-family: 'Orbitron'; margin-bottom: 30px;">Shopping Cart</h2>
+            
+            <div id="cart-items-wrapper">
+                <div class="text-center"><i class="fa fa-spin fa-circle-o-notch"></i> Loading Cart...</div>
+            </div>
+
+            <div class="total-section" id="checkout-section" style="display:none;">
+                <h3 style="margin: 0 0 20px;">Total: <span style="color: #00f3ff;" id="cart-total">₹0.00</span></h3>
+                
+                <h4 style="color: #ccc; margin-bottom: 10px;">Shipping Details</h4>
+                <input type="text" id="ship-addr" placeholder="Address" class="form-control" style="background:#222; border:none; color:#fff; margin-bottom:10px;">
+                <input type="text" id="ship-city" placeholder="City" class="form-control" style="background:#222; border:none; color:#fff; margin-bottom:10px;">
+                <input type="text" id="ship-pin" placeholder="Pincode" class="form-control" style="background:#222; border:none; color:#fff; margin-bottom:20px;">
+                
+                <button class="btn-checkout" onclick="processCheckout()">Place Order</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let cartTotal = 0;
+
+        document.addEventListener('DOMContentLoaded', loadCart);
+
+        async function loadCart() {
+            const token = localStorage.getItem('token');
+            if (!token) { window.location.href = 'Customer.html'; return; }
+
+            try {
+                const res = await fetch('/cart', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!res.ok) throw new Error("Failed to fetch cart");
+                
+                const data = await res.json();
+                renderCart(data.items);
+            } catch (e) {
+                document.getElementById('cart-items-wrapper').innerHTML = '<p>Empty Cart or Error loading.</p>';
+            }
+        }
+
+        function renderCart(items) {
+            const wrapper = document.getElementById('cart-items-wrapper');
+            wrapper.innerHTML = '';
+            cartTotal = 0;
+
+            if (items.length === 0) {
+                wrapper.innerHTML = '<p>Your cart is empty.</p>';
+                document.getElementById('checkout-section').style.display = 'none';
+                return;
+            }
+
+            items.forEach(item => {
+                const p = item.product;
+                const lineTotal = p.price * item.quantity;
+                cartTotal += lineTotal;
+                const img = p.image_url || 'https://via.placeholder.com/80';
+
+                wrapper.innerHTML += `
+                <div class="cart-item">
+                    <img src="${img}" class="cart-img">
+                    <div style="flex:1;">
+                        <h4 style="color:#fff; margin:0;">${p.name}</h4>
+                        <p style="color:#777; margin:0;">Price: ₹${p.price}</p>
+                    </div>
+                    <div style="margin-right:30px;">
+                        <span style="color:#fff;">Qty: ${item.quantity}</span>
+                    </div>
+                    <div>
+                        <h4 style="color:#00f3ff;">₹${lineTotal.toFixed(2)}</h4>
+                    </div>
+                </div>`;
+            });
+
+            document.getElementById('cart-total').textContent = "₹" + cartTotal.toFixed(2);
+            document.getElementById('checkout-section').style.display = 'block';
+        }
+
+        async function processCheckout() {
+            const addr = document.getElementById('ship-addr').value;
+            const city = document.getElementById('ship-city').value;
+            const pin = document.getElementById('ship-pin').value;
+
+            if(!addr || !city || !pin) { alert("Please fill in shipping details."); return; }
+
+            const token = localStorage.getItem('token');
+            const payload = {
+                shipping_address: addr,
+                shipping_city: city,
+                shipping_pincode: pin,
+                payment_mode: "Online" 
+            };
+
+            try {
+                const res = await fetch('/order/checkout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    alert("Order Placed Successfully!");
+                    window.location.href = 'orders.html'; // Redirect to orders page
+                } else {
+                    const err = await res.json();
+                    alert("Checkout Failed: " + err.detail);
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Error processing checkout.");
+            }
+        }
+    </script>
+</body>
+</html>

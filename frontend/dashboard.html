@@ -11,32 +11,19 @@
     <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700|Orbitron:400,700&display=swap" rel="stylesheet">
     
     <style>
-        /* Essential Search Button Style to fix alignment */
+        /* Search Button Style */
         .nav-search-btn {
-            display: flex !important;
-            align-items: center;
-            justify-content: center;
-            width: 35px;
-            height: 35px;
-            padding: 0 !important;
-            margin: 0 !important;
-            border-radius: 50%;
-            background: #f5f5f5;
-            color: #333;
-            border: 1px solid #ddd;
-            transition: all 0.3s ease;
-            text-decoration: none !important;
-            position: relative;
-            top: 2px;
+            display: flex !important; align-items: center; justify-content: center;
+            width: 35px; height: 35px; padding: 0 !important; margin: 0 !important;
+            border-radius: 50%; background: #f5f5f5; color: #333; border: 1px solid #ddd;
+            transition: all 0.3s ease; text-decoration: none !important; position: relative; top: 2px;
         }
-        .nav-search-btn:hover {
-            background: #000; 
-            color: #00f3ff;   
-            border-color: #00f3ff;
-        }
-        .nav-search-btn i {
-            font-size: 15px;
-            line-height: 1;
+        .nav-search-btn:hover { background: #000; color: #00f3ff; border-color: #00f3ff; }
+        
+        /* Cart Badge */
+        .cart-count {
+            position: absolute; top: -8px; right: -8px; background: #ff013c; color: #fff;
+            font-size: 10px; padding: 2px 5px; border-radius: 50%; font-weight: bold;
         }
     </style>
 </head>
@@ -45,22 +32,25 @@
     <nav class="navbar navbar-default">
         <div class="container">
             <div class="navbar-header">
-                <a class="navbar-brand" href="#">
-                    <h3>Live MART</h3>
-                </a>
+                <a class="navbar-brand" href="index.html"><h3>Live MART</h3></a>
             </div>
-            <!-- Fixed Nested UL issue here -->
             <ul class="nav navbar-nav navbar-right" style="display: flex; align-items: center; height: 50px;">
+                <li style="list-style: none; margin-right: 15px; position: relative;">
+                    <a href="cart.html" class="nav-search-btn" title="My Cart">
+                        <i class="fa fa-shopping-cart"></i>
+                        <span id="cart-badge" class="cart-count" style="display:none;">0</span>
+                    </a>
+                </li>
                 <li style="list-style: none; margin-right: 15px;">
-                    <a href="search.html" class="nav-search-btn" title="Search Products">
-                        <i class="fa fa-search"></i>
+                    <a href="orders.html" class="nav-search-btn" title="My Orders">
+                        <i class="fa fa-list"></i>
                     </a>
                 </li>
                 <li style="margin-right: 20px; list-style: none;">
                     <span class="nav-welcome-text">Welcome, <b id="user-name-display">Guest</b></span>
                 </li>
                 <li style="list-style: none;">
-                    <button id="auth-button" style="padding: 6px 20px; border-radius: 20px; font-weight: bold; text-transform:uppercase; font-size:11px;">Login</button>
+                    <button id="auth-button" class="btn-product" style="padding: 5px 15px; font-size: 12px;">Login</button>
                 </li>
             </ul>
         </div>
@@ -69,28 +59,23 @@
     <div class="category-nav-container">
         <div class="container text-center">
             <a class="cat-pill active" onclick="filterProducts('all')">All</a>
-            <a class="cat-pill" onclick="filterProducts('books')">Books</a>
-            <a class="cat-pill" onclick="filterProducts('electronics')">Electronics</a>
-            <a class="cat-pill" onclick="filterProducts('fashion')">Fashion</a>
-            <a class="cat-pill" onclick="filterProducts('groceries')">Groceries</a>
-            <a class="cat-pill" onclick="filterProducts('home')">Home</a>
-            <a class="cat-pill" onclick="filterProducts('sports')">Sports</a>
+            <a class="cat-pill" onclick="filterProducts('Electronics')">Electronics</a>
+            <a class="cat-pill" onclick="filterProducts('Fashion')">Fashion</a>
+            <a class="cat-pill" onclick="filterProducts('Groceries')">Groceries</a>
+            <a class="cat-pill" onclick="filterProducts('Home')">Home</a>
+            <a class="cat-pill" onclick="filterProducts('Sports')">Sports</a>
         </div>
     </div>
 
     <div class="container" style="min-height: 600px;">
         <div class="row">
             <div class="col-md-12">
-                <h4 style="margin-bottom: 25px; color: #000000; font-size: 2.5rem; text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);"><b>Available Near You</b></h4>
+                <h4 style="margin-bottom: 25px; color: #000; font-size: 2.5rem;"><b>Available Near You</b></h4>
             </div>
         </div>
 
         <div class="row" id="product-grid">
-            <div class="col-md-12 text-center" style="padding: 50px;">
-                <i class="fa fa-circle-o-notch fa-spin" style="font-size:24px; color:#00f3ff;"></i> 
-                <span style="color:#00f3ff; margin-left:10px;">Loading...</span>
             </div>
-        </div>
     </div>
 
     <footer>
@@ -100,131 +85,161 @@
     </footer>
 
     <script>
-        // --- 1. AUTHENTICATION ---
-        document.addEventListener('DOMContentLoaded', async () => {
+        // --- 1. INIT ---
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            fetchProducts('all');
+            updateCartCount();
+        });
+
+        function checkAuth() {
             const token = localStorage.getItem('token');
             const role = localStorage.getItem('user_role');
             const userNameDisplay = document.getElementById('user-name-display');
             const authButton = document.getElementById('auth-button');
             
-            if (!token || !role) {
-                // GUEST MODE
-                userNameDisplay.innerHTML = "Guest <small style='color:#777; font-weight:400;'>(Login Recommended)</small>";
+            if (!token) {
+                userNameDisplay.innerHTML = "Guest";
                 authButton.textContent = "Login";
-                authButton.onclick = () => window.location.href = 'index.html';
-                renderProducts('all');
-                return; 
+                authButton.onclick = () => window.location.href = 'Customer.html';
+            } else {
+                userNameDisplay.textContent = role ? role.charAt(0).toUpperCase() + role.slice(1) : "User";
+                authButton.textContent = "Logout";
+                authButton.onclick = () => {
+                    localStorage.clear();
+                    window.location.href = 'index.html';
+                };
             }
+        }
 
-            // LOGGED IN MODE
-            authButton.textContent = "Logout";
-            authButton.onclick = () => {
-                localStorage.clear();
-                window.location.href = 'index.html';
-            };
-
-            // Simple visual update based on stored role (Simulated fetch for speed)
-            userNameDisplay.textContent = role.charAt(0).toUpperCase() + role.slice(1); 
-            renderProducts('all');
-        });
-
-        // --- 2. PRODUCT DATA (WITH IDs) ---
-        const products = [
-            // ELECTRONICS
-            { id: 101, title: "Headphones", price: "₹599.9", category: "electronics", stock: 10, isProxy: false, image: "product_images/headphones.jpg" },
-            { id: 102, title: "Mechanical Keyboard", price: "₹450.0", category: "electronics", stock: 5, isProxy: false, image: "product_images/keyboard.jpg" },
-            { id: 103, title: "Wireless Mouse", price: "₹150.0", category: "electronics", stock: 20, isProxy: false, image: "product_images/mouse.jpg" },
-            { id: 104, title: "Electric Desk Lamp", price: "₹250.0", category: "electronics", stock: 8, isProxy: false, image: "product_images/lamp.jpg" },
-
-            // FASHION
-            { id: 201, title: "Urban Backpack", price: "₹350.0", category: "fashion", stock: 15, isProxy: false, image: "product_images/backpack.jpg" },
-            { id: 202, title: "Running Shoes", price: "₹600.0", category: "fashion", stock: 0, availableDate: "Dec 1", isProxy: false, image: "product_images/shoes.jpg" },
-            { id: 203, title: "Cotton T-Shirt", price: "₹120.0", category: "fashion", stock: 50, isProxy: false, image: "product_images/tshirt.jpg" },
-
-            // GROCERIES
-            { id: 301, title: "Premium Coffee", price: "₹100.0", category: "groceries", stock: 30, isProxy: false, image: "product_images/coffee.jpg" },
-            { id: 302, title: "Water Bottle (Pack)", price: "₹50.0/pc", category: "groceries", stock: 100, isProxy: true, image: "product_images/bottle.jpg" },
-
-            // HOME
-            { id: 401, title: "Home Decor Lamp", price: "₹250.0", category: "home", stock: 8, isProxy: false, image: "product_images/lamp.jpg" },
-
-            // SPORTS
-            { id: 501, title: "Yoga Mat", price: "₹200.0", category: "sports", stock: 12, isProxy: false, image: "product_images/yogamat.jpg" },
-            { id: 502, title: "Sports Sipper Bottle", price: "₹80.0", category: "sports", stock: 25, isProxy: false, image: "product_images/bottle.jpg" },
-        ];
-
-        // --- 3. RENDER FUNCTION (UPDATED WITH LINKS) ---
-        function renderProducts(filter) {
+        // --- 2. FETCH PRODUCTS ---
+        async function fetchProducts(category) {
             const grid = document.getElementById('product-grid');
-            grid.innerHTML = ''; 
+            grid.innerHTML = '<div class="text-center" style="padding:50px;"><i class="fa fa-circle-o-notch fa-spin" style="font-size:24px; color:#00f3ff;"></i></div>';
 
-            let filteredProducts = filter === 'all' ? products : products.filter(p => p.category === filter);
+            try {
+                // Construct URL - Assumes you added /products/all endpoint to main.py
+                let url = '/products/all';
+                if (category && category !== 'all') {
+                    url += `?category=${encodeURIComponent(category)}`;
+                }
 
-            if (filteredProducts.length === 0) {
-                grid.innerHTML = `
-                    <div class="col-md-12 text-center" style="padding:50px;">
-                        <h5 style="color:#777;">No items found in <b style="color:#000;">${filter.charAt(0).toUpperCase() + filter.slice(1)}</b> yet.</h5>
-                    </div>`;
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Failed to load products");
+                
+                const products = await response.json();
+                renderProducts(products);
+            } catch (error) {
+                console.error(error);
+                grid.innerHTML = `<div class="text-center text-danger">Failed to fetch products. Make sure backend is running.</div>`;
+            }
+        }
+
+        function renderProducts(products) {
+            const grid = document.getElementById('product-grid');
+            grid.innerHTML = '';
+
+            if (products.length === 0) {
+                grid.innerHTML = '<div class="text-center"><h5>No products found in this category.</h5></div>';
                 return;
             }
 
-            const rowDiv = document.createElement('div');
-            rowDiv.className = 'row row-flex'; 
+            products.forEach(p => {
+                let btnHtml = '';
+                let badgeHtml = '';
 
-            filteredProducts.forEach(product => {
-                let badgeHtml = '', btnHtml = '';
-
-                if (product.stock === 0) {
+                if (p.stock <= 0) {
                     badgeHtml = `<span class="badge-overlay bg-out">Out of Stock</span>`;
-                    btnHtml = `<button class="btn-product btn-notify" disabled>Notify Me</button>
-                               <span class="availability-notice"><i class="fa fa-clock-o"></i> Available: ${product.availableDate}</span>`;
-                } else if (product.isProxy) {
-                    badgeHtml = `<span class="badge-overlay bg-proxy"><i class="fa fa-truck"></i> Wholesaler Direct</span>`;
-                    btnHtml = `<button class="btn-product btn-proxy">Order via Proxy</button>`;
+                    btnHtml = `<button class="btn-product btn-notify" disabled>Notify Me</button>`;
                 } else {
-                    badgeHtml = `<span class="badge-overlay bg-stock">In Stock</span>`;
-                    btnHtml = `<button class="btn-product btn-add">Add to Cart</button>`;
+                    badgeHtml = `<span class="badge-overlay bg-stock">Stock: ${p.stock}</span>`;
+                    btnHtml = `<button class="btn-product btn-add" onclick="addToCart(${p.id})">Add to Cart</button>`;
                 }
 
-                const cardHtml = `
-                    <div class="col-md-3 col-sm-6" style="margin-bottom: 30px;"> 
-                        <div class="product-card">
-                            ${badgeHtml}
-                            
-                            <!-- 1. IMAGE LINK (Uses ID) -->
-                            <div class="card-img-wrap">
-                                <a href="product-details.html?id=${product.id}">
-                                    <img src="${product.image}" alt="${product.title}" style="cursor: pointer;" onerror="this.src='https://via.placeholder.com/200?text=No+Image'">
-                                </a>
-                            </div>
+                // Using default image if null
+                const imgUrl = p.image_url || 'https://via.placeholder.com/200?text=No+Image';
 
-                            <div class="card-body">
-                                <!-- 2. TITLE LINK (Uses ID) -->
-                                <a href="product-details.html?id=${product.id}" style="text-decoration: none; color: inherit;">
-                                    <div class="card-title">${product.title}</div>
-                                </a>
-                                
-                                <span class="card-price">${product.price}</span>
-                                ${btnHtml}
-                            </div>
+                const html = `
+                <div class="col-md-3 col-sm-6" style="margin-bottom: 30px;">
+                    <div class="product-card">
+                        ${badgeHtml}
+                        <div class="card-img-wrap">
+                            <a href="product-details.html?id=${p.id}">
+                                <img src="${imgUrl}" alt="${p.name}" onerror="this.src='https://via.placeholder.com/200?text=Error'">
+                            </a>
                         </div>
-                    </div>`;
-
-                rowDiv.innerHTML += cardHtml;
+                        <div class="card-body">
+                            <a href="product-details.html?id=${p.id}" style="text-decoration:none; color:inherit;">
+                                <div class="card-title">${p.name}</div>
+                            </a>
+                            <span class="card-price">₹${p.price}</span>
+                            ${btnHtml}
+                        </div>
+                    </div>
+                </div>`;
+                grid.innerHTML += html;
             });
-            grid.appendChild(rowDiv);
         }
 
-        // --- 4. FILTER CLICK HANDLER ---
-        function filterProducts(category) {
-            document.querySelectorAll('.cat-pill').forEach(el => el.classList.remove('active'));
-            let targetPill = event.target;
-            if (targetPill && targetPill.classList.contains('cat-pill')) targetPill.classList.add('active');
-            else {
-                const allPill = document.querySelector('.cat-pill[onclick="filterProducts(\'all\')"]');
-                if (allPill) allPill.classList.add('active');
+        // --- 3. ADD TO CART ---
+        async function addToCart(productId) {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert("Please login first!");
+                window.location.href = 'Customer.html';
+                return;
             }
-            renderProducts(category);
+
+            try {
+                const response = await fetch('/cart/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ product_id: productId, quantity: 1 })
+                });
+
+                if (response.ok) {
+                    alert("Item added to cart!");
+                    updateCartCount(); // Refresh badge
+                } else {
+                    const err = await response.json();
+                    alert("Error: " + err.detail);
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Network error adding to cart.");
+            }
+        }
+
+        // --- 4. HELPER: Update Badge ---
+        async function updateCartCount() {
+            const token = localStorage.getItem('token');
+            if(!token) return;
+
+            try {
+                const res = await fetch('/cart', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if(res.ok) {
+                    const data = await res.json();
+                    const badge = document.getElementById('cart-badge');
+                    if(data.total_size > 0) {
+                        badge.textContent = data.total_size;
+                        badge.style.display = 'block';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+            } catch(e) { console.error("Cart fetch error", e); }
+        }
+
+        // --- 5. FILTERS ---
+        function filterProducts(cat) {
+            document.querySelectorAll('.cat-pill').forEach(el => el.classList.remove('active'));
+            event.target.classList.add('active');
+            fetchProducts(cat);
         }
     </script>
 </body>

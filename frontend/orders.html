@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Orders | Live MART</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.css">
+    <link rel="stylesheet" href="assets/css/font-awesome.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700|Orbitron:400,700&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #050505; color: #e0e0e0; font-family: 'Montserrat', sans-serif; }
+        .order-card { background: #111; padding: 20px; margin-bottom: 20px; border-radius: 5px; border-left: 4px solid #00f3ff; }
+        .status-badge { padding: 5px 10px; border-radius: 4px; font-size: 12px; text-transform: uppercase; font-weight: bold; }
+        .status-pending { background: #ff9800; color: #000; }
+        .status-shipped { background: #00f3ff; color: #000; }
+        .status-delivered { background: #4caf50; color: #fff; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div style="margin-top: 30px; margin-bottom: 30px;">
+            <a href="dashboard.html" style="color: #fff;"><i class="fa fa-arrow-left"></i> Back to Dashboard</a>
+            <h2 style="font-family: 'Orbitron'; margin-top: 20px;">My Order History</h2>
+        </div>
+        
+        <div id="orders-list">
+            <div class="text-center">Loading orders...</div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', loadOrders);
+
+        async function loadOrders() {
+            const token = localStorage.getItem('token');
+            if (!token) { window.location.href = 'Customer.html'; return; }
+
+            try {
+                // Note: Ensure main.py has @app.get("/customer/orders") endpoint
+                const res = await fetch('/customer/orders', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) throw new Error("Failed to fetch orders");
+
+                const orders = await res.json();
+                renderOrders(orders);
+
+            } catch (e) {
+                console.error(e);
+                document.getElementById('orders-list').innerHTML = '<p>Error loading history. (Did you add the endpoint to main.py?)</p>';
+            }
+        }
+
+        function renderOrders(orders) {
+            const list = document.getElementById('orders-list');
+            list.innerHTML = '';
+
+            if (orders.length === 0) {
+                list.innerHTML = '<p>No past orders found.</p>';
+                return;
+            }
+
+            // Sort by date desc
+            orders.reverse();
+
+            orders.forEach(o => {
+                let statusClass = 'status-pending';
+                if (o.status === 'Shipped') statusClass = 'status-shipped';
+                if (o.status === 'Delivered') statusClass = 'status-delivered';
+
+                const date = new Date(o.order_date).toLocaleDateString();
+
+                const html = `
+                <div class="order-card">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <span style="color:#888; font-size:12px;">ORDER ID</span>
+                            <h4 style="margin-top:5px;">#${o.id}</h4>
+                        </div>
+                        <div class="col-md-3">
+                            <span style="color:#888; font-size:12px;">DATE</span>
+                            <h5 style="margin-top:5px;">${date}</h5>
+                        </div>
+                        <div class="col-md-3">
+                            <span style="color:#888; font-size:12px;">TOTAL</span>
+                            <h5 style="margin-top:5px; color:#00f3ff;">₹${o.total_price}</h5>
+                        </div>
+                        <div class="col-md-3 text-right">
+                            <span class="status-badge ${statusClass}">${o.status}</span>
+                        </div>
+                    </div>
+                </div>`;
+                list.innerHTML += html;
+            });
+        }
+    </script>
+</body>
+</html>
