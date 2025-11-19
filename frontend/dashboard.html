@@ -11,48 +11,144 @@
     <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700|Orbitron:400,700&display=swap" rel="stylesheet">
     
     <style>
-        /* Search Button Style */
-        .nav-search-btn {
-            display: flex !important; align-items: center; justify-content: center;
-            width: 35px; height: 35px; padding: 0 !important; margin: 0 !important;
-            border-radius: 50%; background: #f5f5f5; color: #333; border: 1px solid #ddd;
-            transition: all 0.3s ease; text-decoration: none !important; position: relative; top: 2px;
+        /* --- NAVBAR FIXES --- */
+        .navbar-default {
+            background: #fff;
+            border-bottom: 1px solid #eee;
+            height: 70px; /* Fixed height for better alignment */
+            margin-bottom: 0;
+            display: flex;
+            align-items: center; /* Vertically center everything */
         }
-        .nav-search-btn:hover { background: #000; color: #00f3ff; border-color: #00f3ff; }
         
-        /* Cart Badge */
+        .navbar-container {
+            width: 100%;
+            max-width: 1170px;
+            margin: 0 auto;
+            padding: 0 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Logo Alignment */
+        .navbar-brand-custom h3 {
+            margin: 0;
+            padding: 0;
+            line-height: 1;
+            color: #000;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+        }
+        
+        /* Search Bar Alignment */
+        .search-container {
+            flex-grow: 1;
+            max-width: 500px; /* Limit width so it doesn't stretch too much */
+            margin: 0 30px;
+            position: relative;
+        }
+        .dash-search-input {
+            width: 100%;
+            padding: 8px 15px;
+            padding-right: 40px;
+            border-radius: 20px;
+            border: 1px solid #ddd;
+            background: #f9f9f9;
+            outline: none;
+            height: 40px; /* Match height of other elements */
+        }
+        .dash-search-input:focus {
+            background: #fff;
+            border-color: #00f3ff;
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+        }
+        .search-btn-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #777;
+            cursor: pointer;
+        }
+
+        /* Right Menu Alignment */
+        .nav-right-menu {
+            display: flex;
+            align-items: center;
+            gap: 20px; /* Space between icons */
+        }
+        
+        .nav-icon-btn {
+            font-size: 20px;
+            color: #333;
+            position: relative;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+        .nav-icon-btn:hover { color: #00f3ff; }
+
         .cart-count {
             position: absolute; top: -8px; right: -8px; background: #ff013c; color: #fff;
             font-size: 10px; padding: 2px 5px; border-radius: 50%; font-weight: bold;
         }
+        
+        /* Auth Section */
+        .user-info {
+            text-align: right;
+            line-height: 1.2;
+            margin-right: 10px;
+            display: none; /* Hidden on very small screens */
+        }
+        @media(min-width: 768px) { .user-info { display: block; } }
+
+        .btn-login-logout {
+            padding: 6px 20px;
+            border: 2px solid #000;
+            background: transparent;
+            color: #000;
+            font-weight: bold;
+            border-radius: 20px;
+            font-size: 12px;
+            text-transform: uppercase;
+            transition: 0.3s;
+        }
+        .btn-login-logout:hover { background: #000; color: #fff; }
     </style>
 </head>
 <body>
 
     <nav class="navbar navbar-default">
-        <div class="container">
-            <div class="navbar-header">
-                <a class="navbar-brand" href="index.html"><h3>Live MART</h3></a>
+        <div class="navbar-container">
+            
+            <a href="index.html" class="navbar-brand-custom" style="text-decoration: none;">
+                <h3>Live MART</h3>
+            </a>
+
+            <div class="search-container">
+                <input type="text" id="dash-search-input" class="dash-search-input" placeholder="Search products...">
+                <i class="fa fa-search search-btn-icon" onclick="triggerSearch()"></i>
             </div>
-            <ul class="nav navbar-nav navbar-right" style="display: flex; align-items: center; height: 50px;">
-                <li style="list-style: none; margin-right: 15px; position: relative;">
-                    <a href="cart.html" class="nav-search-btn" title="My Cart">
-                        <i class="fa fa-shopping-cart"></i>
-                        <span id="cart-badge" class="cart-count" style="display:none;">0</span>
-                    </a>
-                </li>
-                <li style="list-style: none; margin-right: 15px;">
-                    <a href="orders.html" class="nav-search-btn" title="My Orders">
-                        <i class="fa fa-list"></i>
-                    </a>
-                </li>
-                <li style="margin-right: 20px; list-style: none;">
-                    <span class="nav-welcome-text">Welcome, <b id="user-name-display">Guest</b></span>
-                </li>
-                <li style="list-style: none;">
-                    <button id="auth-button" class="btn-product" style="padding: 5px 15px; font-size: 12px;">Login</button>
-                </li>
-            </ul>
+
+            <div class="nav-right-menu">
+                <a href="orders.html" class="nav-icon-btn" title="My Orders">
+                    <i class="fa fa-list"></i>
+                </a>
+
+                <a href="cart.html" class="nav-icon-btn" title="My Cart">
+                    <i class="fa fa-shopping-cart"></i>
+                    <span id="cart-badge" class="cart-count" style="display:none;">0</span>
+                </a>
+
+                <div style="display: flex; align-items: center; border-left: 1px solid #ddd; padding-left: 20px;">
+                    <div class="user-info">
+                        <div style="font-size: 10px; color: #777;">Welcome,</div>
+                        <div style="font-weight: bold; font-size: 13px;" id="user-name-display">Guest</div>
+                    </div>
+                    <button id="auth-button" class="btn-login-logout">Login</button>
+                </div>
+            </div>
         </div>
     </nav>
 
@@ -85,12 +181,19 @@
     </footer>
 
     <script>
-        // --- 1. INIT ---
         document.addEventListener('DOMContentLoaded', () => {
             checkAuth();
             fetchProducts('all');
             updateCartCount();
         });
+
+        const searchInput = document.getElementById('dash-search-input');
+        searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') triggerSearch(); });
+
+        function triggerSearch() {
+            const query = searchInput.value.trim();
+            if (query) window.location.href = `search.html?q=${encodeURIComponent(query)}`;
+        }
 
         function checkAuth() {
             const token = localStorage.getItem('token');
@@ -99,7 +202,7 @@
             const authButton = document.getElementById('auth-button');
             
             if (!token) {
-                userNameDisplay.innerHTML = "Guest";
+                userNameDisplay.textContent = "Guest";
                 authButton.textContent = "Login";
                 authButton.onclick = () => window.location.href = 'Customer.html';
             } else {
@@ -112,51 +215,39 @@
             }
         }
 
-        // --- 2. FETCH PRODUCTS ---
         async function fetchProducts(category) {
             const grid = document.getElementById('product-grid');
             grid.innerHTML = '<div class="text-center" style="padding:50px;"><i class="fa fa-circle-o-notch fa-spin" style="font-size:24px; color:#00f3ff;"></i></div>';
 
             try {
-                // Construct URL - Assumes you added /products/all endpoint to main.py
                 let url = '/products/all';
-                if (category && category !== 'all') {
-                    url += `?category=${encodeURIComponent(category)}`;
-                }
-
+                if (category && category !== 'all') url += `?category=${encodeURIComponent(category)}`;
                 const response = await fetch(url);
                 if (!response.ok) throw new Error("Failed to load products");
-                
                 const products = await response.json();
                 renderProducts(products);
             } catch (error) {
                 console.error(error);
-                grid.innerHTML = `<div class="text-center text-danger">Failed to fetch products. Make sure backend is running.</div>`;
+                grid.innerHTML = `<div class="text-center text-danger">Failed to fetch products.</div>`;
             }
         }
 
         function renderProducts(products) {
             const grid = document.getElementById('product-grid');
             grid.innerHTML = '';
-
             if (products.length === 0) {
-                grid.innerHTML = '<div class="text-center"><h5>No products found in this category.</h5></div>';
+                grid.innerHTML = '<div class="text-center"><h5>No products found.</h5></div>';
                 return;
             }
-
             products.forEach(p => {
-                let btnHtml = '';
-                let badgeHtml = '';
+                let btnHtml = p.stock <= 0 
+                    ? `<button class="btn-product btn-notify" disabled>Notify Me</button>`
+                    : `<button class="btn-product btn-add" onclick="addToCart(${p.id})">Add to Cart</button>`;
+                
+                let badgeHtml = p.stock <= 0 
+                    ? `<span class="badge-overlay bg-out">Out of Stock</span>`
+                    : `<span class="badge-overlay bg-stock">Stock: ${p.stock}</span>`;
 
-                if (p.stock <= 0) {
-                    badgeHtml = `<span class="badge-overlay bg-out">Out of Stock</span>`;
-                    btnHtml = `<button class="btn-product btn-notify" disabled>Notify Me</button>`;
-                } else {
-                    badgeHtml = `<span class="badge-overlay bg-stock">Stock: ${p.stock}</span>`;
-                    btnHtml = `<button class="btn-product btn-add" onclick="addToCart(${p.id})">Add to Cart</button>`;
-                }
-
-                // Using default image if null
                 const imgUrl = p.image_url || 'https://via.placeholder.com/200?text=No+Image';
 
                 const html = `
@@ -181,61 +272,34 @@
             });
         }
 
-        // --- 3. ADD TO CART ---
         async function addToCart(productId) {
             const token = localStorage.getItem('token');
-            if (!token) {
-                alert("Please login first!");
-                window.location.href = 'Customer.html';
-                return;
-            }
-
+            if (!token) { alert("Please login first!"); window.location.href = 'Customer.html'; return; }
             try {
                 const response = await fetch('/cart/add', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ product_id: productId, quantity: 1 })
                 });
-
-                if (response.ok) {
-                    alert("Item added to cart!");
-                    updateCartCount(); // Refresh badge
-                } else {
-                    const err = await response.json();
-                    alert("Error: " + err.detail);
-                }
-            } catch (e) {
-                console.error(e);
-                alert("Network error adding to cart.");
-            }
+                if (response.ok) { alert("Item added to cart!"); updateCartCount(); } 
+                else { const err = await response.json(); alert("Error: " + err.detail); }
+            } catch (e) { console.error(e); }
         }
 
-        // --- 4. HELPER: Update Badge ---
         async function updateCartCount() {
             const token = localStorage.getItem('token');
             if(!token) return;
-
             try {
-                const res = await fetch('/cart', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                const res = await fetch('/cart', { headers: { 'Authorization': `Bearer ${token}` } });
                 if(res.ok) {
                     const data = await res.json();
                     const badge = document.getElementById('cart-badge');
-                    if(data.total_size > 0) {
-                        badge.textContent = data.total_size;
-                        badge.style.display = 'block';
-                    } else {
-                        badge.style.display = 'none';
-                    }
+                    if(data.total_size > 0) { badge.textContent = data.total_size; badge.style.display = 'block'; } 
+                    else { badge.style.display = 'none'; }
                 }
-            } catch(e) { console.error("Cart fetch error", e); }
+            } catch(e) { console.error(e); }
         }
 
-        // --- 5. FILTERS ---
         function filterProducts(cat) {
             document.querySelectorAll('.cat-pill').forEach(el => el.classList.remove('active'));
             event.target.classList.add('active');

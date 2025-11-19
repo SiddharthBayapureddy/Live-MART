@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Search | Live MART</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.css">
+    <link rel="stylesheet" href="assets/css/font-awesome.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700|Orbitron:400,700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { background-color: #050505; color: #e0e0e0; font-family: 'Montserrat', sans-serif; }
+        .filter-sidebar { background: #111; padding: 20px; border-right: 1px solid #333; min-height: 100vh; }
+        .filter-group { margin-bottom: 25px; }
+        .filter-title { color: #fff; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; }
+        .search-input { background: #222; border: 1px solid #333; color: #fff; padding: 15px; width: 100%; font-size: 18px; border-radius: 50px; padding-left: 25px; outline: none; transition: 0.3s; }
+        .search-input:focus { border-color: #00f3ff; box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); }
+        .form-control-dark { background: #222; border: 1px solid #333; color: #fff; margin-bottom: 10px; }
+        .custom-checkbox { display: block; margin-bottom: 8px; cursor: pointer; font-size: 14px; color: #aaa; }
+        .custom-checkbox:hover { color: #fff; }
+        
+        /* Updated Product Card for Search Page */
+        .search-product-card {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 5px;
+            padding: 10px;
+            position: relative;
+            transition: 0.3s;
+            height: 100%; /* Uniform height */
+        }
+        .search-product-card:hover {
+            border-color: #00f3ff;
+            transform: translateY(-2px);
+        }
+        .search-card-img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .search-card-title {
+            font-size: 14px;
+            color: #fff;
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis;
+            margin-bottom: 5px;
+        }
+        
+        /* Fixed Footer with Proper Spacing */
+        .search-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        .search-card-price {
+            color: #00f3ff;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        /* Smaller, Cleaner Button */
+        .btn-mini-add {
+            background: transparent;
+            border: 1px solid #00f3ff;
+            color: #00f3ff;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 4px 12px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            transition: 0.2s;
+        }
+        .btn-mini-add:hover {
+            background: #00f3ff;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        
+        <div class="col-md-2 filter-sidebar">
+            <h3 style="font-family: 'Orbitron'; color: #00f3ff; margin-bottom: 30px;">Filters</h3>
+            <div class="filter-group">
+                <div class="filter-title">Category</div>
+                <label class="custom-checkbox"><input type="radio" name="cat" value="all" checked onchange="applyFilters()"> All Categories</label>
+                <label class="custom-checkbox"><input type="radio" name="cat" value="Electronics" onchange="applyFilters()"> Electronics</label>
+                <label class="custom-checkbox"><input type="radio" name="cat" value="Fashion" onchange="applyFilters()"> Fashion</label>
+                <label class="custom-checkbox"><input type="radio" name="cat" value="Groceries" onchange="applyFilters()"> Groceries</label>
+                <label class="custom-checkbox"><input type="radio" name="cat" value="Home" onchange="applyFilters()"> Home</label>
+            </div>
+            <div class="filter-group">
+                <div class="filter-title">Price Range (₹)</div>
+                <div style="display: flex; gap: 5px;">
+                    <input type="number" id="min-price" placeholder="Min" class="form-control form-control-dark" onchange="applyFilters()">
+                    <input type="number" id="max-price" placeholder="Max" class="form-control form-control-dark" onchange="applyFilters()">
+                </div>
+            </div>
+            <div class="filter-group">
+                <div class="filter-title">Sort By</div>
+                <select id="sort-by" class="form-control form-control-dark" onchange="applyFilters()">
+                    <option value="newest">Newest Arrivals</option>
+                    <option value="price_low">Price: Low to High</option>
+                    <option value="price_high">Price: High to Low</option>
+                </select>
+            </div>
+            <button class="btn btn-block" style="background:#333; color:#fff; margin-top:20px;" onclick="window.location.href='dashboard.html'">Exit Search</button>
+        </div>
+
+        <div class="col-md-10" style="padding: 40px;">
+            <div class="row">
+                <div class="col-md-8 col-md-offset-2">
+                    <div style="position: relative; margin-bottom: 40px;">
+                        <input type="text" id="search-bar" class="search-input" placeholder="Search products..." onkeyup="debounceSearch()">
+                        <i class="fa fa-search" style="position: absolute; right: 25px; top: 20px; color: #777; font-size: 20px;"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="row" id="results-grid">
+                <div class="text-center" style="margin-top: 50px;">
+                    <i class="fa fa-search" style="font-size: 40px; color: #333;"></i>
+                    <p style="color: #555; margin-top: 10px;">Loading results...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let searchTimeout;
+    document.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const query = urlParams.get('q');
+        if (query) document.getElementById('search-bar').value = query;
+        applyFilters(); 
+    });
+
+    function debounceSearch() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(applyFilters, 500);
+    }
+
+    async function applyFilters() {
+        const q = document.getElementById('search-bar').value;
+        const cat = document.querySelector('input[name="cat"]:checked').value;
+        const min = document.getElementById('min-price').value;
+        const max = document.getElementById('max-price').value;
+        const sort = document.getElementById('sort-by').value;
+
+        const grid = document.getElementById('results-grid');
+        grid.innerHTML = '<div class="col-md-12 text-center"><i class="fa fa-circle-o-notch fa-spin" style="color:#00f3ff; font-size:24px;"></i></div>';
+
+        let url = `/products/all?sort_by=${sort}`;
+        if(q) url += `&q=${encodeURIComponent(q)}`;
+        if(cat && cat !== 'all') url += `&category=${encodeURIComponent(cat)}`;
+        if(min) url += `&min_price=${min}`;
+        if(max) url += `&max_price=${max}`;
+
+        try {
+            const response = await fetch(url);
+            const products = await response.json();
+            renderResults(products);
+        } catch (error) {
+            console.error(error);
+            grid.innerHTML = '<p class="text-center text-danger">Error loading results.</p>';
+        }
+    }
+
+    function renderResults(products) {
+        const grid = document.getElementById('results-grid');
+        grid.innerHTML = '';
+        if (products.length === 0) {
+            grid.innerHTML = '<div class="col-md-12 text-center" style="padding:50px;"><h3 style="color:#555;">No results found.</h3></div>';
+            return;
+        }
+
+        products.forEach(p => {
+            const badgeHtml = p.stock > 0 
+                ? `<span class="badge-overlay bg-stock" style="position:absolute; top:10px; left:10px; background:#0f0; color:#000; padding:2px 5px; font-size:9px; font-weight:bold; border-radius:3px;">In Stock</span>`
+                : `<span class="badge-overlay bg-out" style="position:absolute; top:10px; left:10px; background:red; color:#fff; padding:2px 5px; font-size:9px; font-weight:bold; border-radius:3px;">Out of Stock</span>`;
+            
+            const btnHtml = p.stock > 0
+                ? `<button class="btn-mini-add" onclick="addToCart(${p.id})"><i class="fa fa-cart-plus"></i> Add</button>`
+                : `<button disabled style="border:1px solid #555; background:transparent; color:#555; font-size:11px; padding:4px 10px; border-radius:20px;">Notify</button>`;
+
+            const imgUrl = p.image_url || 'https://via.placeholder.com/200';
+
+            const html = `
+            <div class="col-md-3 col-sm-4" style="margin-bottom: 30px;">
+                <div class="search-product-card">
+                    ${badgeHtml}
+                    <a href="product-details.html?id=${p.id}">
+                        <img src="${imgUrl}" class="search-card-img" onerror="this.src='https://via.placeholder.com/200?text=No+Image'">
+                    </a>
+                    <h5 class="search-card-title" title="${p.name}">${p.name}</h5>
+                    <div class="search-card-footer">
+                        <span class="search-card-price">₹${p.price}</span>
+                        ${btnHtml}
+                    </div>
+                </div>
+            </div>`;
+            grid.innerHTML += html;
+        });
+    }
+
+    async function addToCart(productId) {
+        const token = localStorage.getItem('token');
+        if (!token) return alert("Please login!");
+        try {
+            const res = await fetch('/cart/add', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+                body: JSON.stringify({ product_id: productId, quantity: 1 })
+            });
+            if(res.ok) alert("Added to cart!");
+            else { const err = await res.json(); alert("Error: " + err.detail); }
+        } catch(e) { console.error(e); }
+    }
+</script>
+
+</body>
+</html>

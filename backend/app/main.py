@@ -7,7 +7,7 @@ from typing import List, Annotated
 # For file management
 from fastapi.staticfiles import StaticFiles
 
-from sqlmodel import Session, select
+from sqlmodel import Session, select, or_ , col
 from contextlib import asynccontextmanager
 
 from fastapi.concurrency import run_in_threadpool
@@ -399,25 +399,45 @@ async def get_product(product_id: int):
 # Getting all products
 @app.get("/products/all", response_model=List[ProductRead], tags=["Products"])
 async def get_all_products(
+    q: str = None,                # Search query (e.g., "coffee")
     category: str = None, 
     min_price: float = None, 
-    max_price: float = None
+    max_price: float = None,
+    sort_by: str = "newest"       # Sorting: "newest", "price_low", "price_high"
 ):
     with Session(engine) as session:
         query = select(Product)
         
-        # 1. Filter by Category Name
+        # 1. Text Search (Name OR Description)
+        if q:
+            search_term = f"%{q}%"
+            # Use col() to enable case-insensitive 'like' or standard 'contains'
+            query = query.where(
+                or_(
+                    col(Product.name).like(search_term),
+                    col(Product.description).like(search_term)
+                )
+            )
+            
+        # 2. Filter by Category Name
         if category and category.lower() != "all":
-            # Join Product with Category to filter by category name
             query = query.join(Category).where(Category.name == category)
             
-        # 2. Filter by Price
+        # 3. Filter by Price
         if min_price is not None:
             query = query.where(Product.price >= min_price)
         if max_price is not None:
             query = query.where(Product.price <= max_price)
             
-        # 3. Execute
+        # 4. Sorting
+        if sort_by == "price_low":
+            query = query.order_by(Product.price.asc())
+        elif sort_by == "price_high":
+            query = query.order_by(Product.price.desc())
+        else: # "newest" (Default)
+            # Assuming IDs increment with time; ideally use a created_at field
+            query = query.order_by(Product.id.desc())
+            
         products = session.exec(query).all()
         return products
 
