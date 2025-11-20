@@ -149,7 +149,7 @@ input::placeholder {
     overflow: hidden;
     width: 768px;
     max-width: 100%;
-    min-height: 850px; /* Preserved Height */
+    min-height: 1000px; /* Preserved Height */
 }
 
 .form-container {

@@ -72,77 +72,78 @@
     <!-- ================= FOOTER SECTION ================= -->
   <!-- ================= FOOTER SECTION ================= -->
   <!-- 'width: 100%' on footer tag ensures the black background spans edge-to-edge -->
-  <footer id="contact" class="footer action-lage bg-black p-top-80" style="margin-top: 60px; width: 100%; margin-left: 0; margin-right: 0; position: relative;">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="footer-content" style="display: flex; justify-content: space-between; flex-wrap: wrap; padding: 40px 0;">
+  <footer id="contact" class="footer action-lage bg-black p-top-80" style="margin-top: 60px; font-size: 1rem; width: 100%; position: relative;">
+        <div class="container" style="font-size: 1rem;">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="footer-content" style="display: flex; justify-content: space-between; flex-wrap: wrap;">
+                        
+                        <!-- LEFT SIDE: ABOUT -->
+                        <div class="col-md-6 col-sm-6" style="font-size: 1.5rem;">
+                            <div class="widget_item widget_about" style="font-size: 1.5rem;">
+                                <h5 class="text-white">About Us</h5>
+                                <p class="m-top-20">Connecting Retailers, Wholesalers, and Customers for a seamless shopping experience.</p>
+                                
+                                <div class="widget_ab_item m-top-30" style="display:flex; font-size: 1.5rem; align-items: flex-start; margin-bottom: 15px;">
+                                    <div class="item_icon" style="margin-right: 15px;"><i class="fa fa-location-arrow"></i></div>
+                                    <div class="widget_ab_item_text">
+                                        <h6 class="text-white" style="margin:0;">Location</h6>
+                                        <p style="margin:0;">Shamirpet, Hyderabad</p>
+                                    </div>
+                                </div>
+                                <div class="widget_ab_item m-top-30" style="display:flex; align-items: flex-start; margin-bottom: 15px;">
+                                    <div class="item_icon" style="margin-right: 15px;"><i class="fa fa-phone"></i></div>
+                                    <div class="widget_ab_item_text">
+                                        <h6 class="text-white" style="margin:0;">Phone</h6>
+                                        <p style="margin:0;">+9676744544</p>
+                                    </div>
+                                </div>
+                                <div class="widget_ab_item m-top-30" style="display:flex; align-items: flex-start; margin-bottom: 15px;">
+                                    <div class="item_icon" style="margin-right: 15px;"><i class="fa fa-envelope-o"></i></div>
+                                    <div class="widget_ab_item_text">
+                                        <h6 class="text-white" style="margin:0;">Email</h6>
+                                        <p style="margin:0;">Livemart.bphc@gmail.com</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT SIDE: NEWSLETTER -->
+                        <div class="col-md-6 col-sm-6">
+                            <div class="widget_item widget_newsletter sm-m-top-50">
+                                <h5 class="text-white">Newsletter</h5>
+                                <!-- Footer Specific Form ID used for JS targeting -->
+                                <form class="form-inline m-top-30" id="footer-newsletter-form" style="margin-top: 20px;">
+                                    <div class="form-group" style="width: 100%;">
+                                        <input type="email" class="form-control" placeholder="Enter your Email" style="width: 100%; margin-bottom: 10px; padding: 10px;">
+                                        <button type="submit" class="btn text-center" style="width: 100%; padding: 10px;">Subscribe</button>
+                                    </div>
+                                </form>
+                                
+                                <div class="widget_brand m-top-40" style="margin-top: 30px;">
+                                    <h5 class="text-white">Follow Us</h5>
+                                    <ul class="list-inline m-top-20" style="padding: 0; list-style: none; display: flex; gap: 15px;">
+                                        <li><a href="https://www.facebook.com/live.mart/"><i class="fa fa-facebook"></i></a></li>
+                                        <li><a href="#"><i class="fa fa-twitter"></i></a></li>
+                                        <li><a href="#"><i class="fa fa-linkedin"></i></a></li>
+                                        <li><a href="#"><i class="fa fa-google-plus"></i></a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
                     
-                    <!-- LEFT SIDE: ABOUT -->
-                    <div class="col-md-6 col-sm-6">
-                        <div class="widget_item widget_about">
-                            <h5 class="text-white">About Us</h5>
-                            <p class="m-top-20">Connecting Retailers, Wholesalers, and Customers for a seamless shopping experience.</p>
-                            
-                            <div class="widget_ab_item m-top-30" style="display:flex; align-items: flex-start; margin-bottom: 15px;">
-                                <div class="item_icon" style="margin-right: 15px;"><i class="fa fa-location-arrow"></i></div>
-                                <div class="widget_ab_item_text">
-                                    <h6 class="text-white" style="margin:0;">Location</h6>
-                                    <p style="margin:0;">Shamirpet, Hyderabad</p>
-                                </div>
-                            </div>
-                            <div class="widget_ab_item m-top-30" style="display:flex; align-items: flex-start; margin-bottom: 15px;">
-                                <div class="item_icon" style="margin-right: 15px;"><i class="fa fa-phone"></i></div>
-                                <div class="widget_ab_item_text">
-                                    <h6 class="text-white" style="margin:0;">Phone</h6>
-                                    <p style="margin:0;">+9676744544</p>
-                                </div>
-                            </div>
-                            <div class="widget_ab_item m-top-30" style="display:flex; align-items: flex-start; margin-bottom: 15px;">
-                                <div class="item_icon" style="margin-right: 15px;"><i class="fa fa-envelope-o"></i></div>
-                                <div class="widget_ab_item_text">
-                                    <h6 class="text-white" style="margin:0;">Email</h6>
-                                    <p style="margin:0;">Livemart.bphc@gmail.com</p>
-                                </div>
-                            </div>
+                    <!-- COPYRIGHT -->
+                    <div class="row">
+                        <div class="col-md-12 text-center" style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 20px; padding-top: 20px;">
+                            <p style="font-size: 12px;">© 2025 Live-MART. All rights reserved.</p>
                         </div>
-                    </div>
-
-                    <!-- RIGHT SIDE: NEWSLETTER -->
-                    <div class="col-md-6 col-sm-6">
-                        <div class="widget_item widget_newsletter sm-m-top-50">
-                            <h5 class="text-white">Newsletter</h5>
-                            <form class="form-inline m-top-30" id="footer-newsletter-form" style="margin-top: 20px;">
-                                <div class="form-group" style="width: 100%;">
-                                    <input type="email" class="form-control" placeholder="Enter your Email" style="width: 100%; margin-bottom: 10px; padding: 10px;">
-                                    <button type="submit" class="btn text-center" style="width: 100%; padding: 10px;">Subscribe</button>
-                                </div>
-                            </form>
-                            
-                            <div class="widget_brand m-top-40" style="margin-top: 30px;">
-                                <h5 class="text-white">Follow Us</h5>
-                                <ul class="list-inline m-top-20" style="padding: 0; list-style: none; display: flex; gap: 15px;">
-                                    <li><a href="https://www.facebook.com/live.mart/"><i class="fa fa-facebook"></i></a></li>
-                                    <li><a href="#"><i class="fa fa-twitter"></i></a></li>
-                                    <li><a href="#"><i class="fa fa-linkedin"></i></a></li>
-                                    <li><a href="#"><i class="fa fa-google-plus"></i></a></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-                
-                <!-- COPYRIGHT -->
-                <div class="row">
-                    <div class="col-md-12 text-center" style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 20px; padding-top: 20px;">
-                        <p style="font-size: 12px; text-align: center;">© 2025 Live-MART. All rights reserved.</p>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-  </footer>
+    </footer>
    <style>
     .message { font-size: 14px; margin-top: 15px; }
     .message.success { color: #3c763d; }
