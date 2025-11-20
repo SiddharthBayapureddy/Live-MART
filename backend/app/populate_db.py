@@ -65,20 +65,16 @@ SAMPLE_CATEGORIES = [
     ("Sports & Outdoors", "Equipment, activewear, and gear", "category_images/sports.jpg")
 ]
 SAMPLE_PRODUCT_ADJECTIVES = ["Wireless", "Smart", "Ergonomic", "Organic", "Handcrafted", "Heavy Duty", "Premium", "Bluetooth", "LED", "Eco-Friendly"]
-SAMPLE_PRODUCT_NOUNS = ["Mouse", "Keyboard", "Headphones", "T-Shirt", "Coffee Beans", "Running Shoes", "Backpack", "Water Bottle", "Desk Lamp", "Yoga Mat"]
 
-# Sample product images
-SAMPLE_PRODUCT_IMAGES = [
-    "product_images/mouse.jpg",
-    "product_images/keyboard.jpg",
-    "product_images/headphones.jpg",
-    "product_images/tshirt.jpg",
-    "product_images/coffee.jpg",
-    "product_images/shoes.jpg",
-    "product_images/backpack.jpg",
-    "product_images/bottle.jpg",
-    "product_images/lamp.jpg",
-    "product_images/yogamat.jpg"
+# REPLACEMENT CODE: Link nouns directly to their images
+# A matched list ensures the backpack ALWAYS gets the backpack image
+PRODUCT_TYPES = [
+    {"noun": "Backpack", "image": "product_images/backpack.jpg"},
+    {"noun": "Headphones", "image": "product_images/headphones.jpg"},
+    {"noun": "Coffee Beans", "image": "product_images/coffee.jpg"},
+    {"noun": "Mouse", "image": "product_images/mouse.jpg"},
+    {"noun": "Keyboard", "image": "product_images/keyboard.jpg"},
+    {"noun": "Water Bottle", "image": "product_images/bottle.jpg"}
 ]
 
 SAMPLE_BIZ_ADJECTIVES = ["Global", "National", "Apex", "Summit", "Dynamic", "Pinnacle", "United", "Premier", "Elite"]
@@ -185,7 +181,7 @@ def get_random_address() -> dict:
 # --- Main Seeder Function ---
 
 def seed():
-    DB_FILE = "../data/livemart.db" # Adjusted path to match your project
+    DB_FILE = "../data/livemart.db"
     DB_DIR = os.path.dirname(DB_FILE)
     
     if not os.path.exists(DB_DIR):
@@ -233,11 +229,14 @@ def seed():
     print("--- 3. Creating Retailers ---")
     for i in range(15):
         addr = get_random_address()
+        # FIX: Use the new PRODUCT_TYPES list to get a noun
+        random_noun = random.choice(PRODUCT_TYPES)["noun"] 
+        
         r = add_retailer(
             name=f"{random.choice(SAMPLE_FIRST_NAMES)} {random.choice(SAMPLE_LAST_NAMES)}",
             mail=f"retailer{i+1}@shop.com",
             hashed_password=hash_password("retail123"),
-            business_name=f"{random.choice(SAMPLE_PRODUCT_NOUNS)} Mart",
+            business_name=f"{random_noun} Mart", # <--- Fixed here
             address=addr["address"],
             city=addr["city"],
             state=addr["state"],
@@ -250,14 +249,17 @@ def seed():
 
     print("--- 4. Creating Products ---")
     for i in range(100):
+        # FIX: Pick the Noun + Image pair together
+        prod_type = random.choice(PRODUCT_TYPES)
+
         prod = add_product(
-            name=f"{random.choice(SAMPLE_PRODUCT_ADJECTIVES)} {random.choice(SAMPLE_PRODUCT_NOUNS)}",
+            name=f"{random.choice(SAMPLE_PRODUCT_ADJECTIVES)} {prod_type['noun']}", # <--- Use matched Noun
             price=round(random.uniform(5.99, 499.99), 2),
             stock=random.randint(10, 200),
             retailer_id=random.choice(retailers).id,
             description="A high-quality product.",
             category_id=random.choice(categories).id,
-            image_url=random.choice(SAMPLE_PRODUCT_IMAGES)
+            image_url=prod_type['image'] # <--- Use matched Image
         )
         products.append(prod)
     print(f"Created {len(products)} products.")
@@ -284,13 +286,12 @@ def seed():
 
     print("--- 6. Creating Past Orders (for history) ---")
     order_count = 0
-    with Session(engine) as session: # Use one session for efficiency
+    with Session(engine) as session: 
         for cust in customers:
-            # Each customer has 0 to 5 past orders
             for _ in range(random.randint(0, 5)):
                 items_in_order = []
                 total_price = 0
-                for _ in range(random.randint(1, 4)): # 1-4 items per order
+                for _ in range(random.randint(1, 4)): 
                     prod = random.choice(products)
                     qty = random.randint(1, 3)
                     items_in_order.append({"product": prod, "quantity": qty})
@@ -302,8 +303,6 @@ def seed():
                     "pincode": cust.pincode
                 }
                 
-                # We can't use the add_order helper if we want to update the customer
-                # in the same session, so we do the logic here.
                 order = OrderRecords(
                     customer_id=cust.id,
                     status=random.choice(["Delivered", "Shipped"]),
@@ -316,7 +315,7 @@ def seed():
                     order_date=datetime.utcnow() - timedelta(days=random.randint(1, 90))
                 )
                 session.add(order)
-                session.commit() # Commit to get order.id
+                session.commit() 
                 
                 for item in items_in_order:
                     oi = OrderItem(
@@ -327,22 +326,20 @@ def seed():
                     )
                     session.add(oi)
 
-                cust.no_of_purchases += 1 # Update purchase count
+                cust.no_of_purchases += 1 
                 session.add(cust)
                 order_count += 1
         
-        session.commit() # Commit all customer updates and order items
+        session.commit() 
     print(f"Created {order_count} past orders.")
 
     print("--- 7. Creating Feedback ---")
     feedback_count = 0
-    # Get all orders to create feedback
     with Session(engine) as session:
         all_order_items = session.exec(select(OrderItem)).all()
-        # Create feedback for a sample of items
         for item in random.sample(all_order_items, min(len(all_order_items), 150)):
             order = session.get(OrderRecords, item.orderrecords_id)
-            if order: # Ensure order exists
+            if order: 
                 add_feedback(
                     product_id=item.product_id,
                     customer_id=order.customer_id,
@@ -353,12 +350,12 @@ def seed():
     print(f"Created {feedback_count} feedback entries.")
 
     print("--- 8. Creating Wholesale Orders ---")
-    for i in range(20): # Create 20 wholesale orders
+    for i in range(20): 
         items_in_order = []
-        for _ in range(random.randint(2, 8)): # 2-8 product types per order
+        for _ in range(random.randint(2, 8)): 
             items_in_order.append({
                 "product": random.choice(products),
-                "quantity": random.randint(10, 50) # Bulk quantities
+                "quantity": random.randint(10, 50) 
             })
         
         retailer = random.choice(retailers)
@@ -373,7 +370,6 @@ def seed():
     print("Created 20 wholesale orders.")
     
     print("\n--- ✅ Database Seeding Complete! ---")
-
 
 if __name__ == "__main__":
     seed()
