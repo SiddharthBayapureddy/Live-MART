@@ -240,6 +240,7 @@ def get_detailed_cart_items(customer_id: int) -> List[Dict[str, Any]]:
 
 def add_item_to_cart(customer_id: int, product_id: int, quantity: int):
     with Session(engine) as session:
+        # 1. Get or create the ShoppingCart (using customer_id)
         cart = session.exec(select(ShoppingCart).where(ShoppingCart.customer_id == customer_id)).first()
         if not cart:
             cart = ShoppingCart(customer_id=customer_id)
@@ -247,6 +248,7 @@ def add_item_to_cart(customer_id: int, product_id: int, quantity: int):
             session.commit()
             session.refresh(cart)
         
+        # 2. Check if the item already exists in the cart
         statement = select(ShoppingCartItem).where(
             (ShoppingCartItem.shopping_cart_id == cart.id) & 
             (ShoppingCartItem.product_id == product_id)
@@ -254,13 +256,23 @@ def add_item_to_cart(customer_id: int, product_id: int, quantity: int):
         existing_item = session.exec(statement).first()
         
         if existing_item:
+            # Item exists: Update quantity
             existing_item.quantity += quantity
             session.add(existing_item)
+            item_to_return = existing_item  # Store the existing item
         else:
+            # Item is new: Create new item
             new_item = ShoppingCartItem(shopping_cart_id=cart.id, product_id=product_id, quantity=quantity)
             session.add(new_item)
+            item_to_return = new_item  # Store the new item
+            
         session.commit()
-
+        
+        # 3. Refresh and Return (Crucial Step)
+        session.refresh(item_to_return, include={"product"}) 
+        
+        return item_to_return 
+    
 def get_cart_size(customer_id: int) -> int:
     with Session(engine) as session:
         cart = session.exec(select(ShoppingCart).where(ShoppingCart.customer_id == customer_id)).first()
@@ -424,7 +436,7 @@ def add_wholesale_order(retailer_id: int, wholesaler_id: int, address: str, item
             wholesaler_id=wholesaler_id,
             status="Processing",
             total_price=total_price,
-            shipping_address=address
+            delivery_address=address  # ✅ Correct field name
         )
         session.add(w_order)
         session.commit()
@@ -435,7 +447,7 @@ def add_wholesale_order(retailer_id: int, wholesaler_id: int, address: str, item
                 wholesale_order_id=w_order.id,
                 product_id=item['product'].id,
                 quantity=item['quantity'],
-                price_at_purchase=item['product'].price * 0.7
+                price_per_unit=item['product'].price * 0.7  # ✅ Correct field name
             )
             session.add(wo_item)
         session.commit()

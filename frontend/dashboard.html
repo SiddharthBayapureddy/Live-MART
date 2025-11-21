@@ -327,7 +327,7 @@
             localStorage.removeItem('token');
             localStorage.removeItem('user_email');
             localStorage.removeItem('user_role');
-            window.location.href = 'index.html';
+            window.location.href = './index.html';
         }
 
         function triggerSearch() {
@@ -409,11 +409,13 @@
             });
         }
 
-        async function addToCart(productId) {
+    async function addToCart(productId) {
             const token = localStorage.getItem('token');
-            if (!token) {
-                alert("Please login to add items to cart.");
-                window.location.href = 'index.html';
+            
+            // FIX: Use './index.html' instead of just 'index.html'
+            if(!token) {
+                alert("Please login first");
+                window.location.href = './index.html';
                 return;
             }
 
@@ -429,12 +431,15 @@
 
                 if (res.ok) {
                     alert("Item added to cart!");
-                    updateCartCount();
+                    updateCartCount(); // Refreshes the cart badge
                 } else {
                     const err = await res.json();
-                    alert("Error: " + (err.detail || "Could not add item")); 
+                    alert("Error: " + (err.detail || "Could not add item"));
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) { 
+                console.error(e); 
+                alert("Connection error");
+            }
         }
 
         async function updateCartCount() {

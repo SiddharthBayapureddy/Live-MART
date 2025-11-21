@@ -461,16 +461,22 @@ async def add_to_cart(
     customer: Customer = Depends(get_current_customer) # This endpoint is now secured
 ):
     
+    # NOTE: The check for 'cart' is redundant because add_item_to_cart() handles
+    # cart creation if one doesn't exist. However, we keep it for consistency.
     cart = await run_in_threadpool(get_cart_by_customer_id, customer_id=customer.id)
     if not cart:
+        # Based on database.py, this should theoretically not happen 
+        # as get_cart_by_customer_id should create one if missing.
         raise HTTPException(status_code=404, detail="Customer cart not found")
     
     try:
         new_item = await run_in_threadpool(
             add_item_to_cart,
+            customer_id=customer.id,   
             product_id=item.product_id,
             quantity=item.quantity,
             cart_id=cart.id
+            
         )
         return new_item
     except HTTPException as e:

@@ -2,8 +2,8 @@
 
 # Here, we define all the database tables, attributes to each
 
-from sqlmodel import SQLModel , Field
-from typing import Optional   # To allow fields to be NULL
+from sqlmodel import SQLModel , Field, Relationship
+from typing import Optional ,List  # To allow fields to be NULL
 from datetime import datetime # Default timestamps
 from pathlib import Path
 
@@ -152,7 +152,8 @@ class WholesaleOrder(SQLModel, table=True):
     total_price: float
     
     # Address for the wholesaler to ship to
-    delivery_address: str
+    delivery_address: Optional[str] = Field(default=None)
+
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -193,7 +194,7 @@ class Product(SQLModel , table=True):
     stock: int
     
     image_url: Optional[str] = Field(default=default_product_image)
-
+    cart_items: List["ShoppingCartItem"] = Relationship(back_populates="product")
     # Linking product to retailer who sells it
     retailer_id : int = Field(foreign_key="retailer.id")
 
@@ -201,7 +202,6 @@ class Product(SQLModel , table=True):
 
 # Category Model
 class Category(SQLModel, table=True):
-
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(unique=True, index=True)
     description: Optional[str] = None
@@ -215,7 +215,7 @@ class Category(SQLModel, table=True):
 class ShoppingCart(SQLModel , table=True):
 
     id: Optional[int] = Field(default=None , primary_key=True)
-
+    items: List["ShoppingCartItem"] = Relationship(back_populates="shopping_cart")
     # Refers to the Customer using this cart
     customer_id: int = Field(foreign_key="customer.id")
 
@@ -233,6 +233,11 @@ class ShoppingCartItem(SQLModel , table = True):
 
     # Refers to the shopping cart the item belongs to
     cart_id: int = Field(foreign_key="shoppingcart.id")
+    # Relationships:
+    # 1. Relation to Product (Required for the ShoppingCartItemRead schema)
+    product: "Product" = Relationship(back_populates="cart_items")
+    # 2. Relation to ShoppingCart
+    shopping_cart: "ShoppingCart" = Relationship(back_populates="items")
 
 
 
