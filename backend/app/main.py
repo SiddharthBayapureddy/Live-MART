@@ -102,7 +102,7 @@ app.add_middleware(SessionMiddleware , secret_key = SECRET_KEY)
 
 
 # Mounting the app to folder at "../data"
-app.mount("/static" , StaticFiles(directory="../data") , name="static")
+# app.mount("/static" , StaticFiles(directory="../data") , name="static") # Removed relative path causing issues
 
 # Creating endpoints
 
@@ -713,5 +713,26 @@ async def verify_otp_only(request: OTPVerifyRequest):
 # -------------------------------------------------------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------------------------------------------------------
 
-# Mount your frontend
-app.mount("/", StaticFiles(directory="../../frontend", html=True), name="frontend")
+# Static File Mounting - USING ABSOLUTE PATHS FOR RELIABILITY
+import os 
+
+# 1. Get base directory of this file (backend/app)
+base_dir = os.path.dirname(os.path.abspath(__file__))
+
+# 2. Calculate absolute paths to data and frontend
+product_images_dir = os.path.join(base_dir, "../data/product_images")
+frontend_dir = os.path.join(base_dir, "../../frontend")
+
+# 3. Ensure directories exist (Optional safety check)
+if not os.path.exists(product_images_dir):
+    print(f"WARNING: Product images directory not found at {product_images_dir}")
+    # Create it to prevent 500 errors, though images will be 404
+    os.makedirs(product_images_dir, exist_ok=True)
+
+# 4. Mount Product Images BEFORE frontend
+# Maps http://localhost:8000/product_images/... -> backend/data/product_images/...
+app.mount("/product_images", StaticFiles(directory=product_images_dir), name="product_images")
+
+# 5. Mount Frontend LAST (Catch-all)
+# Maps http://localhost:8000/... -> frontend/...
+app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
