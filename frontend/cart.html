@@ -2,119 +2,438 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Cart | Live MART</title>
-    <link rel="stylesheet" href="css/dashboard.css">
+    <!-- Stylesheets matching dashboard.html -->
     <link rel="stylesheet" href="assets/css/bootstrap.css">
     <link rel="stylesheet" href="assets/css/font-awesome.min.css">
     <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700|Orbitron:400,700&display=swap" rel="stylesheet">
+    
     <style>
-        body { background-color: #050505; color: #e0e0e0; font-family: 'Montserrat', sans-serif; }
-        .cart-container { background: #111; padding: 30px; margin-top: 50px; border-radius: 5px; border: 1px solid #333; }
-        .cart-item { border-bottom: 1px solid #222; padding: 20px 0; display: flex; align-items: center; }
-        .cart-img { width: 80px; height: 80px; object-fit: cover; border-radius: 4px; margin-right: 20px; }
-        .total-section { background: #000; padding: 20px; margin-top: 20px; border: 1px solid #00f3ff; text-align: right; }
-        .btn-checkout { background: #00f3ff; color: #000; border: none; padding: 10px 30px; font-weight: bold; text-transform: uppercase; }
-        .btn-checkout:hover { background: #fff; }
+        /* --- GLOBAL STYLES (Matching Dashboard) --- */
+        body {
+            background-color: #050505;
+            color: #e0e0e0;
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            padding-bottom: 50px;
+        }
+
+        h1, h2, h3, h4, h5 {
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+        }
+
+        /* --- NAVBAR --- */
+        .navbar-default {
+            background: #111;
+            border-bottom: 1px solid #333;
+            padding: 15px 0;
+        }
+        .navbar-brand {
+            font-size: 24px;
+            color: #fff !important;
+            font-weight: bold;
+            font-family: 'Orbitron', sans-serif;
+        }
+        .navbar-brand span { color: #00f3ff; }
+        .nav-link { color: #aaa; margin-left: 20px; text-decoration: none; transition: 0.3s; }
+        .nav-link:hover { color: #00f3ff; }
+
+        /* --- CART CONTAINER --- */
+        .container {
+            max-width: 1170px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        .page-header {
+            margin-top: 40px;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 15px;
+        }
+
+        /* --- CART ITEMS --- */
+        .cart-item {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            transition: 0.3s;
+        }
+        .cart-item:hover {
+            border-color: #444;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.1);
+        }
+        
+        .cart-img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #333;
+            margin-right: 25px;
+        }
+
+        .item-details { flex-grow: 1; }
+        .item-title { font-size: 18px; color: #fff; margin-bottom: 5px; font-weight: bold; }
+        .item-cat { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        .item-price { color: #00f3ff; font-size: 18px; font-weight: bold; margin-top: 5px; }
+
+        /* --- QUANTITY CONTROLS --- */
+        .qty-control {
+            display: flex;
+            align-items: center;
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 5px;
+        }
+        .qty-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .qty-btn:hover { color: #00f3ff; background: #222; border-radius: 3px; }
+        .qty-val { width: 40px; text-align: center; font-weight: bold; user-select: none; }
+
+        .remove-btn {
+            background: #220000;
+            color: #ff4444;
+            border: 1px solid #550000;
+            padding: 8px 15px;
+            border-radius: 4px;
+            margin-left: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+        .remove-btn:hover { background: #ff4444; color: #fff; }
+
+        /* --- CHECKOUT SECTION --- */
+        .checkout-panel {
+            background: #111;
+            border: 1px solid #00f3ff; /* Neon border */
+            padding: 30px;
+            border-radius: 8px;
+            position: sticky;
+            top: 20px;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 16px;
+            color: #ccc;
+        }
+        .summary-row.total {
+            border-top: 1px solid #333;
+            padding-top: 15px;
+            font-size: 22px;
+            color: #fff;
+            font-weight: bold;
+        }
+        .summary-row.total span:last-child { color: #00f3ff; }
+
+        /* Form Inputs */
+        .form-group { margin-bottom: 15px; }
+        .form-label { display: block; margin-bottom: 8px; color: #aaa; font-size: 14px; }
+        .dark-input {
+            width: 100%;
+            background: #000;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 12px;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .dark-input:focus { outline: none; border-color: #00f3ff; }
+
+        .checkout-btn {
+            width: 100%;
+            background: linear-gradient(45deg, #00f3ff, #0066ff);
+            border: none;
+            color: #000;
+            padding: 15px;
+            font-weight: bold;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+            border-radius: 4px;
+            transition: 0.3s;
+        }
+        .checkout-btn:hover { transform: translateY(-2px); box-shadow: 0 0 20px rgba(0, 243, 255, 0.4); }
+
+        /* Empty State */
+        .empty-cart { text-align: center; padding: 50px; color: #555; }
+        .empty-cart i { font-size: 60px; margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
+    <!-- Navigation -->
+    <nav class="navbar-default">
+        <div class="container" style="display:flex; justify-content:space-between; align-items:center;">
+            <a class="navbar-brand" href="dashboard.html">Live <span>MART</span></a>
+            <div>
+                <a href="dashboard.html" class="nav-link"><i class="fa fa-arrow-left"></i> Continue Shopping</a>
+                <a href="orders.html" class="nav-link"><i class="fa fa-list"></i> My Orders</a>
+                <a href="#" onclick="logout()" class="nav-link"><i class="fa fa-sign-out"></i> Logout</a>
+            </div>
+        </div>
+    </nav>
+
     <div class="container">
-        <a href="dashboard.html" style="color: #00f3ff; margin-top: 20px; display: inline-block;"><i class="fa fa-arrow-left"></i> Back to Shop</a>
-        
-        <div class="cart-container">
-            <h2 style="color: #fff; font-family: 'Orbitron'; margin-bottom: 30px;">Shopping Cart</h2>
-            
-            <div id="cart-items-wrapper">
-                <div class="text-center"><i class="fa fa-spin fa-circle-o-notch"></i> Loading Cart...</div>
+        <div class="page-header">
+            <h1>Shopping Cart</h1>
+        </div>
+
+        <div class="row">
+            <!-- Cart Items Column -->
+            <div class="col-md-8" id="cart-items-container">
+                <!-- Items will be injected here by JS -->
+                <div class="empty-cart">
+                    <i class="fa fa-spinner fa-spin"></i>
+                    <p>Loading your cart...</p>
+                </div>
             </div>
 
-            <div class="total-section" id="checkout-section" style="display:none;">
-                <h3 style="margin: 0 0 20px;">Total: <span style="color: #00f3ff;" id="cart-total">₹0.00</span></h3>
-                
-                <h4 style="color: #ccc; margin-bottom: 10px;">Shipping Details</h4>
-                <input type="text" id="ship-addr" placeholder="Address" class="form-control" style="background:#222; border:none; color:#fff; margin-bottom:10px;">
-                <input type="text" id="ship-city" placeholder="City" class="form-control" style="background:#222; border:none; color:#fff; margin-bottom:10px;">
-                <input type="text" id="ship-pin" placeholder="Pincode" class="form-control" style="background:#222; border:none; color:#fff; margin-bottom:20px;">
-                
-                <button class="btn-checkout" onclick="processCheckout()">Place Order</button>
+            <!-- Checkout Column -->
+            <div class="col-md-4">
+                <div class="checkout-panel">
+                    <h3>Summary</h3>
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span id="subtotal-display">$0.00</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Tax (5%)</span>
+                        <span id="tax-display">$0.00</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total</span>
+                        <span id="total-display">$0.00</span>
+                    </div>
+
+                    <hr style="border-color: #333; margin: 20px 0;">
+
+                    <h4>Shipping Details</h4>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Address</label>
+                        <input type="text" id="ship-addr" class="dark-input" placeholder="Street, House No">
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6" style="padding-right:5px;">
+                            <div class="form-group">
+                                <label class="form-label">City</label>
+                                <input type="text" id="ship-city" class="dark-input" placeholder="City">
+                            </div>
+                        </div>
+                        <div class="col-6" style="padding-left:5px;">
+                            <div class="form-group">
+                                <label class="form-label">Pincode</label>
+                                <input type="text" id="ship-pin" class="dark-input" placeholder="123456">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Payment Mode</label>
+                        <select id="payment-mode" class="dark-input">
+                            <option value="Online">Online Payment</option>
+                            <option value="COD">Cash on Delivery</option>
+                        </select>
+                    </div>
+
+                    <button onclick="processCheckout()" class="checkout-btn">
+                        PLACE ORDER <i class="fa fa-check-circle"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        let cartTotal = 0;
+        // Check Auth
+        const token = localStorage.getItem('token');
+        if(!token) window.location.href = 'index.html';
 
+        // Load Cart on Startup
         document.addEventListener('DOMContentLoaded', loadCart);
 
-        async function loadCart() {
-            const token = localStorage.getItem('token');
-            if (!token) { window.location.href = 'Customer.html'; return; }
+        let cartData = []; // Store locally for calculations
 
+        async function loadCart() {
             try {
                 const res = await fetch('/cart', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                
-                if (!res.ok) throw new Error("Failed to fetch cart");
-                
-                const data = await res.json();
-                renderCart(data.items);
+
+                if (res.ok) {
+                    cartData = await res.json(); // Expecting { items: [...], total_price: ... }
+                    renderCart();
+                } else {
+                    document.getElementById('cart-items-container').innerHTML = 
+                        `<div class="empty-cart"><p>Failed to load cart.</p></div>`;
+                }
             } catch (e) {
-                document.getElementById('cart-items-wrapper').innerHTML = '<p>Empty Cart or Error loading.</p>';
+                console.error(e);
             }
         }
 
-        function renderCart(items) {
-            const wrapper = document.getElementById('cart-items-wrapper');
-            wrapper.innerHTML = '';
-            cartTotal = 0;
-
-            if (items.length === 0) {
-                wrapper.innerHTML = '<p>Your cart is empty.</p>';
-                document.getElementById('checkout-section').style.display = 'none';
+        function renderCart() {
+            const container = document.getElementById('cart-items-container');
+            
+            if (!cartData.items || cartData.items.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-cart">
+                        <i class="fa fa-shopping-cart"></i>
+                        <p>Your cart is empty.</p>
+                        <a href="dashboard.html" style="color:#00f3ff;">Go Shop</a>
+                    </div>`;
+                updateSummary(0);
                 return;
             }
 
-            items.forEach(item => {
-                const p = item.product;
-                const lineTotal = p.price * item.quantity;
-                cartTotal += lineTotal;
-                const img = p.image_url || 'https://via.placeholder.com/80';
+            let html = '';
+            let runningTotal = 0;
 
-                wrapper.innerHTML += `
+            cartData.items.forEach(item => {
+                const product = item.product;
+                const lineTotal = product.price * item.quantity;
+                runningTotal += lineTotal;
+
+                // Use placeholder if image is missing
+                const imgSrc = product.image_url ? product.image_url : 'assets/img/default.png';
+
+                html += `
                 <div class="cart-item">
-                    <img src="${img}" class="cart-img">
-                    <div style="flex:1;">
-                        <h4 style="color:#fff; margin:0;">${p.name}</h4>
-                        <p style="color:#777; margin:0;">Price: ₹${p.price}</p>
+                    <img src="${imgSrc}" alt="${product.name}" class="cart-img" onerror="this.src='https://via.placeholder.com/100x100?text=No+Img'">
+                    
+                    <div class="item-details">
+                        <div class="item-title">${product.name}</div>
+                        <div class="item-cat">${product.category || 'Item'}</div>
+                        <div class="item-price">$${product.price.toFixed(2)}</div>
                     </div>
-                    <div style="margin-right:30px;">
-                        <span style="color:#fff;">Qty: ${item.quantity}</span>
+
+                    <div class="qty-control">
+                        <button class="qty-btn" onclick="updateQuantity(${product.id}, -1)">-</button>
+                        <div class="qty-val">${item.quantity}</div>
+                        <button class="qty-btn" onclick="updateQuantity(${product.id}, 1)">+</button>
                     </div>
-                    <div>
-                        <h4 style="color:#00f3ff;">₹${lineTotal.toFixed(2)}</h4>
-                    </div>
+
+                    <button class="remove-btn" onclick="removeFromCart(${product.id})">
+                        <i class="fa fa-trash"></i>
+                    </button>
                 </div>`;
             });
 
-            document.getElementById('cart-total').textContent = "₹" + cartTotal.toFixed(2);
-            document.getElementById('checkout-section').style.display = 'block';
+            container.innerHTML = html;
+            updateSummary(runningTotal);
+        }
+
+        function updateSummary(subtotal) {
+            const tax = subtotal * 0.05;
+            const total = subtotal + tax;
+
+            document.getElementById('subtotal-display').innerText = '$' + subtotal.toFixed(2);
+            document.getElementById('tax-display').innerText = '$' + tax.toFixed(2);
+            document.getElementById('total-display').innerText = '$' + total.toFixed(2);
+        }
+
+        // --- API ACTIONS ---
+
+        async function updateQuantity(productId, change) {
+            // NOTE: Assuming backend has logic to add negative quantity or specific update endpoint
+            // Here we act as if adding 1 or -1 to the cart
+            
+            // Determine current qty to prevent going below 1 via this button (use remove for that)
+            const item = cartData.items.find(i => i.product.id === productId);
+            if(item && item.quantity + change < 1) return; // Stop at 1
+
+            try {
+                const res = await fetch('/cart/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ product_id: productId, quantity: change })
+                });
+
+                if(res.ok) {
+                    loadCart(); // Reload to sync
+                } else {
+                    alert("Could not update quantity");
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        async function removeFromCart(productId) {
+            if(!confirm("Remove this item?")) return;
+
+            try {
+                // Assuming a delete endpoint exists. If not, adjust based on backend.
+                // Common pattern: DELETE /cart/item/{id} OR POST to remove
+                const res = await fetch(`/cart/remove/${productId}`, {
+                    method: 'DELETE', 
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                // Fallback if specific remove endpoint doesn't exist: try adding negative quantity equal to current
+                if(res.status === 404 || res.status === 405) {
+                   const item = cartData.items.find(i => i.product.id === productId);
+                   if(item) {
+                       await fetch('/cart/add', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                            body: JSON.stringify({ product_id: productId, quantity: -item.quantity })
+                       });
+                       loadCart();
+                       return;
+                   }
+                }
+
+                if(res.ok) {
+                    loadCart();
+                }
+            } catch(e) { console.error(e); }
         }
 
         async function processCheckout() {
             const addr = document.getElementById('ship-addr').value;
             const city = document.getElementById('ship-city').value;
             const pin = document.getElementById('ship-pin').value;
+            const payMode = document.getElementById('payment-mode').value;
 
-            if(!addr || !city || !pin) { alert("Please fill in shipping details."); return; }
+            if(!addr || !city || !pin) { 
+                alert("Please fill in all shipping details."); 
+                return; 
+            }
 
-            const token = localStorage.getItem('token');
+            const btn = document.querySelector('.checkout-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Processing...';
+            btn.disabled = true;
+
             const payload = {
                 shipping_address: addr,
                 shipping_city: city,
                 shipping_pincode: pin,
-                payment_mode: "Online" 
+                payment_mode: payMode 
             };
 
             try {
@@ -129,15 +448,23 @@
 
                 if (res.ok) {
                     alert("Order Placed Successfully!");
-                    window.location.href = 'orders.html'; // Redirect to orders page
+                    window.location.href = 'orders.html'; 
                 } else {
                     const err = await res.json();
-                    alert("Checkout Failed: " + err.detail);
+                    alert("Checkout Failed: " + (err.detail || "Unknown error"));
                 }
             } catch (e) {
                 console.error(e);
                 alert("Error processing checkout.");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
             }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'index.html';
         }
     </script>
 </body>

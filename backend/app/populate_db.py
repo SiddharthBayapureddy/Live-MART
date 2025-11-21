@@ -214,7 +214,7 @@ def seed():
                 for _ in range(random.randint(1, 4)):
                     prod = random.choice(products)
                     qty = random.randint(1, 3)
-                    items_in_order.append({"product": prod, "quantity": qty})
+                    items_in_order.append({"product": prod, "quantity": qty,"price": prod.price})
                     total_price += prod.price * qty
                 
                 addr = {
