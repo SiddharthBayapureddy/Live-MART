@@ -174,8 +174,8 @@ def get_products_by_retailer(retailer_id: int) -> List[Product]:
         statement = select(Product).where(Product.retailer_id == retailer_id)
         return session.exec(statement).all()
 
+# [RENAMED from update_product to update_product_details to match main.py]
 def update_product_details(product_id: int, product_update: ProductUpdate, retailer_id: int):
-    """Updates product details. Renamed to match main.py import."""
     with Session(engine) as session:
         product = session.get(Product, product_id)
         if not product:

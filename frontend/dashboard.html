@@ -115,15 +115,118 @@
             transition: 0.3s;
         }
         .btn-login-logout:hover { background: #000; color: #fff; }
+
+        /* --- LAYOUT & ALIGNMENT FIXES (Added Flexbox) --- */
+        
+        /* 1. Make the grid row a flex container to equalize column heights */
+        #product-grid {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        /* 2. Make individual columns flex containers so their children fill the height */
+        #product-grid > [class*='col-'] {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 3. Product Card: Fills height, Flex column layout */
+        .product-card {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            background: #fff; /* Ensure card has background */
+            border: 1px solid #eee; /* Simple border if not already in CSS */
+            border-radius: 10px; /* Smooth corners */
+            overflow: hidden;
+            position: relative; /* For badges */
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        /* 4. Image Wrapper: Fixed height to prevent misalignment */
+        .card-img-wrap {
+            height: 200px; /* Fixed height for all images */
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+            padding: 10px;
+        }
+        
+        .card-img-wrap img {
+            max-height: 100%;
+            max-width: 100%;
+            object-fit: contain; /* Ensures image is not cropped */
+        }
+
+        /* 5. Card Body: Flex column, grows to fill space */
+        .card-body {
+            padding: 15px;
+            flex-grow: 1; /* Pushes content to fill height */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+            /* Optional: Limit title to 2 lines */
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .card-price {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        /* 6. Button: Margin-top auto pushes it to the bottom */
+        .btn-product {
+            margin-top: auto; 
+            width: 100%;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            background: #000;
+            color: #fff;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .btn-product:hover { background: #00f3ff; color: #000; }
+        
+        .cat-pill {
+            border: 1px solid #ddd;
+            background: #fff;
+            padding: 8px 20px;
+            border-radius: 20px;
+            margin: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .cat-pill.active, .cat-pill:hover {
+            background: #000; color: #fff; border-color: #000;
+        }
     </style>
 </head>
 <body>
 
-    <nav class="navbar navbar-default">
+    <nav class="navbar-default">
         <div class="navbar-container">
             
-            <a href="index.html" class="navbar-brand-custom" style="text-decoration: none;">
-                <h3>Live MART</h3>
+            <a href="dashboard.html" class="navbar-brand-custom" style="text-decoration: none;">
+                <h3>LIVE<b>MART</b></h3>
             </a>
 
             <div class="search-container">
@@ -135,7 +238,7 @@
                 <a href="orders.html" class="nav-icon-btn" title="My Orders">
                     <i class="fa fa-list"></i>
                 </a>
-
+                
                 <a href="cart.html" class="nav-icon-btn" title="My Cart">
                     <i class="fa fa-shopping-cart"></i>
                     <span id="cart-badge" class="cart-count" style="display:none;">0</span>
@@ -149,17 +252,19 @@
                     <button id="auth-button" class="btn-login-logout">Login</button>
                 </div>
             </div>
+
         </div>
     </nav>
 
     <div class="category-nav-container">
         <div class="container text-center">
-            <a class="cat-pill active" onclick="filterProducts('all')">All</a>
-            <a class="cat-pill" onclick="filterProducts('Electronics')">Electronics</a>
-            <a class="cat-pill" onclick="filterProducts('Fashion')">Fashion</a>
-            <a class="cat-pill" onclick="filterProducts('Groceries')">Groceries</a>
-            <a class="cat-pill" onclick="filterProducts('Home')">Home</a>
-            <a class="cat-pill" onclick="filterProducts('Sports')">Sports</a>
+            <button class="cat-pill active" onclick="filterProducts('All', this)">All</button>
+            <button class="cat-pill" onclick="filterProducts(1, this)">Electronics</button>
+            <button class="cat-pill" onclick="filterProducts(2, this)">Groceries</button>
+            <button class="cat-pill" onclick="filterProducts(3, this)">Fashion</button>
+            <button class="cat-pill" onclick="filterProducts(4, this)">Home & Kitchen</button>
+            <button class="cat-pill" onclick="filterProducts(5, this)">Books</button>
+            <button class="cat-pill" onclick="filterProducts(6, this)">Sports & Outdoors</button>
         </div>
     </div>
 
@@ -176,133 +281,193 @@
 
     <footer>
         <div class="container text-center">
-            <p>© 2025 Live MART. All rights reserved.</p>
+            <p>&copy; 2025 Live MART. All rights reserved.</p>
         </div>
     </footer>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             checkAuth();
-            fetchProducts('all');
+            fetchProducts();
             updateCartCount();
+            
+            // Fix: Ensure element exists before adding listener
+            const searchInput = document.getElementById('dash-search-input');
+            if(searchInput) {
+                searchInput.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') triggerSearch();
+                });
+            }
         });
-
-        const searchInput = document.getElementById('dash-search-input');
-        searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') triggerSearch(); });
-
-        function triggerSearch() {
-            const query = searchInput.value.trim();
-            if (query) window.location.href = `search.html?q=${encodeURIComponent(query)}`;
-        }
 
         function checkAuth() {
             const token = localStorage.getItem('token');
-            const role = localStorage.getItem('user_role');
-            const userNameDisplay = document.getElementById('user-name-display');
-            const authButton = document.getElementById('auth-button');
+            const userEmail = localStorage.getItem('user_email');
             
-            if (!token) {
-                userNameDisplay.textContent = "Guest";
-                authButton.textContent = "Login";
-                authButton.onclick = () => window.location.href = 'Customer.html';
+            // Fix: Added checks to ensure elements exist before accessing properties
+            const authBtn = document.getElementById('auth-button');
+            const nameDisplay = document.getElementById('user-name-display');
+
+            if (token) {
+                if(nameDisplay) nameDisplay.textContent = userEmail || 'User';
+                if(authBtn) {
+                    authBtn.textContent = 'Logout';
+                    authBtn.onclick = logout;
+                }
             } else {
-                userNameDisplay.textContent = role ? role.charAt(0).toUpperCase() + role.slice(1) : "User";
-                authButton.textContent = "Logout";
-                authButton.onclick = () => {
-                    localStorage.clear();
-                    window.location.href = 'index.html';
-                };
+                if(nameDisplay) nameDisplay.textContent = 'Guest';
+                if(authBtn) {
+                    authBtn.textContent = 'Login';
+                    authBtn.onclick = () => window.location.href = 'index.html';
+                }
             }
         }
 
-        async function fetchProducts(category) {
-            const grid = document.getElementById('product-grid');
-            grid.innerHTML = '<div class="text-center" style="padding:50px;"><i class="fa fa-circle-o-notch fa-spin" style="font-size:24px; color:#00f3ff;"></i></div>';
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user_email');
+            localStorage.removeItem('user_role');
+            window.location.href = 'index.html';
+        }
+
+        function triggerSearch() {
+            const input = document.getElementById('dash-search-input');
+            if(input) {
+                const q = input.value;
+                fetchProducts(null, q);
+            }
+        }
+
+        // Updated to use /products endpoint
+        async function fetchProducts(category = null, searchQuery = null) {
+            let url = '/products'; // Clean Endpoint
+            
+            const params = new URLSearchParams();
+
+            // Handle Category
+            if (category && category !== 'all' && category !== 'All') {
+                params.append('category', category);
+            }
+
+            // Handle Search
+            if (searchQuery) {
+                params.append('q', searchQuery);
+            }
+            
+            // Append params to URL
+            if (params.toString()) {
+                url += `?${params.toString()}`;
+            }
 
             try {
-                let url = '/products/all';
-                if (category && category !== 'all') url += `?category=${encodeURIComponent(category)}`;
                 const response = await fetch(url);
-                if (!response.ok) throw new Error("Failed to load products");
+                if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
+                
                 const products = await response.json();
                 renderProducts(products);
             } catch (error) {
-                console.error(error);
-                grid.innerHTML = `<div class="text-center text-danger">Failed to fetch products.</div>`;
+                console.error("Error loading products:", error);
+                const grid = document.getElementById('product-grid');
+                if(grid) grid.innerHTML = `<div class="col-12 text-center text-danger"><h5>Error loading products. Check console.</h5></div>`;
             }
         }
 
         function renderProducts(products) {
             const grid = document.getElementById('product-grid');
+            if (!grid) return;
+            
             grid.innerHTML = '';
-            if (products.length === 0) {
-                grid.innerHTML = '<div class="text-center"><h5>No products found.</h5></div>';
+
+            if (!products || products.length === 0) {
+                grid.innerHTML = '<div class="col-12 text-center"><h5>No products found.</h5></div>';
                 return;
             }
+
             products.forEach(p => {
-                let btnHtml = p.stock <= 0 
-                    ? `<button class="btn-product btn-notify" disabled>Notify Me</button>`
-                    : `<button class="btn-product btn-add" onclick="addToCart(${p.id})">Add to Cart</button>`;
-                
-                let badgeHtml = p.stock <= 0 
-                    ? `<span class="badge-overlay bg-out">Out of Stock</span>`
-                    : `<span class="badge-overlay bg-stock">Stock: ${p.stock}</span>`;
+                // Determine Button State
+                let btnHtml = p.stock > 0 
+                    ? `<button class="btn-product" onclick="addToCart(${p.id})">Add to Cart</button>`
+                    : `<button class="btn-product" style="background:#ccc; cursor:not-allowed;" disabled>Out of Stock</button>`;
 
-                const imgUrl = p.image_url || 'https://via.placeholder.com/200?text=No+Image';
-
-                const html = `
-                <div class="col-md-3 col-sm-6" style="margin-bottom: 30px;">
-                    <div class="product-card">
-                        ${badgeHtml}
-                        <div class="card-img-wrap">
-                            <a href="product-details.html?id=${p.id}">
-                                <img src="${imgUrl}" alt="${p.name}" onerror="this.src='https://via.placeholder.com/200?text=Error'">
-                            </a>
-                        </div>
-                        <div class="card-body">
-                            <a href="product-details.html?id=${p.id}" style="text-decoration:none; color:inherit;">
+                const card = `
+                    <div class="col-md-3 col-sm-6 mb-4">
+                        <div class="product-card">
+                            <div class="card-img-wrap">
+                                <a href="product-details.html?id=${p.id}">
+                                    <img src="${p.image_url || 'assets/img/default.png'}" alt="${p.name}">
+                                </a>
+                            </div>
+                            <div class="card-body">
                                 <div class="card-title">${p.name}</div>
-                            </a>
-                            <span class="card-price">₹${p.price}</span>
-                            ${btnHtml}
+                                <div class="card-price">$${p.price}</div>
+                                ${btnHtml}
+                            </div>
                         </div>
                     </div>
-                </div>`;
-                grid.innerHTML += html;
+                `;
+                grid.innerHTML += card;
             });
         }
 
         async function addToCart(productId) {
             const token = localStorage.getItem('token');
-            if (!token) { alert("Please login first!"); window.location.href = 'Customer.html'; return; }
+            if (!token) {
+                alert("Please login to add items to cart.");
+                window.location.href = 'index.html';
+                return;
+            }
+
             try {
-                const response = await fetch('/cart/add', {
+                const res = await fetch('/cart/add', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
                     body: JSON.stringify({ product_id: productId, quantity: 1 })
                 });
-                if (response.ok) { alert("Item added to cart!"); updateCartCount(); } 
-                else { const err = await response.json(); alert("Error: " + err.detail); }
+
+                if (res.ok) {
+                    alert("Item added to cart!");
+                    updateCartCount();
+                } else {
+                    const err = await res.json();
+                    alert("Error: " + (err.detail || "Could not add item")); 
+                }
             } catch (e) { console.error(e); }
         }
 
         async function updateCartCount() {
             const token = localStorage.getItem('token');
             if(!token) return;
+
             try {
                 const res = await fetch('/cart', { headers: { 'Authorization': `Bearer ${token}` } });
                 if(res.ok) {
                     const data = await res.json();
                     const badge = document.getElementById('cart-badge');
-                    if(data.total_size > 0) { badge.textContent = data.total_size; badge.style.display = 'block'; } 
-                    else { badge.style.display = 'none'; }
+                    if(badge) {
+                        if(data.total_size > 0) { 
+                            badge.textContent = data.total_size; 
+                            badge.style.display = 'block'; 
+                        } else { 
+                            badge.style.display = 'none'; 
+                        }
+                    }
                 }
             } catch(e) { console.error(e); }
         }
 
-        function filterProducts(cat) {
+        function filterProducts(cat, element) {
+            // 1. Remove 'active' class from ALL buttons
             document.querySelectorAll('.cat-pill').forEach(el => el.classList.remove('active'));
-            event.target.classList.add('active');
+            
+            // 2. Add 'active' class to the BUTTON THAT WAS CLICKED
+            if (element) {
+                element.classList.add('active');
+            }
+
+            // 3. Fetch the data
             fetchProducts(cat);
         }
     </script>

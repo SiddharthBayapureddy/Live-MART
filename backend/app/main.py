@@ -380,90 +380,74 @@ async def auth_google(request: Request):
 # --- Product Endpoints ---
 # -------------------------------------------------------------------------------------------------------------------------------------------------
 
-# Product Details Endpoint - GET ---> Accepts 
-@app.get("/products/info/{product_id}" , response_model=ProductRead, tags=["Products"])
-async def get_product(product_id: int):
-    def _get():
-        with Session(engine) as session:
-            return session.exec(select(Product).where(Product.id == product_id)).first()
-
-    prod = await run_in_threadpool(_get)
-
-    # If Product ID does not exist
-    if not prod:
-        raise HTTPException(status_code=404, detail="Product not found")
-    
-    return prod
-
-
-# Getting all products
-@app.get("/products/all", response_model=List[ProductRead], tags=["Products"])
+# 1. GET ALL PRODUCTS
+# Matches requests to "/products" (e.g., from dashboard.html)
+@app.get("/products", response_model=List[ProductRead], tags=["Products"])
 async def get_all_products(
-    q: str = None,                # Search query (e.g., "coffee")
-    category: str = None, 
-    min_price: float = None, 
-    max_price: float = None,
-    sort_by: str = "newest"       # Sorting: "newest", "price_low", "price_high"
+    q: Optional[str] = None,
+    category: Optional[str] = None, 
+    min_price: Optional[float] = None, 
+    max_price: Optional[float] = None,
+    sort_by: Optional[str] = "newest"
 ):
     with Session(engine) as session:
         query = select(Product)
         
-        # 1. Text Search (Name OR Description)
+        # Search Logic
         if q:
             search_term = f"%{q}%"
-            # Use col() to enable case-insensitive 'like' or standard 'contains'
             query = query.where(
                 or_(
-                    col(Product.name).like(search_term),
-                    col(Product.description).like(search_term)
+                    col(Product.name).ilike(search_term),
+                    col(Product.description).ilike(search_term)
                 )
             )
             
-        # 2. Filter by Category Name
+        # Category Logic (Handles ID vs Name)
         if category and category.lower() != "all":
-            query = query.join(Category).where(Category.name == category)
+            if category.isdigit():
+                query = query.where(Product.category_id == int(category))
+            else:
+                query = query.join(Category).where(col(Category.name).ilike(category.strip()))
             
-        # 3. Filter by Price
+        # Filtering & Sorting
         if min_price is not None:
             query = query.where(Product.price >= min_price)
         if max_price is not None:
             query = query.where(Product.price <= max_price)
             
-        # 4. Sorting
         if sort_by == "price_low":
             query = query.order_by(Product.price.asc())
         elif sort_by == "price_high":
             query = query.order_by(Product.price.desc())
-        else: # "newest" (Default)
-            # Assuming IDs increment with time; ideally use a created_at field
+        else:
             query = query.order_by(Product.id.desc())
             
-        products = session.exec(query).all()
-        return products
+        return session.exec(query).all()
 
+# 2. GET SINGLE PRODUCT
+# Matches requests to "/products/100" (e.g., from product-details.html)
+@app.get("/products/{product_id}", response_model=ProductRead, tags=["Products"])
+async def get_product_detail(product_id: int):
+    with Session(engine) as session:
+        product = session.get(Product, product_id)
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+        return product
 
-# Adding Product Endpoint - POST ---> Accepts JSON Body as response
+# 3. ADD PRODUCT
 @app.post("/products/add/" , response_model=ProductRead , status_code=status.HTTP_201_CREATED, tags=["Products"])
 async def create_product_endpoint(
     product : ProductCreate, 
-    current_retailer: Retailer = Depends(get_current_retailer) # This endpoint is now secured
+    current_retailer: Retailer = Depends(get_current_retailer)
 ):
-    
-    # retailer_id is now taken from the authenticated user, not the request body
     new_product = await run_in_threadpool(
         add_product,
-        product.name,
-        product.price,
-        product.stock,
-        current_retailer.id, # Use the logged-in retailer's ID
-        product.description,
-        product.category_id,
-        product.image_url
+        product.name, product.price, product.stock, current_retailer.id,
+        product.description, product.category_id, product.image_url
     )
-
     if not new_product:
-        raise HTTPException(status_code=500 , detail="Failed to create product. Try again! Oops lol")
-    
+        raise HTTPException(status_code=500 , detail="Failed to create product.")
     return new_product
 
 
@@ -720,6 +704,9 @@ async def verify_otp_only(request: OTPVerifyRequest):
             raise HTTPException(status_code=400, detail="OTP has expired.")
             
         return {"message": "OTP is valid."}
+
+
+# ----------------------------------------------
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------
 
