@@ -4,185 +4,58 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Cart | Live MART</title>
-    <!-- Stylesheets matching dashboard.html -->
     <link rel="stylesheet" href="assets/css/bootstrap.css">
     <link rel="stylesheet" href="assets/css/font-awesome.min.css">
     <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700|Orbitron:400,700&display=swap" rel="stylesheet">
     
     <style>
-        /* --- GLOBAL STYLES (Matching Dashboard) --- */
-        body {
-            background-color: #050505;
-            color: #e0e0e0;
-            font-family: 'Montserrat', sans-serif;
-            margin: 0;
-            padding-bottom: 50px;
-        }
-
-        h1, h2, h3, h4, h5 {
-            font-family: 'Orbitron', sans-serif;
-            letter-spacing: 1px;
-        }
-
-        /* --- NAVBAR --- */
-        .navbar-default {
-            background: #111;
-            border-bottom: 1px solid #333;
-            padding: 15px 0;
-        }
-        .navbar-brand {
-            font-size: 24px;
-            color: #fff !important;
-            font-weight: bold;
-            font-family: 'Orbitron', sans-serif;
-        }
+        body { background-color: #050505; color: #e0e0e0; font-family: 'Montserrat', sans-serif; margin: 0; padding-bottom: 50px; }
+        h1, h2, h3, h4, h5 { font-family: 'Orbitron', sans-serif; letter-spacing: 1px; }
+        .navbar-default { background: #111; border-bottom: 1px solid #333; padding: 15px 0; }
+        .navbar-brand { font-size: 24px; color: #fff !important; font-weight: bold; font-family: 'Orbitron', sans-serif; text-decoration: none; }
         .navbar-brand span { color: #00f3ff; }
         .nav-link { color: #aaa; margin-left: 20px; text-decoration: none; transition: 0.3s; }
         .nav-link:hover { color: #00f3ff; }
-
-        /* --- CART CONTAINER --- */
-        .container {
-            max-width: 1170px;
-            margin: 0 auto;
-            padding: 0 15px;
-        }
-
-        .page-header {
-            margin-top: 40px;
-            margin-bottom: 30px;
-            border-bottom: 1px solid #333;
-            padding-bottom: 15px;
-        }
-
-        /* --- CART ITEMS --- */
-        .cart-item {
-            background: #111;
-            border: 1px solid #222;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            transition: 0.3s;
-        }
-        .cart-item:hover {
-            border-color: #444;
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.1);
-        }
+        .container { max-width: 1170px; margin: 0 auto; padding: 0 15px; }
+        .page-header { margin-top: 40px; margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 15px; }
         
-        .cart-img {
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
-            border-radius: 6px;
-            border: 1px solid #333;
-            margin-right: 25px;
-        }
-
+        .cart-item { background: #111; border: 1px solid #222; border-radius: 8px; padding: 20px; margin-bottom: 20px; display: flex; align-items: center; transition: 0.3s; }
+        .cart-item:hover { border-color: #444; box-shadow: 0 0 15px rgba(0, 243, 255, 0.1); }
+        .cart-img { width: 100px; height: 100px; object-fit: cover; border-radius: 6px; border: 1px solid #333; margin-right: 25px; }
+        
         .item-details { flex-grow: 1; }
         .item-title { font-size: 18px; color: #fff; margin-bottom: 5px; font-weight: bold; }
         .item-cat { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
         .item-price { color: #00f3ff; font-size: 18px; font-weight: bold; margin-top: 5px; }
-
-        /* --- QUANTITY CONTROLS --- */
-        .qty-control {
-            display: flex;
-            align-items: center;
-            background: #000;
-            border: 1px solid #333;
-            border-radius: 4px;
-            padding: 5px;
-        }
-        .qty-btn {
-            background: none;
-            border: none;
-            color: #fff;
-            width: 30px;
-            height: 30px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.2s;
-        }
+        
+        .qty-control { display: flex; align-items: center; background: #000; border: 1px solid #333; border-radius: 4px; padding: 5px; }
+        .qty-btn { background: none; border: none; color: #fff; width: 30px; height: 30px; cursor: pointer; font-weight: bold; transition: 0.2s; }
         .qty-btn:hover { color: #00f3ff; background: #222; border-radius: 3px; }
         .qty-val { width: 40px; text-align: center; font-weight: bold; user-select: none; }
-
-        .remove-btn {
-            background: #220000;
-            color: #ff4444;
-            border: 1px solid #550000;
-            padding: 8px 15px;
-            border-radius: 4px;
-            margin-left: 20px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: 0.3s;
-        }
+        
+        .remove-btn { background: #220000; color: #ff4444; border: 1px solid #550000; padding: 8px 15px; border-radius: 4px; margin-left: 20px; cursor: pointer; font-size: 14px; transition: 0.3s; }
         .remove-btn:hover { background: #ff4444; color: #fff; }
-
-        /* --- CHECKOUT SECTION --- */
-        .checkout-panel {
-            background: #111;
-            border: 1px solid #00f3ff; /* Neon border */
-            padding: 30px;
-            border-radius: 8px;
-            position: sticky;
-            top: 20px;
-        }
-        .summary-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-            font-size: 16px;
-            color: #ccc;
-        }
-        .summary-row.total {
-            border-top: 1px solid #333;
-            padding-top: 15px;
-            font-size: 22px;
-            color: #fff;
-            font-weight: bold;
-        }
+        
+        .checkout-panel { background: #111; border: 1px solid #00f3ff; padding: 30px; border-radius: 8px; position: sticky; top: 20px; }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 16px; color: #ccc; }
+        .summary-row.total { border-top: 1px solid #333; padding-top: 15px; font-size: 22px; color: #fff; font-weight: bold; }
         .summary-row.total span:last-child { color: #00f3ff; }
-
-        /* Form Inputs */
+        
         .form-group { margin-bottom: 15px; }
         .form-label { display: block; margin-bottom: 8px; color: #aaa; font-size: 14px; }
-        .dark-input {
-            width: 100%;
-            background: #000;
-            border: 1px solid #333;
-            color: #fff;
-            padding: 12px;
-            border-radius: 4px;
-            box-sizing: border-box;
-            font-family: 'Montserrat', sans-serif;
-        }
+        .dark-input { width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 4px; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
         .dark-input:focus { outline: none; border-color: #00f3ff; }
-
-        .checkout-btn {
-            width: 100%;
-            background: linear-gradient(45deg, #00f3ff, #0066ff);
-            border: none;
-            color: #000;
-            padding: 15px;
-            font-weight: bold;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 20px;
-            border-radius: 4px;
-            transition: 0.3s;
-        }
+        
+        .checkout-btn { width: 100%; background: linear-gradient(45deg, #00f3ff, #0066ff); border: none; color: #000; padding: 15px; font-weight: bold; font-family: 'Orbitron', sans-serif; font-size: 16px; cursor: pointer; margin-top: 20px; border-radius: 4px; transition: 0.3s; }
         .checkout-btn:hover { transform: translateY(-2px); box-shadow: 0 0 20px rgba(0, 243, 255, 0.4); }
-
-        /* Empty State */
+        .checkout-btn:disabled { background: #555; color: #888; cursor: not-allowed; transform: none; box-shadow: none; }
+        
         .empty-cart { text-align: center; padding: 50px; color: #555; }
         .empty-cart i { font-size: 60px; margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
-    <!-- Navigation -->
     <nav class="navbar-default">
         <div class="container" style="display:flex; justify-content:space-between; align-items:center;">
             <a class="navbar-brand" href="dashboard.html">Live <span>MART</span></a>
@@ -200,16 +73,13 @@
         </div>
 
         <div class="row">
-            <!-- Cart Items Column -->
             <div class="col-md-8" id="cart-items-container">
-                <!-- Items will be injected here by JS -->
                 <div class="empty-cart">
                     <i class="fa fa-spinner fa-spin"></i>
                     <p>Loading your cart...</p>
                 </div>
             </div>
 
-            <!-- Checkout Column -->
             <div class="col-md-4">
                 <div class="checkout-panel">
                     <h3>Summary</h3>
@@ -267,14 +137,12 @@
     </div>
 
     <script>
-        // Check Auth
         const token = localStorage.getItem('token');
         if(!token) window.location.href = 'index.html';
 
-        // Load Cart on Startup
         document.addEventListener('DOMContentLoaded', loadCart);
 
-        let cartData = []; // Store locally for calculations
+        let cartData = [];
 
         async function loadCart() {
             try {
@@ -283,7 +151,7 @@
                 });
 
                 if (res.ok) {
-                    cartData = await res.json(); // Expecting { items: [...], total_price: ... }
+                    cartData = await res.json();
                     renderCart();
                 } else {
                     document.getElementById('cart-items-container').innerHTML = 
@@ -316,7 +184,6 @@
                 const lineTotal = product.price * item.quantity;
                 runningTotal += lineTotal;
 
-                // Use placeholder if image is missing
                 const imgSrc = product.image_url ? product.image_url : 'assets/img/default.png';
 
                 html += `
@@ -326,7 +193,7 @@
                     <div class="item-details">
                         <div class="item-title">${product.name}</div>
                         <div class="item-cat">${product.category || 'Item'}</div>
-                        <div class="item-price">$${product.price.toFixed(2)}</div>
+                        <div class="item-price">₹${product.price.toFixed(2)}</div>
                     </div>
 
                     <div class="qty-control">
@@ -349,20 +216,14 @@
             const tax = subtotal * 0.05;
             const total = subtotal + tax;
 
-            document.getElementById('subtotal-display').innerText = '$' + subtotal.toFixed(2);
-            document.getElementById('tax-display').innerText = '$' + tax.toFixed(2);
-            document.getElementById('total-display').innerText = '$' + total.toFixed(2);
+            document.getElementById('subtotal-display').innerText = '₹' + subtotal.toFixed(2);
+            document.getElementById('tax-display').innerText = '₹' + tax.toFixed(2);
+            document.getElementById('total-display').innerText = '₹' + total.toFixed(2);
         }
 
-        // --- API ACTIONS ---
-
         async function updateQuantity(productId, change) {
-            // NOTE: Assuming backend has logic to add negative quantity or specific update endpoint
-            // Here we act as if adding 1 or -1 to the cart
-            
-            // Determine current qty to prevent going below 1 via this button (use remove for that)
             const item = cartData.items.find(i => i.product.id === productId);
-            if(item && item.quantity + change < 1) return; // Stop at 1
+            if(item && item.quantity + change < 1) return;
 
             try {
                 const res = await fetch('/cart/add', {
@@ -375,7 +236,7 @@
                 });
 
                 if(res.ok) {
-                    loadCart(); // Reload to sync
+                    loadCart(); 
                 } else {
                     alert("Could not update quantity");
                 }
@@ -386,37 +247,31 @@
             if(!confirm("Remove this item?")) return;
 
             try {
-                // Assuming a delete endpoint exists. If not, adjust based on backend.
-                // Common pattern: DELETE /cart/item/{id} OR POST to remove
-                const res = await fetch(`/cart/remove/${productId}`, {
-                    method: 'DELETE', 
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-
-                // Fallback if specific remove endpoint doesn't exist: try adding negative quantity equal to current
-                if(res.status === 404 || res.status === 405) {
-                   const item = cartData.items.find(i => i.product.id === productId);
-                   if(item) {
-                       await fetch('/cart/add', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                            body: JSON.stringify({ product_id: productId, quantity: -item.quantity })
-                       });
-                       loadCart();
-                       return;
-                   }
-                }
-
-                if(res.ok) {
-                    loadCart();
+                const item = cartData.items.find(i => i.product.id === productId);
+                if(item) {
+                    const res = await fetch('/cart/add', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json', 
+                            'Authorization': `Bearer ${token}` 
+                        },
+                        body: JSON.stringify({ product_id: productId, quantity: -item.quantity })
+                    });
+                    
+                    if(res.ok) {
+                        // FIX: Immediate reload after removal
+                        await loadCart();
+                    } else {
+                        alert("Failed to remove item.");
+                    }
                 }
             } catch(e) { console.error(e); }
         }
 
         async function processCheckout() {
-            const addr = document.getElementById('ship-addr').value;
-            const city = document.getElementById('ship-city').value;
-            const pin = document.getElementById('ship-pin').value;
+            const addr = document.getElementById('ship-addr').value.trim();
+            const city = document.getElementById('ship-city').value.trim();
+            const pin = document.getElementById('ship-pin').value.trim();
             const payMode = document.getElementById('payment-mode').value;
 
             if(!addr || !city || !pin) { 
@@ -447,15 +302,17 @@
                 });
 
                 if (res.ok) {
-                    alert("Order Placed Successfully!");
+                    alert("Order Placed Successfully! Redirecting to your orders...");
                     window.location.href = 'orders.html'; 
                 } else {
                     const err = await res.json();
-                    alert("Checkout Failed: " + (err.detail || "Unknown error"));
+                    let msg = err.detail;
+                    if (typeof msg === 'object') msg = JSON.stringify(msg);
+                    alert("Checkout Failed: " + (msg || "Unknown error"));
                 }
             } catch (e) {
                 console.error(e);
-                alert("Error processing checkout.");
+                alert("Network error processing checkout. Please check your connection.");
             } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
@@ -464,6 +321,7 @@
 
         function logout() {
             localStorage.removeItem('token');
+            localStorage.removeItem('user_role');
             window.location.href = 'index.html';
         }
     </script>

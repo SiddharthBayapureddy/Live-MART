@@ -1,8 +1,9 @@
 # Defining functions to create tables in backend
-import os
+
 from sqlmodel import SQLModel, create_engine, Session, select
 from typing import Optional, List, Dict, Any
 from datetime import datetime
+import os
 
 # Import your models
 from db_models import (
@@ -24,9 +25,8 @@ from schemas import OrderCreate, ProductUpdate, OrderStatusUpdate
 from fastapi import HTTPException, status
 
 # -----------------------------------------------------------------
-# ABSOLUTE PATH SETUP (Guarantees backend/data/)
+# ABSOLUTE PATH SETUP (Guarantees backend/data/livemart.db)
 # -----------------------------------------------------------------
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "..", "data")
 
@@ -34,6 +34,8 @@ if not os.path.exists(DATA_DIR):
     os.makedirs(DATA_DIR)
 
 DB_FILE_PATH = os.path.join(DATA_DIR, "livemart.db")
+# Use 3 slashes for relative path, 4 for absolute (sqlite:////...) on *nix, 
+# but usually 3 works fine if we pass the full path string.
 file_path = f"sqlite:///{DB_FILE_PATH}"
 
 engine = create_engine(file_path, echo=True, connect_args={"check_same_thread": False})
@@ -50,7 +52,7 @@ def create_db_and_tables():
 # -----------------------------------------------------------------
 # Customer Functions
 # -----------------------------------------------------------------
-def add_customer(name: str, mail: str, hashed_password: str, delivery_address: str = None, city: str = None, state: str = None, pincode: str = None, phone_number: str = None, lat: float = None, lon: float = None):
+def add_customer(name: str, mail: str, hashed_password: str, delivery_address: str = None, city: str = None, state: str = None, pincode: str = None, phone_number: str = None, profile_pic: str = None, lat: float = None, lon: float = None):
     with Session(engine) as session:
         customer = Customer(
             name=name, 
@@ -61,6 +63,7 @@ def add_customer(name: str, mail: str, hashed_password: str, delivery_address: s
             state=state,
             pincode=pincode,
             phone_number=phone_number,
+            profile_pic=profile_pic,
             lat=lat,
             lon=lon
         )
@@ -77,7 +80,7 @@ def get_customer_by_email(mail: str):
 # -----------------------------------------------------------------
 # Retailer Functions
 # -----------------------------------------------------------------
-def add_retailer(name: str, mail: str, hashed_password: str, business_name: str, address: str, city: str, state: str, pincode: str, lat: float = None, lon: float = None):
+def add_retailer(name: str, mail: str, hashed_password: str, business_name: str, address: str, city: str, state: str, pincode: str, phone_number: str = None, tax_id: str = None, profile_pic: str = None, business_logo: str = None, lat: float = None, lon: float = None):
     with Session(engine) as session:
         retailer = Retailer(
             name=name,
@@ -88,6 +91,10 @@ def add_retailer(name: str, mail: str, hashed_password: str, business_name: str,
             city=city,
             state=state,
             pincode=pincode,
+            phone_number=phone_number,
+            tax_id=tax_id,
+            profile_pic=profile_pic,
+            business_logo=business_logo,
             lat=lat,
             lon=lon
         )
@@ -104,7 +111,7 @@ def get_retailer_by_email(mail: str):
 # -----------------------------------------------------------------
 # Wholesaler Functions
 # -----------------------------------------------------------------
-def add_wholesaler(name: str, mail: str, hashed_password: str, business_name: str, address: str, city: str, state: str, pincode: str, lat: float = None, lon: float = None):
+def add_wholesaler(name: str, mail: str, hashed_password: str, business_name: str, address: str, city: str, state: str, pincode: str, phone_number: str = None, tax_id: str = None, profile_pic: str = None, business_logo: str = None, lat: float = None, lon: float = None):
     with Session(engine) as session:
         wholesaler = Wholesaler(
             name=name,
@@ -115,6 +122,10 @@ def add_wholesaler(name: str, mail: str, hashed_password: str, business_name: st
             city=city,
             state=state,
             pincode=pincode,
+            phone_number=phone_number,
+            tax_id=tax_id,
+            profile_pic=profile_pic,
+            business_logo=business_logo,
             lat=lat,
             lon=lon
         )
@@ -158,7 +169,6 @@ def add_product(name: str, price: float, stock: int, retailer_id: int, descripti
 def get_all_products(category: str = None) -> List[Product]:
     with Session(engine) as session:
         if category and category.lower() != "all":
-            # JOIN Product with Category to filter by the Category Name
             statement = select(Product).join(Category).where(Category.name == category)
         else:
             statement = select(Product)
@@ -169,22 +179,16 @@ def get_product_by_id(product_id: int):
         return session.get(Product, product_id)
 
 def get_products_by_retailer(retailer_id: int) -> List[Product]:
-    """Fetches all products belonging to a specific retailer."""
     with Session(engine) as session:
         statement = select(Product).where(Product.retailer_id == retailer_id)
         return session.exec(statement).all()
 
-# [RENAMED from update_product to update_product_details to match main.py]
-def update_product_details(product_id: int, product_update: ProductUpdate, retailer_id: int):
+def update_product_details(product: Product, update_data: ProductUpdate) -> Product:
     with Session(engine) as session:
-        product = session.get(Product, product_id)
-        if not product:
-            raise HTTPException(status_code=404, detail="Product not found")
-        if product.retailer_id != retailer_id:
-            raise HTTPException(status_code=403, detail="Not authorized to update this product")
+        update_dict = update_data.model_dump(exclude_unset=True)
+        for key, value in update_dict.items():
+            setattr(product, key, value)
         
-        product.price = product_update.price
-        product.stock = product_update.stock
         session.add(product)
         session.commit()
         session.refresh(product)
@@ -198,6 +202,7 @@ def create_cart_for_customer(customer_id: int):
         cart = ShoppingCart(customer_id=customer_id)
         session.add(cart)
         session.commit()
+        session.refresh(cart) 
         return cart
 
 def get_cart_by_customer_id(customer_id: int):
@@ -205,189 +210,155 @@ def get_cart_by_customer_id(customer_id: int):
         statement = select(ShoppingCart).where(ShoppingCart.customer_id == customer_id)
         return session.exec(statement).first()
 
-def get_cart_items(customer_id: int):
+def get_cart_items(cart_id: int):
     with Session(engine) as session:
-        statement = select(ShoppingCart).where(ShoppingCart.customer_id == customer_id)
-        cart = session.exec(statement).first()
-        if not cart:
-            return []
-        statement_items = select(ShoppingCartItem).where(ShoppingCartItem.shopping_cart_id == cart.id)
-        return session.exec(statement_items).all()
+        items = session.exec(
+            select(ShoppingCartItem).where(ShoppingCartItem.cart_id == cart_id)
+        ).all()
+        return items
 
-def get_detailed_cart_items(customer_id: int) -> List[Dict[str, Any]]:
-    """Returns cart items joined with product details."""
+# FIX: Explicitly accept 'cart_id' to match keyword argument call from main.py
+def get_detailed_cart_items(cart_id: int) -> List[dict]:
     with Session(engine) as session:
-        cart = session.exec(select(ShoppingCart).where(ShoppingCart.customer_id == customer_id)).first()
-        if not cart:
-            return []
+        statement = select(ShoppingCartItem, Product).where(
+            ShoppingCartItem.cart_id == cart_id
+        ).join(Product, ShoppingCartItem.product_id == Product.id)
         
-        statement = select(ShoppingCartItem, Product).join(Product).where(
-            ShoppingCartItem.shopping_cart_id == cart.id
-        )
         results = session.exec(statement).all()
         
         detailed_items = []
-        for item, product in results:
+        for cart_item, product in results:
             detailed_items.append({
-                "product_id": product.id,
-                "name": product.name,
-                "price": product.price,
-                "image_url": product.image_url,
-                "quantity": item.quantity,
-                "total_price": product.price * item.quantity
+                "cart_item_id": cart_item.id,
+                "quantity": cart_item.quantity,
+                "product": product
             })
         return detailed_items
 
-def add_item_to_cart(customer_id: int, product_id: int, quantity: int):
+# FIX: Updated signature to accept 'cart_id' and optional 'customer_id'
+def add_item_to_cart(product_id: int, quantity: int, cart_id: int, customer_id: int = None):
     with Session(engine) as session:
-        # 1. Get or create the ShoppingCart (using customer_id)
-        cart = session.exec(select(ShoppingCart).where(ShoppingCart.customer_id == customer_id)).first()
-        if not cart:
-            cart = ShoppingCart(customer_id=customer_id)
-            session.add(cart)
-            session.commit()
-            session.refresh(cart)
+        product = session.get(Product, product_id)
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
         
-        # 2. Check if the item already exists in the cart
-        statement = select(ShoppingCartItem).where(
-            (ShoppingCartItem.shopping_cart_id == cart.id) & 
-            (ShoppingCartItem.product_id == product_id)
+        stmt = select(ShoppingCartItem).where(
+            (ShoppingCartItem.cart_id == cart_id) & (ShoppingCartItem.product_id == product_id)
         )
-        existing_item = session.exec(statement).first()
-        
-        if existing_item:
-            # Item exists: Update quantity
-            existing_item.quantity += quantity
-            session.add(existing_item)
-            item_to_return = existing_item  # Store the existing item
-        else:
-            # Item is new: Create new item
-            new_item = ShoppingCartItem(shopping_cart_id=cart.id, product_id=product_id, quantity=quantity)
-            session.add(new_item)
-            item_to_return = new_item  # Store the new item
-            
-        session.commit()
-        
-        # 3. Refresh and Return (Crucial Step)
-        session.refresh(item_to_return, include={"product"}) 
-        
-        return item_to_return 
-    
-def get_cart_size(customer_id: int) -> int:
-    with Session(engine) as session:
-        cart = session.exec(select(ShoppingCart).where(ShoppingCart.customer_id == customer_id)).first()
-        if not cart:
-            return 0
-        items = session.exec(select(ShoppingCartItem).where(ShoppingCartItem.shopping_cart_id == cart.id)).all()
-        return sum(item.quantity for item in items)
+        existing = session.exec(stmt).first()
 
-def clear_cart(customer_id: int):
-    with Session(engine) as session:
-        cart = session.exec(select(ShoppingCart).where(ShoppingCart.customer_id == customer_id)).first()
-        if cart:
-            items = session.exec(select(ShoppingCartItem).where(ShoppingCartItem.shopping_cart_id == cart.id)).all()
-            for item in items:
-                session.delete(item)
+        new_quantity = quantity
+        if existing:
+            new_quantity += existing.quantity
+        
+        # If quantity becomes <= 0, remove item
+        if existing and new_quantity <= 0:
+            session.delete(existing)
             session.commit()
+            return None
+
+        if product.stock < new_quantity:
+            raise HTTPException(status_code=400, detail=f"Not enough stock for {product.name}. Available: {product.stock}")
+
+        if existing:
+            existing.quantity = new_quantity
+            session.add(existing)
+            session.commit()
+            session.refresh(existing)
+            return existing
+        
+        if quantity > 0:
+            cart_item = ShoppingCartItem(product_id=product_id, quantity=quantity, cart_id=cart_id)
+            session.add(cart_item)
+            session.commit()
+            session.refresh(cart_item)
+            return cart_item
+        
+        return None
+
+def get_cart_size(cart_id: int):
+    items = get_cart_items(cart_id)      
+    size = 0
+    for item in items:
+         size += item.quantity
+    return size
 
 # -----------------------------------------------------------------
-# Order Functions (Including Checkout)
+# Order Functions
 # -----------------------------------------------------------------
-def process_checkout(customer_id: int, address: str, city: str, pincode: str, payment_mode: str):
-    """
-    1. Get Cart Items
-    2. Calculate Total
-    3. Create Order Record
-    4. Create Order Items
-    5. Decrease Stock
-    6. Clear Cart
-    """
+def process_checkout(customer: Customer, order_details: OrderCreate) -> OrderRecords:
     with Session(engine) as session:
         # 1. Get Cart
-        cart = session.exec(select(ShoppingCart).where(ShoppingCart.customer_id == customer_id)).first()
+        cart = session.exec(select(ShoppingCart).where(ShoppingCart.customer_id == customer.id)).first()
         if not cart:
-            raise HTTPException(status_code=404, detail="Cart not found")
+            raise HTTPException(status_code=404, detail="Customer cart not found")
             
-        # Join items with product to get price and check stock
-        statement = select(ShoppingCartItem, Product).join(Product).where(
-            ShoppingCartItem.shopping_cart_id == cart.id
-        )
-        cart_items = session.exec(statement).all()
-        
+        cart_items = session.exec(select(ShoppingCartItem).where(ShoppingCartItem.cart_id == cart.id)).all()
         if not cart_items:
             raise HTTPException(status_code=400, detail="Cart is empty")
 
-        # 2. Calculate Total & Check Stock
         total_price = 0.0
-        for item, product in cart_items:
+        products_to_update = []
+        order_items_to_create = []
+
+        # 2. Calc Total & Check Stock
+        for item in cart_items:
+            product = session.get(Product, item.product_id)
+            if not product:
+                raise HTTPException(status_code=404, detail=f"Product with ID {item.product_id} no longer exists")
+            
             if product.stock < item.quantity:
-                raise HTTPException(status_code=400, detail=f"Insufficient stock for {product.name}")
-            total_price += product.price * item.quantity
-
-        # 3. Create Order Record
-        order = OrderRecords(
-            customer_id=customer_id,
-            status="Processing",
-            shipping_address=address,
-            shipping_city=city,
-            shipping_pincode=pincode,
-            total_price=total_price,
-            payment_mode=payment_mode,
-            payment_status="Pending" if payment_mode == "Cash on Delivery" else "Completed",
-            order_date=datetime.utcnow()
-        )
-        session.add(order)
-        session.commit()
-        session.refresh(order)
-
-        # 4. Create Order Items & 5. Decrease Stock
-        for item, product in cart_items:
-            order_item = OrderItem(
-                orderrecords_id=order.id,
-                product_id=product.id,
-                quantity=item.quantity,
-                price_at_purchase=product.price
-            )
-            session.add(order_item)
+                raise HTTPException(status_code=400, detail=f"Not enough stock for {product.name}. Available: {product.stock}")
             
-            # Decrease stock
             product.stock -= item.quantity
-            session.add(product)
+            products_to_update.append(product)
             
-        # 6. Clear Cart Items
-        for item, _ in cart_items:
-            session.delete(item)
+            price_at_purchase = product.price
+            total_price += price_at_purchase * item.quantity
             
-        # Update customer purchase count
-        customer = session.get(Customer, customer_id)
-        if customer:
-            customer.no_of_purchases += 1
-            session.add(customer)
+            order_items_to_create.append(
+                OrderItem(
+                    product_id=product.id,
+                    quantity=item.quantity,
+                    price_at_purchase=price_at_purchase
+                )
+            )
 
-        session.commit()
-        return order
-
-def add_order_record(customer_id: int, address: str, city: str, pincode: str, total_price: float, payment_mode: str):
-    with Session(engine) as session:
-        order = OrderRecords(
-            customer_id=customer_id,
-            status="Processing",
-            shipping_address=address,
-            shipping_city=city,
-            shipping_pincode=pincode,
+        # 3. Create Order
+        new_order = OrderRecords(
+            customer_id=customer.id,
+            shipping_address=order_details.shipping_address,
+            shipping_city=order_details.shipping_city,
+            shipping_pincode=order_details.shipping_pincode,
             total_price=total_price,
-            payment_mode=payment_mode,
+            payment_mode=order_details.payment_mode,
             payment_status="Pending"
         )
-        session.add(order)
+        session.add(new_order)
         session.commit()
-        session.refresh(order)
-        return order
+        session.refresh(new_order)
+        
+        # 4. Link Order Items
+        for oi in order_items_to_create:
+            oi.orderrecords_id = new_order.id
+            session.add(oi)
+            
+        # 5. Update Stock
+        for prod in products_to_update:
+            session.add(prod)
+            
+        # 6. Clear Cart
+        for item in cart_items:
+            session.delete(item)
+            
+        # 7. Update Customer Stats
+        customer.no_of_purchases += 1
+        session.add(customer)
 
-def get_customer_orders(customer_id: int) -> List[OrderRecords]:
-    with Session(engine) as session:
-        statement = select(OrderRecords).where(OrderRecords.customer_id == customer_id)
-        return session.exec(statement).all()
+        session.commit()
+        session.refresh(new_order)
+        
+        return new_order
 
 def get_order_by_id(order_id: int) -> Optional[OrderRecords]:
     with Session(engine) as session:
@@ -398,6 +369,7 @@ def update_order_status(order: OrderRecords, status_update: OrderStatusUpdate) -
         order.status = status_update.status
         if status_update.payment_status:
             order.payment_status = status_update.payment_status
+        
         session.add(order)
         session.commit()
         session.refresh(order)
@@ -405,15 +377,14 @@ def update_order_status(order: OrderRecords, status_update: OrderStatusUpdate) -
 
 def get_orders_by_retailer(retailer_id: int) -> List[OrderRecords]:
     with Session(engine) as session:
-        # Find all product IDs for this retailer
         product_ids = session.exec(select(Product.id).where(Product.retailer_id == retailer_id)).all()
         if not product_ids: return []
             
-        # Find all order IDs that contain these products
-        order_ids = session.exec(select(OrderItem.orderrecords_id).where(OrderItem.product_id.in_(product_ids))).distinct().all()
+        order_ids = session.exec(
+            select(OrderItem.orderrecords_id).where(OrderItem.product_id.in_(product_ids))
+        ).distinct().all()
         if not order_ids: return []
             
-        # Get the full OrderRecords
         statement = select(OrderRecords).where(OrderRecords.id.in_(order_ids))
         return session.exec(statement).all()
 
@@ -436,7 +407,7 @@ def add_wholesale_order(retailer_id: int, wholesaler_id: int, address: str, item
             wholesaler_id=wholesaler_id,
             status="Processing",
             total_price=total_price,
-            delivery_address=address  # ✅ Correct field name
+            delivery_address=address
         )
         session.add(w_order)
         session.commit()
@@ -447,7 +418,7 @@ def add_wholesale_order(retailer_id: int, wholesaler_id: int, address: str, item
                 wholesale_order_id=w_order.id,
                 product_id=item['product'].id,
                 quantity=item['quantity'],
-                price_per_unit=item['product'].price * 0.7  # ✅ Correct field name
+                price_per_unit=item['product'].price * 0.7
             )
             session.add(wo_item)
         session.commit()

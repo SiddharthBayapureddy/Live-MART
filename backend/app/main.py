@@ -2,7 +2,7 @@
 
 # Importing FastAPI
 from fastapi import FastAPI , HTTPException , status, Depends, Form , BackgroundTasks
-from typing import List, Annotated
+from typing import List, Annotated, Optional # <--- Added Optional here
 
 # For file management
 from fastapi.staticfiles import StaticFiles
@@ -455,28 +455,23 @@ async def create_product_endpoint(
 # --- Cart and Checkout Endpoints ---
 # -------------------------------------------------------------------------------------------------------------------------------------------------
 
-@app.post("/cart/add", response_model=ShoppingCartItemRead, tags=["Cart & Checkout"])
+# FIX: Use Optional[ShoppingCartItemRead] because removal returns None
+@app.post("/cart/add", response_model=Optional[ShoppingCartItemRead], tags=["Cart & Checkout"])
 async def add_to_cart(
     item: ShoppingCartItemCreate, 
     customer: Customer = Depends(get_current_customer) # This endpoint is now secured
 ):
     
-    # NOTE: The check for 'cart' is redundant because add_item_to_cart() handles
-    # cart creation if one doesn't exist. However, we keep it for consistency.
     cart = await run_in_threadpool(get_cart_by_customer_id, customer_id=customer.id)
     if not cart:
-        # Based on database.py, this should theoretically not happen 
-        # as get_cart_by_customer_id should create one if missing.
         raise HTTPException(status_code=404, detail="Customer cart not found")
     
     try:
         new_item = await run_in_threadpool(
             add_item_to_cart,
-            customer_id=customer.id,   
             product_id=item.product_id,
             quantity=item.quantity,
             cart_id=cart.id
-            
         )
         return new_item
     except HTTPException as e:
@@ -506,23 +501,28 @@ async def checkout(
     order_details: OrderCreate, 
     customer: Customer = Depends(get_current_customer) # This endpoint is now secured
 ):
-    
+    # 1. Validations before hitting DB logic
+    if not order_details.shipping_address or not order_details.shipping_city or not order_details.shipping_pincode:
+        raise HTTPException(status_code=400, detail="Shipping address details are incomplete.")
+        
     try:
+        # 2. Run the transaction
         new_order = await run_in_threadpool(
             process_checkout,
             customer=customer,
             order_details=order_details
         )
         
-        # Note: We need to load the 'items' relationship manually
-        # For now, we'll just return the main order record.
-        # Populating the 'items' in OrderRecordsRead is an advanced step.
+        if not new_order:
+             raise HTTPException(status_code=400, detail="Checkout failed. Cart might be empty.")
+
         return new_order
         
     except HTTPException as e:
         raise e # Re-raise stock or empty cart errors
     except Exception as e:
         # Generic error for other potential failures
+        print(f"Checkout Error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"An error occurred during checkout: {str(e)}")
 
 
