@@ -88,6 +88,98 @@
             align-items: center;
         }
         .nav-icon-btn:hover { color: #00f3ff; }
+        
+        /* --- USER MENU STYLES --- */
+        .user-menu-wrap {
+            position: relative;
+            margin-left: 15px;
+            display: none; /* Hidden by default until logged in */
+        }
+        
+        .user-icon-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background-color: #f1f1f1;
+            border: 2px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .user-icon-btn:hover {
+            background-color: #e2e6ea;
+            border-color: #000;
+        }
+
+        .user-icon-btn i {
+            font-size: 20px;
+            color: #333;
+        }
+
+        .user-dropdown {
+            display: none; /* Hidden by default */
+            position: absolute;
+            top: 60px;
+            right: 0;
+            width: 280px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            padding: 20px;
+            z-index: 1000;
+            border: 1px solid #eee;
+        }
+
+        .user-dropdown.active {
+            display: block;
+        }
+
+        .dropdown-header {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .user-name {
+            font-weight: 700;
+            font-size: 16px;
+            color: #333;
+            margin: 0;
+        }
+
+        .user-email {
+            font-size: 13px;
+            color: #777;
+            margin: 5px 0 0 0;
+        }
+
+        .dropdown-actions .btn-expand {
+            width: 100%;
+            margin-bottom: 10px;
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+        .dropdown-actions .btn-logout {
+            width: 100%;
+            background-color: #fff;
+            color: #dc3545;
+            border: 1px solid #dc3545;
+            padding: 8px;
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+        
+        .dropdown-actions .btn-logout:hover {
+            background-color: #dc3545;
+            color: white;
+        }
 
         .cart-count {
             position: absolute; top: -8px; right: -8px; background: #ff013c; color: #fff;
@@ -244,6 +336,31 @@
                     <span id="cart-badge" class="cart-count" style="display:none;">0</span>
                 </a>
 
+                <!-- User Profile Icon (Added) -->
+            <div class="user-menu-wrap" id="user-menu-wrap">
+                <div class="user-icon-btn" onclick="toggleUserMenu()">
+                    <i class="fa fa-user"></i>
+                </div>
+                
+                <!-- Dropdown -->
+                <div class="user-dropdown" id="user-dropdown">
+                    <div class="dropdown-header">
+                        <p class="user-name" id="dropdown-name">Loading...</p>
+                        <p class="user-email" id="dropdown-email">loading...</p>
+                    </div>
+                    <div class="dropdown-actions">
+                        <!-- This is the 'Expand' button you requested -->
+                        <button class="btn-expand" onclick="window.location.href='profile.html'">
+                            <i class="fa fa-th-large"></i> User Dashboard
+                        </button>
+                        <button class="btn-logout" onclick="logout()">
+                            <i class="fa fa-sign-out"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- End User Profile Icon -->
+
                 <div style="display: flex; align-items: center; border-left: 1px solid #ddd; padding-left: 20px;">
                     <div class="user-info">
                         <div style="font-size: 10px; color: #777;">Welcome,</div>
@@ -300,29 +417,66 @@
             }
         });
 
+        // --- AUTHENTICATION & UI LOGIC ---
+
         function checkAuth() {
             const token = localStorage.getItem('token');
-            const userEmail = localStorage.getItem('user_email');
+            // We can still use localStorage email as a temporary placeholder
+            const userEmail = localStorage.getItem('user_email'); 
             
-            // Fix: Added checks to ensure elements exist before accessing properties
-            const authBtn = document.getElementById('auth-button');
-            const nameDisplay = document.getElementById('user-name-display');
+            const userMenu = document.getElementById('user-menu-wrap');
+            const oldAuthBtn = document.getElementById('auth-button');
+            const oldUserInfo = document.querySelector('.user-info');
 
             if (token) {
-                if(nameDisplay) nameDisplay.textContent = userEmail || 'User';
-                if(authBtn) {
-                    authBtn.textContent = 'Logout';
-                    authBtn.onclick = logout;
-                }
+                // --- LOGGED IN ---
+                if (userMenu) userMenu.style.display = 'block';
+                if (oldAuthBtn) oldAuthBtn.style.display = 'none';
+                if (oldUserInfo) oldUserInfo.style.display = 'none';
+
+                // 1. Set temporary values (instant feedback)
+                const dropEmail = document.getElementById('dropdown-email');
+                if (dropEmail) dropEmail.textContent = userEmail || "Loading...";
+                
+                // 2. CALL THE BACKEND TO GET THE REAL NAME
+                fetchUserProfile(); 
+
             } else {
-                if(nameDisplay) nameDisplay.textContent = 'Guest';
-                if(authBtn) {
-                    authBtn.textContent = 'Login';
-                    authBtn.onclick = () => window.location.href = 'index.html';
+                // --- GUEST ---
+                if (userMenu) userMenu.style.display = 'none';
+                if (oldAuthBtn) {
+                    oldAuthBtn.style.display = 'block';
+                    oldAuthBtn.textContent = 'Login';
+                    oldAuthBtn.onclick = () => window.location.href = 'index.html';
                 }
+                if (oldUserInfo) oldUserInfo.style.display = 'block';
+                const nameDisplay = document.getElementById('user-name-display');
+                if (nameDisplay) nameDisplay.textContent = 'Guest';
             }
         }
 
+        // --- HELPER FUNCTIONS FOR THE NEW MENU ---
+
+        function toggleUserMenu() {
+            const dropdown = document.getElementById('user-dropdown');
+            if(dropdown) dropdown.classList.toggle('active');
+        }
+
+        // Close menu when clicking outside
+        window.addEventListener('click', function(e) {
+            const wrap = document.getElementById('user-menu-wrap');
+            const dropdown = document.getElementById('user-dropdown');
+            if (wrap && dropdown && !wrap.contains(e.target)) {
+                dropdown.classList.remove('active');
+            }
+        });
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user_email');
+            localStorage.removeItem('user_role');
+            window.location.href = './index.html';
+        }
         function logout() {
             localStorage.removeItem('token');
             localStorage.removeItem('user_email');
@@ -475,6 +629,90 @@
             // 3. Fetch the data
             fetchProducts(cat);
         }
-    </script>
+        // 1. Toggle the dropdown visibility
+        function toggleUserMenu() {
+            const dropdown = document.getElementById('user-dropdown');
+            dropdown.classList.toggle('active');
+        }
+
+        // 2. Close dropdown if clicked outside
+        window.addEventListener('click', function(e) {
+            const wrap = document.getElementById('user-menu-wrap');
+            if (!wrap.contains(e.target)) {
+                document.getElementById('user-dropdown').classList.remove('active');
+            }
+        });
+
+        // 3. Logout Logic
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user_email'); // If you store this
+            window.location.href = 'index.html';
+        }
+
+        // 4. Fetch User Info (You need to ensure this endpoint exists in main.py)
+        // If you don't have a specific /me endpoint yet, we can decode the token or use a placeholder
+        async function loadUserProfile() {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            // OPTION A: If you have an endpoint like /users/me
+            try {
+                /* Uncomment this block once you have the endpoint.
+                   For now, I will simulate it below with placeholders or localStorage 
+                */
+                // const res = await fetch('/users/me', { 
+                //    headers: { 'Authorization': `Bearer ${token}` } 
+                // });
+                // const data = await res.json();
+                // document.getElementById('dropdown-name').textContent = data.name;
+                // document.getElementById('dropdown-email').textContent = data.email;
+
+                // OPTION B: Temporary Placeholder until you make the endpoint
+                document.getElementById('dropdown-name').textContent = "My Account"; 
+                // You might be storing email in localStorage on login?
+                const storedEmail = localStorage.getItem('user_email'); 
+                document.getElementById('dropdown-email').textContent = storedEmail || "user@example.com";
+
+            } catch (e) {
+                console.error("Failed to load profile", e);
+            }
+        }
+        async function fetchUserProfile() {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            try {
+                const response = await fetch('/users/me', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const userData = await response.json();
+                    
+                    // Update the Dropdown Name
+                    const nameEl = document.getElementById('dropdown-name');
+                    if (nameEl) nameEl.textContent = userData.name;
+
+                    // Update the Dropdown Email
+                    const emailEl = document.getElementById('dropdown-email');
+                    if (emailEl) emailEl.textContent = userData.email;
+
+                    // Update the "User Dashboard" text if you have it elsewhere
+                    const displayEl = document.getElementById('user-name-display');
+                    if (displayEl) displayEl.textContent = userData.name; // Shows real name instead of just 'User'
+                    
+                    // Optional: Save name to local storage for faster load next time
+                    localStorage.setItem('user_name', userData.name);
+                }
+            } catch (error) {
+                console.error("Error fetching user profile:", error);
+            }
+        }
+        </script>
 </body>
 </html>
