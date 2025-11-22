@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retailer Dashboard | Live MART</title>
+    <link rel="stylesheet" href="assets/css/bootstrap.css">
+    <link rel="stylesheet" href="assets/css/font-awesome.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700|Orbitron:400,700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { background-color: #050505; color: #e0e0e0; font-family: 'Montserrat', sans-serif; overflow-x: hidden; }
+        
+        /* SIDEBAR */
+        .sidebar {
+            height: 100vh; width: 250px; position: fixed; top: 0; left: 0;
+            background: #111; border-right: 1px solid #333; padding-top: 20px;
+        }
+        .sidebar-brand {
+            font-family: 'Orbitron'; font-size: 24px; color: #fff; text-align: center; margin-bottom: 40px;
+        }
+        .sidebar-brand span { color: #ff013c; }
+        
+        .nav-menu { list-style: none; padding: 0; }
+        .nav-menu li a {
+            display: block; padding: 15px 25px; color: #888; text-decoration: none;
+            font-size: 14px; border-left: 3px solid transparent; transition: 0.3s;
+        }
+        .nav-menu li a:hover, .nav-menu li a.active {
+            background: #1a1a1a; color: #fff; border-left-color: #ff013c;
+        }
+        .nav-menu li a i { margin-right: 10px; width: 20px; text-align: center; }
+
+        /* MAIN CONTENT */
+        .main-content { margin-left: 250px; padding: 40px; }
+        
+        /* CARDS */
+        .dashboard-card {
+            background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 20px;
+            margin-bottom: 20px; transition: 0.3s; position: relative;
+        }
+        .dashboard-card:hover { border-color: #ff013c; transform: translateY(-2px); }
+        
+        /* Inventory Specifics */
+        .inv-img { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; border: 1px solid #333; float: left; margin-right: 20px; }
+        .inv-details { overflow: hidden; }
+        .inv-title { font-size: 16px; color: #fff; font-weight: bold; margin-bottom: 5px; }
+        .inv-price { color: #ff013c; font-size: 18px; font-weight: bold; }
+        
+        .edit-controls { 
+            display: flex; gap: 10px; margin-top: 10px; align-items: center;
+        }
+        .edit-input { 
+            background: #000; border: 1px solid #444; color: #fff; width: 70px; padding: 5px; text-align: center; border-radius: 4px;
+        }
+        
+        /* Action Buttons */
+        .btn-action {
+            padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; border: none; cursor: pointer;
+        }
+        .btn-save { background: #ff013c; color: #fff; }
+        .btn-delete { background: transparent; border: 1px solid #444; color: #aaa; }
+        .btn-delete:hover { border-color: red; color: red; }
+        .btn-add { background: #ff013c; color: #fff; padding: 10px 25px; border: none; border-radius: 30px; font-weight: bold; }
+
+        /* Tables */
+        .dark-table { width: 100%; border-collapse: collapse; }
+        .dark-table th { text-align: left; padding: 15px; color: #888; border-bottom: 1px solid #333; font-size: 12px; text-transform: uppercase; }
+        .dark-table td { padding: 15px; border-bottom: 1px solid #222; color: #e0e0e0; }
+        .dark-table tr:hover { background: #151515; }
+
+        /* Sections */
+        .section-view { display: none; }
+        .section-view.active { display: block; }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-brand">Live <span>MART</span></div>
+        <ul class="nav-menu">
+            <li><a href="#" onclick="showSection('inventory')" class="active" id="nav-inventory"><i class="fa fa-cubes"></i> My Inventory</a></li>
+            <li><a href="#" onclick="showSection('orders')" id="nav-orders"><i class="fa fa-shopping-cart"></i> Incoming Orders</a></li>
+            <li><a href="#" onclick="showSection('customers')" id="nav-customers"><i class="fa fa-users"></i> Customer History</a></li>
+            <li><a href="#" onclick="showSection('wholesale')" id="nav-wholesale"><i class="fa fa-truck"></i> Buy Wholesale</a></li>
+            <li><a href="#" onclick="logout()" style="margin-top: 50px;"><i class="fa fa-sign-out"></i> Logout</a></li>
+        </ul>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        
+        <!-- 1. INVENTORY SECTION -->
+        <div id="inventory" class="section-view active">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+                <h2 style="font-family:'Orbitron'; margin:0;">My Products</h2>
+                <button class="btn-add" onclick="window.location.href='retailer-add-product.html'">+ Add New Product</button>
+            </div>
+            <div id="inventory-list" class="row"></div>
+        </div>
+
+        <!-- 2. ORDERS SECTION -->
+        <div id="orders" class="section-view">
+            <h2 style="font-family:'Orbitron'; margin-bottom:30px;">Incoming Orders</h2>
+            <div id="orders-list"></div>
+        </div>
+
+        <!-- 3. CUSTOMER HISTORY SECTION -->
+        <div id="customers" class="section-view">
+            <h2 style="font-family:'Orbitron'; margin-bottom:30px;">Customer Purchase History</h2>
+            <div style="background:#1a1a1a; border:1px solid #333; border-radius:8px; overflow:hidden;">
+                <table class="dark-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Product</th>
+                            <th>Qty</th>
+                            <th>Total Paid</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customer-history-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 4. WHOLESALE SECTION -->
+        <div id="wholesale" class="section-view">
+            <h2 style="font-family:'Orbitron'; margin-bottom:30px;">Wholesale Market (B2B)</h2>
+            <p style="color:#777; margin-bottom:20px;">Restock your inventory by ordering in bulk from our verified wholesalers.</p>
+            <div id="wholesale-list" class="row"></div>
+        </div>
+
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if(!token) window.location.href = "Retailer.html";
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadInventory(); // Default
+        });
+
+        function showSection(id) {
+            // UI Toggle
+            document.querySelectorAll('.section-view').forEach(el => el.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            
+            document.querySelectorAll('.nav-menu a').forEach(el => el.classList.remove('active'));
+            document.getElementById('nav-'+id).classList.add('active');
+
+            // Load Data
+            if(id === 'inventory') loadInventory();
+            if(id === 'orders') loadOrders();
+            if(id === 'customers') loadCustomerHistory();
+            if(id === 'wholesale') loadWholesaleMarket();
+        }
+
+        // --- 1. INVENTORY LOGIC ---
+        async function loadInventory() {
+            const res = await fetch('/retailer/my-products', { headers: { 'Authorization': `Bearer ${token}` } });
+            const products = await res.json();
+            const container = document.getElementById('inventory-list');
+            container.innerHTML = '';
+
+            products.forEach(p => {
+                const img = p.image_url || 'assets/img/default.png';
+                container.innerHTML += `
+                <div class="col-md-6" id="product-card-${p.id}">
+                    <div class="dashboard-card">
+                        <img src="${img}" class="inv-img" onerror="this.src='https://via.placeholder.com/80'">
+                        <div class="inv-details">
+                            <div class="inv-title">${p.name}</div>
+                            <div style="display:flex; gap:20px;">
+                                <div>
+                                    <label style="font-size:10px; color:#555; display:block;">PRICE</label>
+                                    <div class="inv-price">₹<input type="number" id="price-${p.id}" value="${p.price}" class="edit-input" style="background:transparent; border:none; color:#ff013c; font-weight:bold; width:60px;"></div>
+                                </div>
+                                <div>
+                                    <label style="font-size:10px; color:#555; display:block;">STOCK</label>
+                                    <input type="number" id="stock-${p.id}" value="${p.stock}" class="edit-input">
+                                </div>
+                            </div>
+                            <div class="edit-controls">
+                                <button class="btn-action btn-save" onclick="updateProduct(${p.id})">Update</button>
+                                <button class="btn-action btn-delete" onclick="deleteProduct(${p.id})"><i class="fa fa-trash"></i></button>
+                                <a href="retailer-edit-product.html?id=${p.id}" style="color:#aaa; font-size:12px; margin-left:auto;">Edit Details</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            });
+        }
+
+        async function updateProduct(id) {
+            const price = document.getElementById(`price-${id}`).value;
+            const stock = document.getElementById(`stock-${id}`).value;
+            await fetch(`/retailer/products/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ price: price, stock: stock })
+            });
+            alert("Updated!");
+        }
+
+        async function deleteProduct(id) {
+            if(!confirm("Permanently delete this product?")) return;
+            const res = await fetch(`/retailer/products/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if(res.ok) {
+                // Smooth removal from DOM
+                const card = document.getElementById(`product-card-${id}`);
+                if(card) {
+                    card.style.opacity = "0";
+                    setTimeout(() => card.remove(), 300);
+                } else {
+                    loadInventory();
+                }
+            } else {
+                alert("Failed to delete.");
+            }
+        }
+
+        // --- 2. ORDERS LOGIC (Same as before but styled) ---
+        async function loadOrders() {
+            const res = await fetch('/retailer/orders', { headers: { 'Authorization': `Bearer ${token}` } });
+            const orders = await res.json();
+            const container = document.getElementById('orders-list');
+            container.innerHTML = '';
+            
+            if(orders.length === 0) container.innerHTML = '<p style="color:#777;">No orders found.</p>';
+
+            orders.reverse().forEach(o => {
+                container.innerHTML += `
+                <div class="dashboard-card" style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <h4 style="color:#fff; margin:0;">Order #${o.id}</h4>
+                        <p style="color:#777; margin:5px 0;">${new Date(o.order_date).toDateString()} | ₹${o.total_price}</p>
+                        <small style="color:#555;">${o.shipping_address}</small>
+                    </div>
+                    <div style="text-align:right;">
+                        <span style="color:${o.status==='Delivered'?'#4caf50':'#ff9800'}; font-weight:bold; text-transform:uppercase;">${o.status}</span><br>
+                        <select id="status-${o.id}" onchange="updateOrderStatus(${o.id})" style="background:#000; color:#fff; border:1px solid #333; margin-top:10px; padding:5px;">
+                            <option value="Processing" ${o.status==='Processing'?'selected':''}>Processing</option>
+                            <option value="Shipped" ${o.status==='Shipped'?'selected':''}>Shipped</option>
+                            <option value="Delivered" ${o.status==='Delivered'?'selected':''}>Delivered</option>
+                        </select>
+                    </div>
+                </div>`;
+            });
+        }
+
+        async function updateOrderStatus(id) {
+            const status = document.getElementById(`status-${id}`).value;
+            await fetch(`/retailer/orders/${id}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ status: status })
+            });
+            alert("Order status updated!");
+        }
+
+        // --- 3. CUSTOMER HISTORY LOGIC ---
+        async function loadCustomerHistory() {
+            const res = await fetch('/retailer/customer-history', { headers: { 'Authorization': `Bearer ${token}` } });
+            const history = await res.json();
+            const tbody = document.getElementById('customer-history-body');
+            tbody.innerHTML = '';
+
+            history.forEach(h => {
+                tbody.innerHTML += `
+                <tr>
+                    <td>${new Date(h.date).toLocaleDateString()}</td>
+                    <td>#${h.order_id}</td>
+                    <td>${h.customer_name}<br><small style="color:#555;">${h.customer_email}</small></td>
+                    <td style="color:#ff013c;">${h.product_name}</td>
+                    <td>${h.quantity}</td>
+                    <td>₹${h.total_paid}</td>
+                </tr>`;
+            });
+        }
+
+        // --- 4. WHOLESALE MARKET LOGIC ---
+        async function loadWholesaleMarket() {
+            const res = await fetch('/retailer/wholesale-market', { headers: { 'Authorization': `Bearer ${token}` } });
+            const items = await res.json();
+            const container = document.getElementById('wholesale-list');
+            container.innerHTML = '';
+
+            items.forEach(i => {
+                container.innerHTML += `
+                <div class="col-md-4">
+                    <div class="dashboard-card" style="border-color:#444;">
+                        <h4 style="color:#fff; margin-top:0;">${i.name}</h4>
+                        <div style="color:#777; font-size:12px; margin-bottom:10px;">Supplier: ${i.supplier}</div>
+                        <h3 style="color:#00f3ff;">₹${i.price}</h3>
+                        <p style="font-size:12px;">Min Qty: ${i.min_qty}</p>
+                        <button class="btn-action" style="background:#00f3ff; color:#000; width:100%;" onclick="placeWholesaleOrder(${i.id})">Order Stock</button>
+                    </div>
+                </div>`;
+            });
+        }
+
+        async function placeWholesaleOrder(id) {
+            const qty = prompt("Enter quantity to order:", "10");
+            if(!qty) return;
+            
+            const res = await fetch(`/retailer/wholesale-order?item_id=${id}&quantity=${qty}`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            alert(data.message);
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

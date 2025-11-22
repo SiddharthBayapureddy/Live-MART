@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Product | Live MART</title>
+    <link rel="stylesheet" href="assets/css/bootstrap.css">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700|Orbitron:400,700" rel="stylesheet">
+    
+    <style>
+        body { background-color: #050505; color: #e0e0e0; font-family: 'Montserrat', sans-serif; }
+        .container { max-width: 600px; margin-top: 50px; margin-bottom: 50px; }
+        .form-container { background: #1a1a1a; padding: 40px; border-radius: 8px; border: 1px solid #333; }
+        h2 { font-family: 'Orbitron'; color: #ff013c; margin-bottom: 30px; text-align: center; }
+        
+        label { color: #888; font-size: 12px; margin-top: 15px; display: block; }
+        input, select, textarea {
+            width: 100%; background: #000; border: 1px solid #333; color: #fff;
+            padding: 10px; border-radius: 4px;
+        }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #ff013c; }
+        
+        /* File Input Style */
+        input[type="file"] { padding: 5px; background: #111; }
+
+        .btn-submit {
+            width: 100%; background: #ff013c; color: #fff; padding: 15px;
+            border: none; font-weight: bold; margin-top: 30px; font-size: 16px;
+            text-transform: uppercase; transition: 0.3s;
+        }
+        .btn-submit:hover { background: #fff; color: #000; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="form-container">
+            <h2>Add New Product</h2>
+            <form id="add-product-form" onsubmit="return false;">
+                
+                <label>Product Name</label>
+                <input type="text" id="p-name" placeholder="e.g. Wireless Mouse" required>
+
+                <label>Description</label>
+                <textarea id="p-desc" rows="3" placeholder="Product details..."></textarea>
+
+                <label>Category</label>
+                <select id="p-cat">
+                    <option value="1">Electronics</option>
+                    <option value="3">Fashion</option>
+                    <option value="2">Groceries</option>
+                    <option value="7">Home</option>
+                    <option value="8">Sports</option>
+                    <option value="5">Books</option>
+                </select>
+
+                <div class="row">
+                    <div class="col-xs-6">
+                        <label>Price (₹)</label>
+                        <input type="number" id="p-price" step="0.01" required>
+                    </div>
+                    <div class="col-xs-6">
+                        <label>Stock Quantity</label>
+                        <input type="number" id="p-stock" required>
+                    </div>
+                </div>
+
+                <!-- FILE UPLOAD -->
+                <label>Product Image</label>
+                <input type="file" id="p-file" accept="image/*">
+                <small style="color:#555;">Supported: JPG, PNG, JPEG. Leave empty to use default.</small>
+
+                <button class="btn-submit" onclick="submitProduct()">Create Product</button>
+                <a href="retailer-dashboard.html" style="display:block; text-align:center; margin-top:15px; color:#777;">Cancel</a>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        async function submitProduct() {
+            const token = localStorage.getItem('token');
+            if(!token) window.location.href = 'Retailer.html';
+
+            const btn = document.querySelector('.btn-submit');
+            const originalText = btn.innerText;
+            btn.disabled = true;
+            btn.innerText = "Uploading...";
+
+            // Use FormData for file uploads
+            const formData = new FormData();
+            formData.append('name', document.getElementById('p-name').value);
+            formData.append('description', document.getElementById('p-desc').value);
+            formData.append('category_id', document.getElementById('p-cat').value);
+            formData.append('price', document.getElementById('p-price').value);
+            formData.append('stock', document.getElementById('p-stock').value);
+            
+            // KEY FIX: Only append 'image' if a file is actually selected
+            const fileInput = document.getElementById('p-file');
+            if (fileInput.files.length > 0) {
+                formData.append('image', fileInput.files[0]);
+            }
+
+            try {
+                const res = await fetch('/products/add/', {
+                    method: 'POST',
+                    headers: {
+                        // 'Content-Type': 'multipart/form-data', // Do NOT set this manually!
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+
+                if(res.ok) {
+                    alert("Product Added Successfully!");
+                    window.location.href = 'retailer-dashboard.html';
+                } else {
+                    const err = await res.json();
+                    // Handle validation errors array or single detail string
+                    let msg = err.detail;
+                    if (Array.isArray(msg)) msg = msg[0].msg;
+                    alert("Error: " + (msg || "Unknown error"));
+                    
+                    btn.disabled = false;
+                    btn.innerText = originalText;
+                }
+            } catch(e) {
+                console.error(e);
+                alert("Network error.");
+                btn.disabled = false;
+                btn.innerText = originalText;
+            }
+        }
+    </script>
+</body>
+</html>
+```

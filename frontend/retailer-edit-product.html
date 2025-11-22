@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Product | Live MART</title>
+    <link rel="stylesheet" href="assets/css/bootstrap.css">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700|Orbitron:400,700" rel="stylesheet">
+    <style>
+        /* Reuse styles from add-product */
+        body { background-color: #050505; color: #e0e0e0; font-family: 'Montserrat', sans-serif; }
+        .container { max-width: 600px; margin-top: 50px; }
+        .form-container { background: #1a1a1a; padding: 40px; border-radius: 8px; border: 1px solid #333; }
+        h2 { font-family: 'Orbitron'; color: #ff013c; margin-bottom: 30px; text-align: center; }
+        label { color: #888; font-size: 12px; margin-top: 15px; display: block; }
+        input, select, textarea { width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 4px; }
+        .btn-save { width: 100%; background: #ff013c; color: #fff; padding: 15px; border: none; margin-top: 30px; font-weight: bold; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-container">
+            <h2>Edit Product</h2>
+            <form onsubmit="return false;">
+                <input type="hidden" id="p-id">
+                
+                <label>Name</label>
+                <input type="text" id="p-name">
+
+                <label>Description</label>
+                <textarea id="p-desc" rows="3"></textarea>
+
+                <div class="row">
+                    <div class="col-xs-6">
+                        <label>Price</label>
+                        <input type="number" id="p-price" step="0.01">
+                    </div>
+                    <div class="col-xs-6">
+                        <label>Stock</label>
+                        <input type="number" id="p-stock">
+                    </div>
+                </div>
+
+                <button class="btn-save" onclick="saveChanges()">Update Product</button>
+                <a href="retailer-dashboard.html" style="display:block; text-align:center; margin-top:15px; color:#777;">Cancel</a>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        const urlParams = new URLSearchParams(window.location.search);
+        const pid = urlParams.get('id');
+
+        if(!pid) window.location.href = 'retailer-dashboard.html';
+
+        // 1. Load Data
+        fetch(`/products/${pid}`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('p-id').value = data.id;
+                document.getElementById('p-name').value = data.name;
+                document.getElementById('p-desc').value = data.description || '';
+                document.getElementById('p-price').value = data.price;
+                document.getElementById('p-stock').value = data.stock;
+            });
+
+        // 2. Save Data
+        async function saveChanges() {
+            const data = {
+                name: document.getElementById('p-name').value,
+                description: document.getElementById('p-desc').value,
+                price: parseFloat(document.getElementById('p-price').value),
+                stock: parseInt(document.getElementById('p-stock').value)
+            };
+
+            try {
+                const res = await fetch(`/retailer/products/${pid}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if(res.ok) {
+                    alert("Updated!");
+                    window.location.href = 'retailer-dashboard.html';
+                } else {
+                    alert("Failed to update.");
+                }
+            } catch(e) { console.error(e); }
+        }
+    </script>
+</body>
+</html>

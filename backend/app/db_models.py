@@ -62,6 +62,8 @@ class Customer(SQLModel , table=True):
     no_of_purchases : int = 0
     preferences: Optional[str] = None
 
+    is_verified: bool = Field(default=False)
+
 
 # --------------------------------------------------------------------------------------------------------------------
 # Retailer Table Definition
@@ -96,6 +98,9 @@ class Retailer(SQLModel , table=True):
     lon: Optional[float] = None
 
     is_active : bool = True
+
+    is_verified: bool = Field(default=False)
+
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -132,6 +137,9 @@ class Wholesaler(SQLModel, table=True):
     lon: Optional[float] = None
     
     is_active: bool = True
+
+    is_verified: bool = Field(default=False)
+
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -306,3 +314,8 @@ class PasswordReset(SQLModel , table=True):
     otp:str
     expires_at : datetime
     
+class VerificationOTP(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    email: str = Field(index=True)
+    otp: str
+    expires_at: datetime
