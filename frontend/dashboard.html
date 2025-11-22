@@ -696,11 +696,11 @@
                     
                     // Update the Dropdown Name
                     const nameEl = document.getElementById('dropdown-name');
-                    if (nameEl) nameEl.textContent = "Hello, "+ userData.name;
+                    if (nameEl) nameEl.textContent = userData.name;
 
                     // Update the Dropdown Email
                     const emailEl = document.getElementById('dropdown-email');
-                    if (emailEl) emailEl.textContent = "Your mail:"+ userData.mail;
+                    if (emailEl) emailEl.textContent = userData.email;
 
                     // Update the "User Dashboard" text if you have it elsewhere
                     const displayEl = document.getElementById('user-name-display');
