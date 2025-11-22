@@ -442,14 +442,14 @@ async def auth_google(request: Request):
             user_info = await oauth.google.userinfo(token=token)
             
         email = user_info.get('email')
-        name = user_info.get('name')
+        # Fallback if name is missing (common source of 400 errors)
+        name = user_info.get('name') or email.split('@')[0] 
         
         # 3. Check if this customer already exists in our DB
         customer = await run_in_threadpool(get_customer_by_email, mail=email)
         
         if not customer:
-            # 4. If not, create a new account automatically
-            # We generate a random secure password since they login via Google
+            # 4. If not, create a new account
             random_pass = hash_password(email + datetime.utcnow().isoformat())
             customer = await run_in_threadpool(
                 add_customer,
@@ -458,24 +458,29 @@ async def auth_google(request: Request):
                 hashed_password=random_pass
             )
             
-            # 5. NEW: Social Login Users are Auto-Verified
+        # 5. AUTO-VERIFY (Fixes the bug for existing unverified users)
+        if not customer.is_verified:
             with Session(engine) as session:
+                # Re-fetch the object within this session to update it
                 c_update = session.get(Customer, customer.id)
-                c_update.is_verified = True
-                session.add(c_update)
-                session.commit()
+                if c_update:
+                    c_update.is_verified = True
+                    session.add(c_update)
+                    session.commit()
+                    session.refresh(c_update)
+                    customer = c_update # Update local object reference
             
-        # 6. Generate a JWT token for our app
+        # 6. Generate Token
         access_token = create_access_token(data={"sub": customer.mail, "role": "customer"})
         
-        # 7. Redirect to the frontend Customer page, passing the token in the URL
+        # 7. Redirect
         return RedirectResponse(url=f"/Customer.html?token={access_token}")
         
     except Exception as e:
-        # If something goes wrong, show the error
+        # Print the actual error to your VS Code terminal so we can see it
+        print(f"GOOGLE AUTH ERROR: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Google Login Failed: {str(e)}")
-
-
+    
 # -------------------------------------------------------------------------------------------------------------------------------------------------
 # --- Product Endpoints ---
 # -------------------------------------------------------------------------------------------------------------------------------------------------

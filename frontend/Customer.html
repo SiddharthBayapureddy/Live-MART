@@ -150,8 +150,8 @@
 
 
   <script src="js/js.js"></script>
-  
-  <script>
+<script>
+    // --- GLOBAL AUTH CHECK ---
     window.onload = function() {
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get('token');
@@ -162,32 +162,35 @@
         }
     };
 
+    // --- CUSTOMER SIGN UP LOGIC ---
     document.getElementById('sign-up-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const messageEl = document.getElementById('signup-message');
+        
+        // FIX: Only grab fields that actually exist in the Customer HTML form
         const data = {
             name: document.getElementById('signup-name').value,
             mail: document.getElementById('signup-email').value,
             password: document.getElementById('signup-password').value
         };
+
         try {
+            // FIX: Send to customer endpoint
             const response = await fetch('/signup/customer', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(data)
             });
+
             if (response.ok) {
                 const result = await response.json();
-                
-                // --- NEW REDIRECT LOGIC ---
+                // Store email for the verification page
                 sessionStorage.setItem('pending_verification_email', data.mail);
+                
                 messageEl.textContent = 'Account created! Redirecting to verification...';
                 messageEl.className = 'message success';
-                setTimeout(() => {
-                    window.location.href = 'verify-signup.html';
-                }, 1000);
-                // --------------------------
-
+                
+                setTimeout(() => { window.location.href = 'verify-signup.html'; }, 1000);
             } else {
                 const error = await response.json();
                 messageEl.textContent = 'Error: ' + error.detail;
@@ -199,46 +202,64 @@
         }
     });
 
+    // --- CUSTOMER SIGN IN LOGIC ---
     document.getElementById('sign-in-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const messageEl = document.getElementById('signin-message');
+        const emailVal = document.getElementById('signin-email').value; 
         const data = {
-            mail: document.getElementById('signin-email').value,
+            mail: emailVal,
             password: document.getElementById('signin-password').value
         };
+
         try {
+            // FIX: Send to customer endpoint
             const response = await fetch('/login/customer', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(data)
             });
+
             if (response.ok) {
                 const result = await response.json();
                 localStorage.setItem('token', result.access_token);
-                localStorage.setItem('user_role', 'customer'); 
+                localStorage.setItem('user_role', 'customer'); // FIX: Role is customer
+                
                 messageEl.textContent = 'Login successful! Redirecting...';
                 messageEl.className = 'message success';
+                
+                // FIX: Redirect to Customer Dashboard
                 setTimeout(() => window.location.href = '/dashboard.html', 1000); 
             } else {
                 const error = await response.json();
-                messageEl.textContent = 'Error: ' + error.detail;
-                messageEl.className = 'message error';
+
+                // --- VERIFICATION CHECK (This will work now) ---
+                if (response.status === 403) {
+                    sessionStorage.setItem('pending_verification_email', emailVal);
+                    messageEl.innerHTML = `
+                        Account not verified. 
+                        <a href="verify-signup.html" style="color: #FF4B2B; font-weight: bold; text-decoration: underline; margin-left: 5px; cursor:pointer;">
+                            Verify Now
+                        </a>
+                    `;
+                    messageEl.className = 'message error';
+                } else {
+                    messageEl.textContent = 'Error: ' + error.detail;
+                    messageEl.className = 'message error';
+                }
             }
         } catch (error) {
             messageEl.textContent = 'An error occurred. Please try again.';
             messageEl.className = 'message error';
         }
     });
-  </script>
 
-  <script>
-    document.getElementById('footer-newsletter-form').addEventListener('submit', function(e) {
+    // Footer Script
+    document.getElementById('footer-newsletter-form')?.addEventListener('submit', function(e) {
         e.preventDefault();
-        // You can add your newsletter subscription logic here
-        alert("Thank you for subscribing to the Live-MART newsletter!");
+        alert("Thank you for subscribing!");
         this.reset();
     });
-  </script>
-
+</script>
 </body>
 </html>

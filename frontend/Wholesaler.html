@@ -184,8 +184,8 @@
     });
   </script>
   <script src="js/js.js"></script>
-  <script>
-    // --- Sign-Up Logic ---
+<script>
+    // --- SIGN UP LOGIC ---
     document.getElementById('sign-up-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const messageEl = document.getElementById('signup-message');
@@ -207,52 +207,11 @@
                 body: JSON.stringify(data)
             });
             if (response.ok) {
-                    const result = await response.json();
-                    // STORE EMAIL FOR VERIFICATION PAGE
-                    sessionStorage.setItem('pending_verification_email', data.mail);
-                    
-                    messageEl.textContent = 'Account created! Redirecting to verification...';
-                    messageEl.className = 'message success';
-                    
-                    setTimeout(() => {
-                        window.location.href = 'verify-signup.html';
-                    }, 1000);
-                } else {
-                const error = await response.json();
-                messageEl.textContent = 'Error: ' + error.detail;
-                messageEl.className = 'message error';
-            }
-        } catch (error) {
-            messageEl.textContent = 'An error occurred. Please try again.';
-            messageEl.className = 'message error';
-        }
-    });
-
-    // --- Sign-In Logic ---
-    document.getElementById('sign-in-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const messageEl = document.getElementById('signin-message');
-        const data = {
-            mail: document.getElementById('signin-email').value,
-            password: document.getElementById('signin-password').value
-        };
-        try {
-            const response = await fetch('/login/wholesaler', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(data)
-            });
-            if (response.ok) {
                 const result = await response.json();
-                // STORE EMAIL FOR VERIFICATION PAGE
                 sessionStorage.setItem('pending_verification_email', data.mail);
-
                 messageEl.textContent = 'Account created! Redirecting to verification...';
                 messageEl.className = 'message success';
-
-                setTimeout(() => {
-                    window.location.href = 'verify-signup.html';
-                }, 1000);
+                setTimeout(() => { window.location.href = 'verify-signup.html'; }, 1000);
             } else {
                 const error = await response.json();
                 messageEl.textContent = 'Error: ' + error.detail;
@@ -263,6 +222,59 @@
             messageEl.className = 'message error';
         }
     });
-  </script>
+
+    // --- SIGN IN LOGIC (UPDATED) ---
+    document.getElementById('sign-in-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const messageEl = document.getElementById('signin-message');
+        const emailVal = document.getElementById('signin-email').value; // Capture email
+        const data = {
+            mail: emailVal,
+            password: document.getElementById('signin-password').value
+        };
+        try {
+            const response = await fetch('/login/wholesaler', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            if (response.ok) {
+                const result = await response.json();
+                localStorage.setItem('token', result.access_token);
+                localStorage.setItem('user_role', 'wholesaler');
+                messageEl.textContent = 'Login successful! Redirecting...';
+                messageEl.className = 'message success';
+                setTimeout(() => window.location.href = '/dashboard.html', 1000);
+            } else {
+                const error = await response.json();
+                
+                // --- NEW: Check for Unverified Account Error ---
+                if (response.status === 403) {
+                    sessionStorage.setItem('pending_verification_email', emailVal);
+                    messageEl.innerHTML = `
+                        Account not verified. 
+                        <a href="verify-signup.html" style="color: #FF4B2B; font-weight: bold; text-decoration: underline; margin-left: 5px; cursor:pointer;">
+                            Verify Now
+                        </a>
+                    `;
+                    messageEl.className = 'message error';
+                } else {
+                    messageEl.textContent = 'Error: ' + error.detail;
+                    messageEl.className = 'message error';
+                }
+            }
+        } catch (error) {
+            messageEl.textContent = 'An error occurred. Please try again.';
+            messageEl.className = 'message error';
+        }
+    });
+
+    // Footer Script
+    document.getElementById('footer-newsletter-form')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        alert("Thank you for subscribing!");
+        this.reset();
+    });
+</script>
 </body>
 </html>
