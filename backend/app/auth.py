@@ -64,6 +64,24 @@ async def send_otp_email(email: str , otp : str , background_tasks : BackgroundT
     background_tasks.add_task(fm.send_message , message)
 
 
+async def send_verification_email(email: str, otp: str, background_tasks: BackgroundTasks):
+    message = MessageSchema(
+        subject="Live MART - Verify your Account",
+        recipients=[email],
+        body=f"""
+        <h3>Welcome to Live MART!</h3>
+        <p>Please verify your email address to activate your account.</p>
+        <p>Your Verification OTP is:</p>
+        <h1 style='color: #4CAF50;'>{otp}</h1>
+        <p>This OTP is valid for 30 minutes.</p>
+        """,
+        subtype=MessageType.html
+    )
+
+    fm = FastMail(mail_config)
+    background_tasks.add_task(fm.send_message, message)
+
+
 #--------------------------------------------------------------------------------------------------------------------------------------------
 
 # 1. Managing Passwords (Simple hashlib.sha256)

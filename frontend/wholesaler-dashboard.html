@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wholesaler Dashboard | Live MART</title>
+    <link rel="stylesheet" href="assets/css/bootstrap.css">
+    <link rel="stylesheet" href="assets/css/font-awesome.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700|Orbitron:400,700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { background-color: #050505; color: #e0e0e0; font-family: 'Montserrat', sans-serif; }
+        
+        /* Navbar - Orange Theme for Wholesalers */
+        .navbar-default { background: #111; border-bottom: 1px solid #333; padding: 15px 0; }
+        .navbar-brand { font-family: 'Orbitron'; font-size: 24px; color: #fff !important; }
+        .navbar-brand span { color: #ff9800; } /* Wholesaler Orange */
+        
+        /* Tabs */
+        .nav-tabs { border-bottom: 1px solid #333; margin-top: 30px; }
+        .nav-tabs > li > a { color: #888; border: none; font-weight: bold; font-size: 16px; }
+        .nav-tabs > li.active > a, .nav-tabs > li.active > a:focus, .nav-tabs > li.active > a:hover {
+            background-color: transparent; border: none; border-bottom: 3px solid #ff9800; color: #fff;
+        }
+
+        /* Cards */
+        .product-row, .order-card { 
+            background: #1a1a1a; border: 1px solid #333; padding: 15px; 
+            margin-bottom: 15px; border-radius: 5px; display: flex; align-items: center; 
+        }
+        .order-card { border-left: 4px solid #ff9800; }
+        
+        .prod-img { width: 60px; height: 60px; object-fit: cover; border-radius: 4px; margin-right: 15px; }
+        
+        /* Buttons */
+        .btn-update {
+            background: transparent; border: 1px solid #ff9800; color: #ff9800;
+            padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; transition: 0.3s;
+        }
+        .btn-update:hover { background: #ff9800; color: #000; }
+
+        .btn-add-new {
+            background: #ff9800; color: #000; border: none; padding: 10px 20px; 
+            font-weight: bold; border-radius: 4px; float: right; margin-top: -50px;
+        }
+        .btn-add-new:hover { background: #e68900; color: #fff; }
+
+        /* Status Badge */
+        .badge-status { padding: 5px 10px; border-radius: 4px; font-size: 11px; text-transform: uppercase; font-weight: bold; }
+        .st-pending { background: #ff9800; color: #000; }
+        .st-approved { background: #4caf50; color: #fff; }
+        .st-shipped { background: #2196f3; color: #fff; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar-default">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#">Live <span>MART</span> <small style="font-size:12px; color:#777;">WHOLESALER</small></a>
+            </div>
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="#" onclick="logout()" style="color:#aaa;">Logout <i class="fa fa-sign-out"></i></a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Header & Add Button -->
+        <h2 style="font-family:'Orbitron'; margin-top: 30px;">Bulk Dashboard</h2>
+        <button class="btn-add-new" onclick="alert('Feature coming soon: Add Wholesale Product')">+ Add Stock</button>
+
+        <!-- Tabs -->
+        <ul class="nav nav-tabs">
+            <li class="active"><a data-toggle="tab" href="#orders">Retailer Orders</a></li>
+            <li><a data-toggle="tab" href="#inventory">Bulk Inventory</a></li>
+        </ul>
+
+        <div class="tab-content" style="padding-top: 20px;">
+            
+            <!-- ORDERS TAB (Primary Focus for Wholesaler) -->
+            <div id="orders" class="tab-pane fade in active">
+                <div id="orders-list">
+                    <p class="text-center" style="padding:40px;">Loading bulk orders...</p>
+                </div>
+            </div>
+
+            <!-- INVENTORY TAB -->
+            <div id="inventory" class="tab-pane fade">
+                <div id="inventory-list">
+                    <!-- For MVP, we can reuse the regular product list or a specific endpoint if created -->
+                    <p class="text-center" style="padding:40px; color:#777;">
+                        <i class="fa fa-cubes" style="font-size:40px; margin-bottom:10px;"></i><br>
+                        Your bulk inventory will appear here.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/js/vendor/jquery-1.11.2.min.js"></script>
+    <script src="assets/js/vendor/bootstrap.min.js"></script>
+
+    <script>
+        const token = localStorage.getItem('token');
+        const role = localStorage.getItem('user_role');
+
+        if(!token || role !== 'wholesaler') {
+            alert("Access Denied. Please login as a Wholesaler.");
+            window.location.href = "Wholesaler.html";
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadWholesaleOrders();
+        });
+
+        // --- 1. LOAD WHOLESALE ORDERS ---
+        async function loadWholesaleOrders() {
+            try {
+                // Note: Ensure this endpoint is active in main.py
+                const res = await fetch('/wholesaler/orders', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if(!res.ok) throw new Error("Failed to load");
+
+                const orders = await res.json();
+                const container = document.getElementById('orders-list');
+                container.innerHTML = '';
+
+                if(orders.length === 0) {
+                    container.innerHTML = '<p class="text-center">No incoming orders from Retailers.</p>';
+                    return;
+                }
+
+                // Show newest first
+                orders.reverse();
+
+                orders.forEach(o => {
+                    let badgeClass = 'st-pending';
+                    if(o.status === 'Shipped') badgeClass = 'st-shipped';
+                    if(o.status === 'Delivered') badgeClass = 'st-approved';
+
+                    const html = `
+                    <div class="order-card">
+                        <div style="flex-grow:1;">
+                            <h4 style="margin:0; color:#fff;">Bulk Order #${o.id}</h4>
+                            <p style="color:#777; margin:5px 0;">
+                                Retailer ID: <span style="color:#fff;">${o.retailer_id}</span> | 
+                                Date: ${new Date(o.order_date).toLocaleDateString()}
+                            </p>
+                            <h5 style="color:#ff9800;">Total Value: ₹${o.total_price}</h5>
+                            <div style="font-size:12px; color:#aaa;">
+                                Destination: ${o.delivery_address}
+                            </div>
+                        </div>
+
+                        <div style="text-align:right;">
+                            <span class="badge-status ${badgeClass}" style="display:inline-block; margin-bottom:10px;">${o.status}</span>
+                            <br>
+                            
+                            ${o.status === 'Pending' ? 
+                                `<button class="btn-update" onclick="approveOrder(${o.id})">Approve & Ship</button>` : 
+                                `<span style="color:#555; font-size:12px;">Completed</span>`
+                            }
+                        </div>
+                    </div>`;
+                    container.innerHTML += html;
+                });
+            } catch(e) { 
+                console.error(e);
+                document.getElementById('orders-list').innerHTML = '<p class="text-center text-danger">Error fetching orders.</p>';
+            }
+        }
+
+        // --- 2. APPROVE ORDER ---
+        async function approveOrder(id) {
+            if(!confirm("Confirm shipment for Order #" + id + "?")) return;
+
+            try {
+                const res = await fetch(`/wholesaler/orders/${id}/status`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` 
+                    },
+                    body: JSON.stringify({ status: "Shipped" })
+                });
+
+                if(res.ok) {
+                    alert("Order Approved & Shipped!");
+                    loadWholesaleOrders(); // Refresh list
+                } else {
+                    const err = await res.json();
+                    alert("Failed: " + err.detail);
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

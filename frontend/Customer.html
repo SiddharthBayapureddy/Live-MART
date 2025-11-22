@@ -4,11 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <!-- Stylesheets -->
   <link rel="stylesheet" href="assets/css/font-awesome.min.css">
   <link rel="stylesheet" href="assets/css/bootstrap.css">
-  <link rel="stylesheet" href="css/style.css"> <!-- Your Custom Theme -->
-  <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="css/style.css"> <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
   
   <title>Login | Signup</title>
   <style>
@@ -26,10 +24,8 @@
 <br><br>
   <h1>Welcome to Live-MART</h1><br><br>
 
-  <!-- MAIN LOGIN CONTAINER -->
   <div class="container" id="container">
     
-    <!-- Sign Up Form -->
     <div class="form-container sign-up-container">
         <form id="sign-up-form">
             <br>
@@ -49,7 +45,6 @@
         </form>
     </div>
 
-    <!-- Sign In Form -->
     <div class="form-container sign-in-container">
         <form id="sign-in-form">
             <h2><b>Customer Sign-in</b></h2>
@@ -67,7 +62,6 @@
         </form>
     </div>
 
-    <!-- Overlay -->
     <div class="overlay-container">
         <div class="overlay">
             <div class="overlay-panel overlay-left">
@@ -84,20 +78,17 @@
     </div>
   </div>
   
-  <!-- ================= NEW FOOTER STRUCTURE ================= -->
-    <footer id="contact" class="footer action-lage bg-black p-top-80" style="margin-top: 60px; width: 100%; position: relative;">
+  <footer id="contact" class="footer action-lage bg-black p-top-80" style="margin-top: 60px; width: 100%; position: relative;">
         <div class="container">
             <div class="row">
                 <div class="col-md-12">
                     <div class="footer-content" style="display: flex; justify-content: space-between; flex-wrap: wrap;">
                         
-                        <!-- LEFT SIDE: ABOUT -->
                         <div class="col-md-6 col-sm-6">
                             <div class="widget_item widget_about">
                                 <h5 class="text-white" style="text-align: center;"><b>About Us</b></h5>
                                 <p class="m-top-20" style="text-align: center;">Connecting Retailers, Wholesalers, and Customers for a seamless shopping experience.</p>
                                 
-                                <!-- Center aligned items -->
                                 <div class="widget_ab_item m-top-30" style="display:flex; align-items: center; justify-content: center; margin-bottom: 15px; text-align: center;">
                                     <div class="item_icon" style="margin-right: 15px;"><i class="fa fa-location-arrow"></i></div>
                                     <div class="widget_ab_item_text">
@@ -122,11 +113,9 @@
                             </div>
                         </div>
 
-                        <!-- RIGHT SIDE: NEWSLETTER -->
                         <div class="col-md-6 col-sm-6">
                             <div class="widget_item widget_newsletter sm-m-top-50">
                                 <h5 class="text-white">Newsletter</h5>
-                                <!-- Footer Specific Form -->
                                 <form class="form-inline m-top-30" id="footer-newsletter-form" style="margin-top: 20px;">
                                     <div class="form-group" style="width: 100%; text-align: center;">
                                         <input type="email" class="form-control" placeholder="Enter your Email" style="width: 100%; margin-bottom: 10px; padding: 10px;">
@@ -148,7 +137,6 @@
 
                     </div>
                     
-                    <!-- COPYRIGHT -->
                     <div class="row">
                         <div class="col-md-12 text-center" style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 20px; padding-top: 20px;">
                             <p style="font-size: 12px;">© 2025 Live-MART. All rights reserved.</p>
@@ -161,10 +149,8 @@
 
 
 
-  <!-- JS Scripts -->
   <script src="js/js.js"></script>
   
-  <!-- LOGIN & SIGNUP LOGIC -->
   <script>
     window.onload = function() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -192,8 +178,16 @@
             });
             if (response.ok) {
                 const result = await response.json();
-                messageEl.textContent = 'Success! Welcome, ' + result.name;
+                
+                // --- NEW REDIRECT LOGIC ---
+                sessionStorage.setItem('pending_verification_email', data.mail);
+                messageEl.textContent = 'Account created! Redirecting to verification...';
                 messageEl.className = 'message success';
+                setTimeout(() => {
+                    window.location.href = 'verify-signup.html';
+                }, 1000);
+                // --------------------------
+
             } else {
                 const error = await response.json();
                 messageEl.textContent = 'Error: ' + error.detail;
@@ -237,7 +231,6 @@
     });
   </script>
 
-  <!-- FOOTER SPECIFIC SCRIPT -->
   <script>
     document.getElementById('footer-newsletter-form').addEventListener('submit', function(e) {
         e.preventDefault();

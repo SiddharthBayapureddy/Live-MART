@@ -2,6 +2,7 @@
 
 # Importing FastAPI
 from fastapi import FastAPI , HTTPException , status, Depends, Form , BackgroundTasks,UploadFile,File
+
 from typing import List, Annotated, Optional # <--- Added Optional here
 from pydantic import BaseModel # <--- Added for the name update schema
 import shutil # <--- Added for saving images
@@ -23,6 +24,8 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+from pydantic import BaseModel # Importing BaseModel for the new Verification Schema
+
 from auth import (
     hash_password, 
     verify_password, 
@@ -35,6 +38,7 @@ from auth import (
 
     # SMPT OTP Config
     send_otp_email,
+    send_verification_email, # <--- NEW: Imported for signup verification
     generate_otp
 )
 
@@ -62,6 +66,9 @@ from database import (
     get_order_by_id,
     update_order_status,
     
+    # Verification Database Functions
+    save_verification_otp, # <--- NEW
+    verify_user_account,   # <--- NEW
 
     engine
 )
@@ -73,15 +80,25 @@ from db_models import (Customer,
                         ShoppingCartItem, 
                         Retailer,
                         Wholesaler ,
+                        WholesaleOrder,
                         PasswordReset, 
                         OrderRecords,
-                        Category)
+                        Category,
+                        OrderItem
+                        )
 
 # Importing the Schemas
 from schemas import *
 
+# Image Management
+import shutil
+from fastapi import File , UploadFile
 # --------------------------------------------------------------------------------------------------------------------------------------------
 
+# --- NEW: Verification Request Schema ---
+class AccountVerificationRequest(BaseModel):
+    email: str
+    otp: str
 
 # -----------------------------
 # Building the App
@@ -121,7 +138,10 @@ def root():
 
 # Signup Endpoint - POST  ---> Accepts JSON Body (CustomerCreate) and returns CustomerRead
 @app.post("/signup/customer" , response_model=CustomerRead , status_code=status.HTTP_201_CREATED, tags=["Customer Auth"])   # Returns 201 on Success
-async def signup_customer(customer : CustomerCreate):
+async def signup_customer(
+    customer : CustomerCreate,
+    background_tasks: BackgroundTasks # <--- NEW: Required for sending email
+):
 
     # Check if email already exists
     exists = await run_in_threadpool(get_customer_by_email, customer.mail)
@@ -150,6 +170,12 @@ async def signup_customer(customer : CustomerCreate):
     if not new_customer:
         raise HTTPException(status_code=500 , detail="Failed to create Customer. Oops, Try again!")
 
+    # --- NEW: Send Verification OTP ---
+    otp = generate_otp()
+    await run_in_threadpool(save_verification_otp, customer.mail, otp)
+    await send_verification_email(customer.mail, otp, background_tasks)
+    # ----------------------------------
+
     # Used Custom Read to serialize response (orm_mode = True)
     return new_customer 
 
@@ -167,6 +193,10 @@ async def login_customer(
     if not customer:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED , detail="Invalid Credentials: Mail not found")
     
+    # --- NEW: Verify if account is active ---
+    if not customer.is_verified:
+        raise HTTPException(status_code=403, detail="Account not verified. Please verify your email.")
+    # ----------------------------------------
 
     # Checking password
     # Password incorrect
@@ -276,7 +306,10 @@ async def get_my_orders(customer: Customer = Depends(get_current_customer)):
 # -------------------------------------------------------------------------------------------------------------------------------------------------
 
 @app.post("/signup/retailer", response_model=RetailerRead, status_code=status.HTTP_201_CREATED, tags=["Retailer Auth"])
-async def signup_retailer(retailer: RetailerCreate):
+async def signup_retailer(
+    retailer: RetailerCreate,
+    background_tasks: BackgroundTasks # <--- NEW: Required for sending email
+):
     
     exists = await run_in_threadpool(get_retailer_by_email, retailer.mail)
     if exists:
@@ -303,6 +336,12 @@ async def signup_retailer(retailer: RetailerCreate):
     if not new_retailer:
         raise HTTPException(status_code=500, detail="Failed to create Retailer.")
     
+    # --- NEW: Send Verification OTP ---
+    otp = generate_otp()
+    await run_in_threadpool(save_verification_otp, retailer.mail, otp)
+    await send_verification_email(retailer.mail, otp, background_tasks)
+    # ----------------------------------
+    
     return new_retailer
 
 @app.post("/login/retailer", response_model=Token, tags=["Retailer Auth"])
@@ -313,6 +352,11 @@ async def login_retailer(
     retailer = await run_in_threadpool(get_retailer_by_email, req.mail)
     if not retailer:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Credentials")
+
+    # --- NEW: Verify if account is active ---
+    if not retailer.is_verified:
+        raise HTTPException(status_code=403, detail="Account not verified. Please verify your email.")
+    # ----------------------------------------
 
     if not verify_password(req.password, retailer.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Credentials")
@@ -332,7 +376,10 @@ async def get_me(retailer: Retailer = Depends(get_current_retailer)):
 # -------------------------------------------------------------------------------------------------------------------------------------------------
 
 @app.post("/signup/wholesaler", response_model=WholesalerRead, status_code=status.HTTP_201_CREATED, tags=["Wholesaler Auth"])
-async def signup_wholesaler(wholesaler: WholesalerCreate):
+async def signup_wholesaler(
+    wholesaler: WholesalerCreate,
+    background_tasks: BackgroundTasks # <--- NEW: Required for sending email
+):
     
     exists = await run_in_threadpool(get_wholesaler_by_email, wholesaler.mail)
     if exists:
@@ -359,6 +406,12 @@ async def signup_wholesaler(wholesaler: WholesalerCreate):
     if not new_wholesaler:
         raise HTTPException(status_code=500, detail="Failed to create Wholesaler.")
     
+    # --- NEW: Send Verification OTP ---
+    otp = generate_otp()
+    await run_in_threadpool(save_verification_otp, wholesaler.mail, otp)
+    await send_verification_email(wholesaler.mail, otp, background_tasks)
+    # ----------------------------------
+    
     return new_wholesaler
 
 @app.post("/login/wholesaler", response_model=Token, tags=["Wholesaler Auth"])
@@ -369,6 +422,11 @@ async def login_wholesaler(
     wholesaler = await run_in_threadpool(get_wholesaler_by_email, req.mail)
     if not wholesaler:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Credentials")
+
+    # --- NEW: Verify if account is active ---
+    if not wholesaler.is_verified:
+        raise HTTPException(status_code=403, detail="Account not verified. Please verify your email.")
+    # ----------------------------------------
 
     if not verify_password(req.password, wholesaler.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Credentials")
@@ -381,6 +439,42 @@ async def login_wholesaler(
 @app.get("/wholesaler/me", response_model=WholesalerRead, tags=["Wholesaler Auth"])
 async def get_me(wholesaler: Wholesaler = Depends(get_current_wholesaler)):
     return wholesaler
+
+
+# -------------------------------------------------------------------------------------------------------------------------------------------------
+# --- NEW: Account Verification Endpoints ---
+# -------------------------------------------------------------------------------------------------------------------------------------------------
+
+@app.post("/auth/verify-account", status_code=status.HTTP_200_OK, tags=["Auth"])
+async def verify_account_endpoint(req: AccountVerificationRequest):
+    
+    success = await run_in_threadpool(verify_user_account, req.email, req.otp)
+    
+    if not success:
+        raise HTTPException(status_code=400, detail="Invalid or Expired OTP")
+        
+    return {"message": "Account verified successfully. You can now login."}
+
+
+@app.post("/auth/resend-verification", tags=["Auth"])
+async def resend_verification(email: str, background_tasks: BackgroundTasks):
+    # Check if user exists
+    customer = await run_in_threadpool(get_customer_by_email, email)
+    retailer = await run_in_threadpool(get_retailer_by_email, email)
+    wholesaler = await run_in_threadpool(get_wholesaler_by_email, email)
+    
+    user = customer or retailer or wholesaler
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if user.is_verified:
+        return {"message": "Account already verified"}
+        
+    otp = generate_otp()
+    await run_in_threadpool(save_verification_otp, email, otp)
+    await send_verification_email(email, otp, background_tasks)
+    
+    return {"message": "Verification OTP Resent."}
 
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------
@@ -423,10 +517,17 @@ async def auth_google(request: Request):
                 hashed_password=random_pass
             )
             
-        # 5. Generate a JWT token for our app
+            # 5. NEW: Social Login Users are Auto-Verified
+            with Session(engine) as session:
+                c_update = session.get(Customer, customer.id)
+                c_update.is_verified = True
+                session.add(c_update)
+                session.commit()
+            
+        # 6. Generate a JWT token for our app
         access_token = create_access_token(data={"sub": customer.mail, "role": "customer"})
         
-        # 6. Redirect to the frontend Customer page, passing the token in the URL
+        # 7. Redirect to the frontend Customer page, passing the token in the URL
         return RedirectResponse(url=f"/Customer.html?token={access_token}")
         
     except Exception as e:
@@ -494,19 +595,140 @@ async def get_product_detail(product_id: int):
         return product
 
 # 3. ADD PRODUCT
-@app.post("/products/add/" , response_model=ProductRead , status_code=status.HTTP_201_CREATED, tags=["Products"])
+@app.post("/products/add/", response_model=ProductRead, status_code=status.HTTP_201_CREATED, tags=["Products"])
 async def create_product_endpoint(
-    product : ProductCreate, 
+    name: str = Form(...),
+    price: float = Form(...),
+    stock: int = Form(...),
+    description: str = Form(None),
+    category_id: int = Form(...),
+    image: UploadFile = File(None), # Optional file upload
     current_retailer: Retailer = Depends(get_current_retailer)
 ):
+    # 1. Create the product in DB first (to get the ID)
+    # We set a temporary image_url
     new_product = await run_in_threadpool(
         add_product,
-        product.name, product.price, product.stock, current_retailer.id,
-        product.description, product.category_id, product.image_url
+        name, price, stock, current_retailer.id,
+        description, category_id, "" 
     )
+    
     if not new_product:
-        raise HTTPException(status_code=500 , detail="Failed to create product.")
+        raise HTTPException(status_code=500, detail="Failed to create product.")
+
+    # 2. Handle Image Upload
+    if image:
+        # Create file path: product_images/{id}.jpg
+        # We preserve the original extension or default to .jpg
+        file_extension = image.filename.split(".")[-1]
+        file_name = f"{new_product.id}.{file_extension}"
+        file_path = os.path.join(product_images_dir, file_name)
+        
+        try:
+            with open(file_path, "wb") as buffer:
+                shutil.copyfileobj(image.file, buffer)
+            
+            # Update DB with the new path
+            # Note: We use forward slashes for URL compatibility
+            relative_path = f"product_images/{file_name}"
+            
+            # We need a small helper to update just the image_url
+            # For now, we can re-use update_product_details or do it manually here
+            with Session(engine) as session:
+                p = session.get(Product, new_product.id)
+                p.image_url = relative_path
+                session.add(p)
+                session.commit()
+                session.refresh(p)
+                new_product = p # Update return object
+                
+        except Exception as e:
+            print(f"Error saving image: {e}")
+            # We don't fail the request, just the image upload part
+            pass
+    else:
+        # Set default if no image uploaded
+        with Session(engine) as session:
+            p = session.get(Product, new_product.id)
+            p.image_url = "product_images/default.png"
+            session.add(p)
+            session.commit()
+            session.refresh(p)
+            new_product = p
+
     return new_product
+
+
+# 1. DELETE PRODUCT
+@app.delete("/retailer/products/{product_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Retailer Workflow"])
+async def delete_product(
+    product_id: int,
+    current_retailer: Retailer = Depends(get_current_retailer)
+):
+    with Session(engine) as session:
+        product = session.get(Product, product_id)
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+        if product.retailer_id != current_retailer.id:
+            raise HTTPException(status_code=403, detail="Not authorized to delete this product")
+        
+        session.delete(product)
+        session.commit()
+        return None
+
+# 2. GET CUSTOMER PURCHASE HISTORY (For this retailer)
+@app.get("/retailer/customer-history", tags=["Retailer Workflow"])
+async def get_customer_history(current_retailer: Retailer = Depends(get_current_retailer)):
+    with Session(engine) as session:
+        # Get all orders containing this retailer's products
+        # We join OrderItem -> Product -> OrderRecords -> Customer
+        statement = select(OrderRecords, Customer, Product, OrderItem)\
+            .join(OrderItem, OrderItem.orderrecords_id == OrderRecords.id)\
+            .join(Product, Product.id == OrderItem.product_id)\
+            .join(Customer, Customer.id == OrderRecords.customer_id)\
+            .where(Product.retailer_id == current_retailer.id)\
+            .order_by(OrderRecords.order_date.desc())
+            
+        results = session.exec(statement).all()
+        
+        # Format data for frontend
+        history = []
+        for order, customer, product, item in results:
+            history.append({
+                "order_id": order.id,
+                "date": order.order_date,
+                "customer_name": customer.name,
+                "customer_email": customer.mail,
+                "product_name": product.name,
+                "quantity": item.quantity,
+                "total_paid": item.price_at_purchase * item.quantity
+            })
+        return history
+
+# 3. B2B: GET WHOLESALE PRODUCTS (Mock logic: Wholesaler items are just products with a flag or separate table)
+# For simplicity, we'll return a mock list or query a specific "Wholesale" category if you have one.
+# Let's assume we create a fake list for now to demonstrate the UI.
+@app.get("/retailer/wholesale-market", tags=["Retailer Workflow"])
+async def get_wholesale_market(current_retailer: Retailer = Depends(get_current_retailer)):
+    # In a real app, you'd query the Product table where `is_wholesale=True`
+    # Here we return a static list for demonstration
+    return [
+        {"id": 901, "name": "Bulk Rice (50kg)", "price": 2500, "min_qty": 10, "supplier": "Global Grains"},
+        {"id": 902, "name": "Cotton T-Shirts (Pack of 100)", "price": 15000, "min_qty": 1, "supplier": "Textile Hub"},
+        {"id": 903, "name": "Smartphone Batch (10 units)", "price": 120000, "min_qty": 1, "supplier": "Tech Wholesalers"},
+        {"id": 904, "name": "Cooking Oil (20L)", "price": 3000, "min_qty": 5, "supplier": "Pure Oils Ltd"}
+    ]
+
+# 4. B2B: PLACE WHOLESALE ORDER
+@app.post("/retailer/wholesale-order", tags=["Retailer Workflow"])
+async def place_wholesale_order(
+    item_id: int, 
+    quantity: int, 
+    current_retailer: Retailer = Depends(get_current_retailer)
+):
+    # In a real app, this would create a WholesaleOrder record
+    # For now, we just simulate success
+    return {"message": f"Order placed for Item #{item_id} (Qty: {quantity}). Supplier notified."}
 
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------
@@ -643,7 +865,34 @@ async def update_order(
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------
 
+# --- Wholesaler Workflow ---
 
+@app.get("/wholesaler/orders", response_model=List[WholesaleOrder], tags=["Wholesaler Workflow"])
+async def get_wholesale_orders(current_wholesaler: Wholesaler = Depends(get_current_wholesaler)):
+    with Session(engine) as session:
+        statement = select(WholesaleOrder).where(WholesaleOrder.wholesaler_id == current_wholesaler.id)
+        orders = session.exec(statement).all()
+        return orders
+
+@app.put("/wholesaler/orders/{order_id}/status", response_model=WholesaleOrder, tags=["Wholesaler Workflow"])
+async def update_wholesale_order_status(
+    order_id: int,
+    status_update: OrderStatusUpdate,
+    current_wholesaler: Wholesaler = Depends(get_current_wholesaler)
+):
+    with Session(engine) as session:
+        order = session.get(WholesaleOrder, order_id)
+        if not order:
+            raise HTTPException(status_code=404, detail="Order not found")
+        
+        if order.wholesaler_id != current_wholesaler.id:
+            raise HTTPException(status_code=403, detail="Not authorized")
+            
+        order.status = status_update.status
+        session.add(order)
+        session.commit()
+        session.refresh(order)
+        return order
 
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------
