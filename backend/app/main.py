@@ -1,10 +1,11 @@
 # App
 
 # Importing FastAPI
-from fastapi import FastAPI , HTTPException , status, Depends, Form , BackgroundTasks
+from fastapi import FastAPI , HTTPException , status, Depends, Form , BackgroundTasks,UploadFile,File
 from typing import List, Annotated, Optional # <--- Added Optional here
-
-# For file management
+from pydantic import BaseModel # <--- Added for the name update schema
+import shutil # <--- Added for saving images
+import uuid 
 from fastapi.staticfiles import StaticFiles
 
 from sqlmodel import Session, select, or_ , col
@@ -181,7 +182,64 @@ async def login_customer(
 async def get_me(customer: Customer = Depends(get_current_customer)):
     return customer
 
+# -------------------------------------------------------------------
+# --- NEW: Customer Profile Updates (Fix for Edit Profile Page) ---
+# -------------------------------------------------------------------
 
+# Schema for name update
+class CustomerNameUpdate(BaseModel):
+    name: str
+
+@app.patch("/customer/me/update", response_model=CustomerRead, tags=["Customer Auth"])
+async def update_customer_name(
+    update_data: CustomerNameUpdate,
+    current_customer: Customer = Depends(get_current_customer)
+):
+    with Session(engine) as session:
+        # Fetch from DB to ensure we have the latest object attached to session
+        customer_db = session.get(Customer, current_customer.id)
+        if not customer_db:
+            raise HTTPException(status_code=404, detail="Customer not found")
+        
+        # Update field
+        customer_db.name = update_data.name
+        
+        session.add(customer_db)
+        session.commit()
+        session.refresh(customer_db)
+        return customer_db
+
+@app.post("/customer/me/upload-pfp", tags=["Customer Auth"])
+async def upload_profile_picture(
+    file: UploadFile = File(...),
+    current_customer: Customer = Depends(get_current_customer)
+):
+    # 1. Define the location (Matches your Static Mount logic)
+    # base_dir/../data/profile_pictures
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    upload_dir = os.path.join(base_dir, "../data/profile_pictures")
+    os.makedirs(upload_dir, exist_ok=True)
+    
+    # 2. Generate unique filename
+    file_extension = file.filename.split(".")[-1]
+    new_filename = f"{current_customer.id}_{uuid.uuid4()}.{file_extension}"
+    file_path = os.path.join(upload_dir, new_filename)
+    
+    # 3. Save file to disk
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+        
+    # 4. Update DB with the relative URL
+    # The static mount is at /profile_pictures, so the URL is "profile_pictures/filename"
+    relative_url = f"profile_pictures/{new_filename}"
+    
+    with Session(engine) as session:
+        customer_db = session.get(Customer, current_customer.id)
+        customer_db.image_url = relative_url
+        session.add(customer_db)
+        session.commit()
+        
+    return {"image_url": relative_url}
 
 # --- UPDATED ENDPOINT: Get Cart (Auto-creates if missing) ---
 @app.get("/cart", response_model=CartRead, tags=["Cart & Checkout"])
@@ -738,6 +796,14 @@ if not os.path.exists(product_images_dir):
 # 4. Mount Product Images BEFORE frontend
 # Maps http://localhost:8000/product_images/... -> backend/data/product_images/...
 app.mount("/product_images", StaticFiles(directory=product_images_dir), name="product_images")
+# ... existing product_images_dir logic ...
+profile_pictures_dir = os.path.join(base_dir, "../data/profile_pictures") # <--- Define path
+
+# ... existing product_images mount ...
+app.mount("/product_images", StaticFiles(directory=product_images_dir), name="product_images")
+
+# --- ADD THIS LINE ---
+app.mount("/profile_pictures", StaticFiles(directory=profile_pictures_dir), name="profile_pictures")
 
 # 5. Mount Frontend LAST (Catch-all)
 # Maps http://localhost:8000/... -> frontend/...
