@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live MART | Edit Profile</title>
+    <link rel="stylesheet" href="assets/css/bootstrap.css">
+    <link rel="stylesheet" href="assets/css/font-awesome.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700|Orbitron:400,700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- CYBERPUNK THEME REPLICA --- */
+        body {
+            background-color: #373737;
+            background-image: 
+                linear-gradient(rgba(141, 151, 151, 0.293) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 221, 255, 0.358) 1px, transparent 1px),
+                radial-gradient(circle at 15% 50%, rgba(0, 255, 255, 0.46), transparent 50%),
+                radial-gradient(circle at 85% 30%, rgba(255, 0, 60, 0.473), transparent 50%);
+            background-size: 40px 40px, 40px 40px, 100% 100%, 100% 100%;
+            background-attachment: fixed;
+            font-family: 'Montserrat', sans-serif;
+            color: #e0e0e0;
+        }
+        .container { margin-top: 50px; max-width: 800px; }
+        
+        /* Cards */
+        .edit-card {
+            background: rgba(20, 20, 20, 0.9);
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        /* Titles */
+        h2 { font-family: 'Orbitron'; color: #fff; text-shadow: 0 0 10px rgba(0, 242, 255, 0.8); margin-bottom: 30px; }
+        .section-title { font-family: 'Orbitron'; color: #00f2ff; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+        
+        /* Forms */
+        .form-control { background-color: #0a0a0a; border: 1px solid #333; color: #fff; }
+        .form-control:focus { background-color: #111; border-color: #00f2ff; color: #fff; }
+        
+        /* Buttons */
+        .btn-cyber {
+            background: transparent; border: 1px solid #00f2ff; color: #00f2ff;
+            font-family: 'Orbitron'; padding: 8px 20px; transition: all 0.3s; margin-top: 15px;
+        }
+        .btn-cyber:hover { background: #00f2ff; color: #000; box-shadow: 0 0 15px #00f2ff; }
+        
+        .btn-danger-cyber { border-color: #ff0055; color: #ff0055; }
+        .btn-danger-cyber:hover { background: #ff0055; color: #fff; box-shadow: 0 0 15px #ff0055; }
+
+        /* Utils */
+        .avatar-preview { width: 100px; height: 100px; border-radius: 50%; border: 2px solid #00f2ff; object-fit: cover; }
+        .alert-msg { margin-top: 10px; padding: 10px; border-radius: 5px; display: none; }
+        .success { color: #00ff80; border: 1px solid #00ff80; background: rgba(0,255,128,0.1); }
+        .error { color: #ff0055; border: 1px solid #ff0055; background: rgba(255,0,85,0.1); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>EDIT PROFILE</h2>
+            <a href="profile.html" class="btn btn-cyber">Back to Profile</a>
+        </div>
+        <br><br>
+
+        <!-- 1. Name Section -->
+        <div class="edit-card">
+            <h3 class="section-title">Personal Details</h3>
+            <form id="nameForm">
+                <label>Display Name</label>
+                <input type="text" id="fullNameInput" class="form-control" required>
+                <div id="nameMsg" class="alert-msg"></div>
+                <button type="submit" class="btn btn-cyber">Save Name</button>
+            </form>
+        </div>
+
+        <!-- 2. Avatar Section -->
+        <div class="edit-card">
+            <h3 class="section-title">Profile Picture</h3>
+            <div class="row align-items-center">
+                <div class="col-md-3 text-center">
+                    <img src="" id="currentPfp" class="avatar-preview">
+                </div>
+                <div class="col-md-9">
+                    <form id="pfpForm">
+                        <label>Upload New Image (JPG/PNG)</label>
+                        <input type="file" id="pfpInput" class="form-control" accept="image/*" required>
+                        <div id="pfpMsg" class="alert-msg"></div>
+                        <button type="submit" class="btn btn-cyber">Upload</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Password Section -->
+        <div class="edit-card" style="border-color: #555;">
+            <h3 class="section-title" style="color: #ff0055; border-color: #ff0055;">Security</h3>
+            <p style="color: #aaa; font-size: 14px; margin-bottom: 20px;">
+                To ensure account security, we will send a verification code (OTP) to your registered email address before allowing password changes.
+            </p>
+            <!-- LINK TO OTP FLOW -->
+            <a href="otp.html" class="btn btn-cyber btn-danger-cyber">
+                <i class="fa fa-lock"></i> Change Password via OTP
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if(!token) window.location.href = 'login.html';
+        
+        const headers = { 'Authorization': `Bearer ${token}` };
+
+        // Load Data
+        fetch('/customer/me', { headers }).then(r => r.json()).then(user => {
+            document.getElementById('fullNameInput').value = user.name;
+            // Check if image url is absolute or relative
+            let img = user.image_url;
+            if(!img.startsWith('http')) img = '/' + img; 
+            document.getElementById('currentPfp').src = img;
+        });
+
+        // Helper for messages
+        const show = (el, msg, type) => {
+            el.textContent = msg; el.className = `alert-msg ${type}`; el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 3000);
+        };
+
+        // Update Name
+        document.getElementById('nameForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('fullNameInput').value;
+            const res = await fetch('/customer/me/update', {
+                method: 'PATCH', headers: {...headers, 'Content-Type': 'application/json'},
+                body: JSON.stringify({ name })
+            });
+            if(res.ok) show(document.getElementById('nameMsg'), 'Saved!', 'success');
+        };
+
+        // Upload PFP
+        document.getElementById('pfpForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('file', document.getElementById('pfpInput').files[0]);
+            
+            const res = await fetch('/customer/me/upload-pfp', {
+                method: 'POST', headers: headers, body: formData
+            });
+            if(res.ok) {
+                const data = await res.json();
+                document.getElementById('currentPfp').src = '/' + data.image_url + '?' + Date.now();
+                show(document.getElementById('pfpMsg'), 'Uploaded!', 'success');
+            }
+        };
+
+    </script>
+</body>
+</html>
