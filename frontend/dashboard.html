@@ -694,25 +694,40 @@
                 if (response.ok) {
                     const userData = await response.json();
                     
-                    // Update the Dropdown Name
+                    // --- 1. Update Name ---
                     const nameEl = document.getElementById('dropdown-name');
-                    if (nameEl) nameEl.textContent = userData.name;
+                    if (nameEl) nameEl.textContent = "Hello, "+userData.name;
 
-                    // Update the Dropdown Email
+                    // --- 2. Update Email with Privacy Masking ---
                     const emailEl = document.getElementById('dropdown-email');
-                    if (emailEl) emailEl.textContent = userData.email;
+                    if (emailEl) {
+                        // API returns 'mail', but we check 'email' just in case
+                        let rawMail = userData.mail || userData.email || "";
+                        
+                        // Masking logic: Indices 2, 3, 4 (3rd, 4th, 5th chars)
+                        if (rawMail.length > 5) {
+                            const part1 = rawMail.substring(0, 2); // First 2 chars
+                            const part3 = rawMail.substring(5);    // Everything after 5th char
+                            emailEl.textContent = part1 + "***" + part3;
+                        } else {
+                            emailEl.textContent = rawMail;
+                        }
+                    }
 
-                    // Update the "User Dashboard" text if you have it elsewhere
+                    // --- 3. Update Greeting Message ---
                     const displayEl = document.getElementById('user-name-display');
-                    if (displayEl) displayEl.textContent = userData.name; // Shows real name instead of just 'User'
+                    if (displayEl) {
+                        // Adds the "Hello" prefix as requested
+                        displayEl.textContent = "Hello " + userData.name; 
+                    }
                     
-                    // Optional: Save name to local storage for faster load next time
                     localStorage.setItem('user_name', userData.name);
                 }
             } catch (error) {
                 console.error("Error fetching user profile:", error);
             }
         }
+        
         </script>
 </body>
 </html>
