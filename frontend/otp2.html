@@ -14,7 +14,7 @@
     body {
       background-color: #050505; 
       background-image: 
-        linear-gradient(rgba(0, 243, 255, 0.1) 1px, transparent 1px),
+        linear-gradient(rgb(255, 255, 255) 1px, transparent 1px),
         linear-gradient(90deg, rgba(0, 243, 255, 0.1) 1px, transparent 1px),
         radial-gradient(circle at 15% 50%, rgba(0, 255, 255, 0.15), transparent 50%),
         radial-gradient(circle at 85% 30%, rgba(255, 0, 60, 0.15), transparent 50%);
@@ -203,16 +203,65 @@
     let storedEmail = '';
     let capturedOTP = '';
 
-    window.onload = function() {
+    window.onload = async function() {
         storedEmail = sessionStorage.getItem('reset_email');
-        
-        if (!storedEmail) {
+        const token = localStorage.getItem('token');
+
+        // CASE 1: Standard Forgot Password Flow (Email comes from otp.html)
+        if (storedEmail) {
+            document.getElementById('overlay-email').textContent = storedEmail;
+        } 
+        // CASE 2: Logged In User Flow (Email comes from Token)
+        else if (token) {
+            try {
+                // Fetch User Details
+                const res = await fetch('/customer/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (res.ok) {
+                    const user = await res.json();
+                    storedEmail = user.mail; // Assuming DB field is 'mail'
+                    document.getElementById('overlay-email').textContent = storedEmail;
+
+                    // Auto-Send OTP if not sent in this session yet
+                    if (!sessionStorage.getItem('auto_otp_sent')) {
+                        await requestOTP(storedEmail);
+                        sessionStorage.setItem('auto_otp_sent', 'true');
+                    }
+                } else {
+                    // Token invalid
+                    alert("Session expired. Please login again.");
+                    window.location.href = 'login.html';
+                }
+            } catch (e) {
+                console.error("Auth Error", e);
+            }
+        } 
+        // CASE 3: No Session, No Token
+        else {
             alert("Session expired. Redirecting...");
             window.location.href = 'otp.html';
-            return;
         }
-        document.getElementById('overlay-email').textContent = storedEmail;
     };
+
+    // Helper to auto-send OTP for logged-in users
+    async function requestOTP(email) {
+        try {
+            const res = await fetch('/auth/request-otp', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email: email })
+            });
+            if (res.ok) {
+                alert(`A verification code has been sent to ${email}`);
+            } else {
+                alert("Failed to send verification code.");
+            }
+        } catch(e) {
+            console.error("Network error sending OTP");
+        }
+    }
 
     // --- UPDATED: Real Verification Before Sliding ---
     async function verifyAndSlide() {
@@ -299,7 +348,13 @@
             if (response.ok) {
                 alert("Password updated successfully!");
                 sessionStorage.removeItem('reset_email'); 
-                window.location.href = 'Customer.html'; 
+                sessionStorage.removeItem('auto_otp_sent'); // Clean up flag
+                
+                // Optional: Force re-login logic
+                // localStorage.removeItem('token'); 
+                // window.location.href = 'login.html';
+                
+                window.location.href = 'Customer.html'; // Per your original script
             } else {
                 const errorData = await response.json();
                 if (errorData.detail && (errorData.detail.includes("OTP") || errorData.detail.includes("expired"))) {
@@ -326,7 +381,8 @@
             verifyAndSlide();
         }
     });
-  </script>
+</script>
+
 
 </body>
 </html>
