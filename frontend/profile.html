@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live MART | Dashboard</title>
+    <!-- CSS Dependencies -->
+    <link rel="stylesheet" href="assets/css/bootstrap.css">
+    <link rel="stylesheet" href="assets/css/font-awesome.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700|Orbitron:400,700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- CYBERPUNK THEME SETUP --- */
+        body {
+            background-color: #050505;
+            color: #e0e0e0;
+            font-family: 'Montserrat', sans-serif;
+
+            /* --- UPDATED GRID BACKGROUND WITH GLOW (From dashboard.css) --- */
+            background-image: 
+                linear-gradient(rgba(0, 242, 255, 0.293) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 221, 255, 0.358) 1px, transparent 1px),
+                radial-gradient(circle at 15% 50%, rgba(0, 255, 255, 0.46), transparent 50%),
+                radial-gradient(circle at 85% 30%, rgba(255, 0, 60, 0.473), transparent 50%);
+            background-size: 40px 40px, 40px 40px, 100% 100%, 100% 100%;
+            background-attachment: fixed;
+        }
+
+        h1, h2, h3, h4, h5, .navbar-brand, strong {
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+        }
+
+        /* --- Navbar Styles --- */
+        .navbar-default {
+            background: #111;
+            border-bottom: 1px solid #333;
+            padding: 10px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        
+        .navbar-brand {
+            font-size: 24px;
+            color: #fff !important;
+            font-weight: 700;
+        }
+
+        .navbar-brand span {
+            color: #00f3ff; /* Neon Cyan Accent */
+            text-shadow: 0 0 5px rgba(0, 243, 255, 0.5);
+        }
+
+        .navbar-nav > li > a {
+            color: #aaa;
+            font-weight: 600;
+            padding: 15px 20px;
+            transition: color 0.3s;
+        }
+
+        .navbar-nav > li > a:hover, 
+        .navbar-nav > li > a:focus,
+        .navbar-default .navbar-nav > .open > a, 
+        .navbar-default .navbar-nav > .open > a:focus, 
+        .navbar-default .navbar-nav > .open > a:hover {
+            color: #00f3ff;
+            background-color: transparent;
+        }
+
+        /* --- Dropdown Styles (Dark Mode) --- */
+        .dropdown-menu {
+            background-color: #151515;
+            min-width: 250px;
+            padding: 15px 0 0;
+            border: 1px solid #333;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-radius: 4px;
+        }
+
+        .dropdown-header {
+            padding: 0 20px 15px;
+            border-bottom: 1px solid #333;
+            margin-bottom: 10px;
+        }
+
+        .dropdown-header strong {
+            display: block;
+            font-size: 16px;
+            color: #fff;
+            margin-bottom: 3px;
+        }
+
+        .dropdown-header small {
+            font-size: 13px;
+            color: #00f3ff;
+        }
+
+        .dropdown-menu > li > a {
+            padding: 10px 20px;
+            color: #bbb;
+            transition: all 0.2s;
+        }
+
+        .dropdown-menu > li > a:hover {
+            background-color: #222;
+            color: #00f3ff;
+            padding-left: 25px; /* Slide effect */
+        }
+
+        .dropdown-menu .divider {
+            background-color: #333;
+            margin: 10px 0;
+        }
+
+        /* --- Dashboard Cards --- */
+        .dashboard-container {
+            margin-top: 50px;
+        }
+
+        .welcome-section {
+            background: #111;
+            padding: 30px;
+            border-radius: 4px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            margin-bottom: 30px;
+            border: 1px solid #333;
+            border-left: 5px solid #00f3ff;
+        }
+
+        .welcome-section h2 {
+            color: #fff;
+            margin-top: 0;
+        }
+
+        .action-card {
+            background: #111;
+            padding: 30px 20px;
+            border-radius: 4px;
+            text-align: center;
+            transition: all 0.3s;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            border: 1px solid #333;
+            display: block;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-card:hover {
+            transform: translateY(-5px);
+            border-color: #00f3ff;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
+            text-decoration: none;
+        }
+
+        .action-card i {
+            font-size: 40px;
+            margin-bottom: 20px;
+            color: #00f3ff;
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+        }
+
+        .action-card h4 {
+            color: #fff;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .action-card p {
+            color: #888;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="index.html">Live<span>MART</span></a>
+            </div>
+
+            <div id="navbar" class="navbar-collapse collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="cart.html"><i class="fa fa-shopping-cart"></i> Cart</a></li>
+                    
+                    <!-- USER DROPDOWN START -->
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                            <i class="fa fa-user-circle"></i> Account <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <!-- Header with Name/Email (Populated by JS) -->
+                            <li class="dropdown-header">
+                                <strong id="dropdown-name">Loading...</strong>
+                                <small id="dropdown-email">Loading...</small>
+                            </li>
+                            
+                            <li role="separator" class="divider"></li>
+
+                            <!-- YOUR LINKS -->
+                            <li><a href="orders.html"><i class="fa fa-list-alt"></i> My Order History</a></li>
+                            <li><a href="cart.html"><i class="fa fa-shopping-cart"></i> My Cart</a></li>
+                            <li><a href="#"><i class="fa fa-heart"></i> Wishlist</a></li>
+                            <li><a href="#"><i class="fa fa-cog"></i> Settings</a></li>
+                            
+                            <li role="separator" class="divider"></li>
+                            
+                            <!-- Logout -->
+                            <li><a href="#" onclick="logout()"><i class="fa fa-sign-out"></i> Logout</a></li>
+                        </ul>
+                    </li>
+                    <!-- USER DROPDOWN END -->
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container dashboard-container">
+        
+        <!-- Welcome Message -->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="welcome-section">
+                    <h2 id="user-name-display">Welcome back!</h2>
+                    <p>Here is what's happening with your account today.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Action Cards (INSIDE Dashboard) -->
+        <div class="row">
+            <!-- Order History Card -->
+            <div class="col-md-4 col-sm-6">
+                <a href="orders.html" class="action-card">
+                    <i class="fa fa-list-alt"></i>
+                    <h4>Order History</h4>
+                    <p>Track return & buy things again</p>
+                </a>
+            </div>
+
+            <!-- Cart Card -->
+            <div class="col-md-4 col-sm-6">
+                <a href="cart.html" class="action-card">
+                    <i class="fa fa-shopping-cart"></i>
+                    <h4>My Cart</h4>
+                    <p>View items in your basket</p>
+                </a>
+            </div>
+
+            <!-- Profile Settings Card -->
+            <div class="col-md-4 col-sm-6">
+                <a href="#" class="action-card">
+                    <i class="fa fa-user"></i>
+                    <h4>Edit Profile</h4>
+                    <p>Change password & details</p>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/bootstrap.min.js"></script>
+
+    <script>
+        // 1. Check Auth on Load
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+
+        // 2. Fetch User Profile
+        async function fetchUserProfile() {
+            try {
+                // Fetch from your updated endpoint
+                const response = await fetch('/customer/me', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const userData = await response.json();
+                    
+                    // --- UPDATE THE DROPDOWN ---
+                    
+                    // Name
+                    const nameEl = document.getElementById('dropdown-name');
+                    if (nameEl) nameEl.textContent = "Hello! " + userData.name;
+
+                    // Email (using 'mail' as per your DB model)
+                    const emailEl = document.getElementById('dropdown-email');
+                    if (emailEl) emailEl.textContent = userData.mail;
+
+                    // --- UPDATE DASHBOARD TITLE ---
+                    const displayEl = document.getElementById('user-name-display');
+                    if (displayEl) displayEl.textContent = "Welcome back, " + userData.name + "!";
+                    
+                    // Cache name for other pages
+                    localStorage.setItem('user_name', userData.name);
+                } else {
+                    // Token might be expired
+                    console.log("Session expired or invalid token");
+                    logout();
+                }
+            } catch (error) {
+                console.error("Error fetching user profile:", error);
+            }
+        }
+
+        // 3. Logout Function
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user_name');
+            window.location.href = 'login.html';
+        }
+
+        // Run the fetch
+        fetchUserProfile();
+    </script>
+</body>
+</html>
