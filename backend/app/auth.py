@@ -22,7 +22,7 @@ from fastapi import Depends, HTTPException, status , BackgroundTasks
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.concurrency import run_in_threadpool
 from db_models import Customer, Retailer, Wholesaler
-
+from config import SECRET_KEY, ALGORITHM
 #--------------------------------------------------------------------------------------------------------------------------------------------
 
 # SMTP
@@ -82,8 +82,7 @@ def verify_password(input_password: str , hashed_password: str):
 
 # 2. JWT Token Configuration
 
-# These should be in environment variables, but we'll hardcode for the project
-SECRET_KEY = "your-super-secret-key-for-this-project" # Change this!
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 # 1 day
 

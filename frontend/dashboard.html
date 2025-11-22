@@ -683,7 +683,7 @@
             if (!token) return;
 
             try {
-                const response = await fetch('/users/me', {
+                const response = await fetch('/customer/me', {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`,
