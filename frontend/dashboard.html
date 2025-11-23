@@ -188,6 +188,15 @@
         .cat-pill { border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main); padding: 8px 25px; border-radius: 30px; margin: 5px; cursor: pointer; transition: 0.3s; backdrop-filter: blur(5px); font-size: 13px; font-weight: 600; }
         .cat-pill.active, .cat-pill:hover { background: var(--accent); color: #000; border-color: var(--accent); box-shadow: 0 0 10px var(--shadow); }
         
+        .dropdown-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto;
+            display: block;
+            border: 2px solid #00f2ff; /* Your theme color */
+        }
         /* Map Styles */
         #map-section { display: none; margin-bottom: 40px; animation: fadeIn 0.5s; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
@@ -234,10 +243,12 @@
                     </div>
                     
                     <div class="user-dropdown" id="user-dropdown">
-                        <div class="dropdown-header">
-                            <p class="user-name" id="dropdown-name">Loading...</p>
-                            <p class="user-email" id="dropdown-email">loading...</p>
-                        </div>
+                       <div class="dropdown-header" style="text-align: center;">
+                        <img src="assets/images/default.png" id="dropdown-pfp" class="dropdown-avatar" alt="User">
+                        
+                        <p class="user-name" id="dropdown-name" style="margin-top: 10px;">Loading...</p>
+                        <p class="user-email" id="dropdown-email">loading...</p>
+                    </div>
                         <div class="dropdown-actions">
                             <button class="btn-expand" onclick="window.location.href='profile.html'">
                                 <i class="fa fa-th-large"></i> User Dashboard
@@ -597,25 +608,73 @@
 
         async function fetchUserProfile() {
             const token = localStorage.getItem('token');
-            if (!token) return;
+            if (!token) {
+                console.error("DEBUG: No token found in localStorage");
+                return;
+            }
+
             try {
+                console.log("DEBUG: Fetching /customer/me...");
                 const response = await fetch('/customer/me', {
                     method: 'GET',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+                    headers: { 
+                        'Authorization': `Bearer ${token}`, 
+                        'Content-Type': 'application/json' 
+                    }
                 });
+
                 if (response.ok) {
                     const userData = await response.json();
-                    document.getElementById('dropdown-name').textContent = "Hello, " + userData.name;
+                    
+                    // --- CRITICAL DEBUGGING LOGS ---
+                    console.log("DEBUG: Full User Data Received:", userData);
+                    console.log("DEBUG: userData.profile_picture is:", userData.profile_picture);
+                    console.log("DEBUG: userData.image_url is:", userData.image_url);
+                    // -------------------------------
+
+                    // 1. Update Name
+                    const nameEl = document.getElementById('dropdown-name');
+                    if (nameEl) nameEl.textContent = "Hello, " + userData.name;
+
+                    // 2. Update Email
                     const emailEl = document.getElementById('dropdown-email');
                     if (emailEl) {
                         let rawMail = userData.mail || userData.email || "";
                         emailEl.textContent = rawMail.length > 5 ? rawMail.substring(0, 2) + "***" + rawMail.substring(5) : rawMail;
                     }
-                    document.getElementById('user-name-display').textContent = "Hello " + userData.name; 
+
+                    // 3. Update Welcome
+                    const displayEl = document.getElementById('user-name-display');
+                    if (displayEl) displayEl.textContent = "Hello " + userData.name; 
+
+                    // 4. Update Profile Picture
+                    const rawPath = userData.profile_picture || userData.image_url;
+                    const pfpEl = document.getElementById('dropdown-pfp');
+
+                    if (!pfpEl) {
+                        console.error("DEBUG: Could not find element with id 'dropdown-pfp'");
+                    } else if (!rawPath) {
+                        console.warn("DEBUG: No profile picture path found in data. Keeping default.");
+                    } else {
+                        // Sanitizer Logic
+                        const filename = rawPath.split(/[/\\]/).pop();
+                        const cleanUrl = '/profile_pictures/' + filename;
+                        
+                        console.log("DEBUG: Updating image source to:", cleanUrl);
+                        pfpEl.src = cleanUrl + '?t=' + Date.now();
+                        // Force display in case it was hidden
+                        pfpEl.style.display = 'block'; 
+                    }
+
                     localStorage.setItem('user_name', userData.name);
+                } else {
+                    console.error("DEBUG: Server responded with status:", response.status);
                 }
-            } catch (error) {}
+            } catch (error) {
+                console.error("DEBUG: Profile load error:", error);
+            }
         }
+
     </script>
 </body>
 </html>
