@@ -8,17 +8,24 @@
     <link rel="stylesheet" href="assets/css/font-awesome.min.css">
     <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700|Orbitron:400,700&display=swap" rel="stylesheet">
     
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <style>
         body { background-color: #050505; color: #e0e0e0; font-family: 'Montserrat', sans-serif; margin: 0; padding-bottom: 50px; }
         h1, h2, h3, h4, h5 { font-family: 'Orbitron', sans-serif; letter-spacing: 1px; }
+        
+        /* Navbar */
         .navbar-default { background: #111; border-bottom: 1px solid #333; padding: 15px 0; }
         .navbar-brand { font-size: 24px; color: #fff !important; font-weight: bold; font-family: 'Orbitron', sans-serif; text-decoration: none; }
         .navbar-brand span { color: #00f3ff; }
         .nav-link { color: #aaa; margin-left: 20px; text-decoration: none; transition: 0.3s; }
         .nav-link:hover { color: #00f3ff; }
+        
         .container { max-width: 1170px; margin: 0 auto; padding: 0 15px; }
         .page-header { margin-top: 40px; margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 15px; }
         
+        /* Cart Items */
         .cart-item { background: #111; border: 1px solid #222; border-radius: 8px; padding: 20px; margin-bottom: 20px; display: flex; align-items: center; transition: 0.3s; }
         .cart-item:hover { border-color: #444; box-shadow: 0 0 15px rgba(0, 243, 255, 0.1); }
         .cart-img { width: 100px; height: 100px; object-fit: cover; border-radius: 6px; border: 1px solid #333; margin-right: 25px; }
@@ -36,6 +43,7 @@
         .remove-btn { background: #220000; color: #ff4444; border: 1px solid #550000; padding: 8px 15px; border-radius: 4px; margin-left: 20px; cursor: pointer; font-size: 14px; transition: 0.3s; }
         .remove-btn:hover { background: #ff4444; color: #fff; }
         
+        /* Checkout Panel */
         .checkout-panel { background: #111; border: 1px solid #00f3ff; padding: 30px; border-radius: 8px; position: sticky; top: 20px; }
         .summary-row { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 16px; color: #ccc; }
         .summary-row.total { border-top: 1px solid #333; padding-top: 15px; font-size: 22px; color: #fff; font-weight: bold; }
@@ -46,12 +54,46 @@
         .dark-input { width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 4px; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
         .dark-input:focus { outline: none; border-color: #00f3ff; }
         
+        /* New Layout Fix for Inputs */
+        .split-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
         .checkout-btn { width: 100%; background: linear-gradient(45deg, #00f3ff, #0066ff); border: none; color: #000; padding: 15px; font-weight: bold; font-family: 'Orbitron', sans-serif; font-size: 16px; cursor: pointer; margin-top: 20px; border-radius: 4px; transition: 0.3s; }
         .checkout-btn:hover { transform: translateY(-2px); box-shadow: 0 0 20px rgba(0, 243, 255, 0.4); }
         .checkout-btn:disabled { background: #555; color: #888; cursor: not-allowed; transform: none; box-shadow: none; }
         
         .empty-cart { text-align: center; padding: 50px; color: #555; }
         .empty-cart i { font-size: 60px; margin-bottom: 20px; }
+
+        /* MAP PICKER STYLES */
+        #picker-map-container {
+            height: 0; 
+            overflow: hidden;
+            transition: height 0.3s ease;
+            margin-bottom: 0;
+            border-radius: 6px;
+            border: 1px solid transparent;
+        }
+        #picker-map-container.active {
+            height: 250px;
+            margin-bottom: 15px;
+            border-color: #00f3ff;
+        }
+        #picker-map { height: 100%; width: 100%; }
+        
+        /* Location Buttons */
+        .loc-btn { 
+            background: transparent; 
+            border: 1px solid #444; 
+            border-radius: 4px; 
+            padding: 4px 8px; 
+            color: #aaa; 
+            font-size: 11px; 
+            cursor: pointer; 
+            margin-left: 5px; 
+            transition: 0.3s;
+        }
+        .loc-btn:hover { border-color: #00f3ff; color: #00f3ff; }
+        .loc-btn.active { background: #00f3ff; color: #000; border-color: #00f3ff; }
     </style>
 </head>
 <body>
@@ -101,27 +143,36 @@
                     <h4>Shipping Details</h4>
                     
                     <div class="form-group">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <label class="form-label">Address</label>
-                            <button onclick="geoLocateMe()" style="background:transparent; border:none; color:#00f3ff; font-size:11px; cursor:pointer; text-decoration:underline; margin-bottom:8px;">
-                                <i class="fa fa-map-marker"></i> Use my Location
-                            </button>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+                            <label class="form-label" style="margin-bottom:0;">Address</label>
+                            <div>
+                                <button onclick="geoLocateMe()" class="loc-btn" title="Use GPS">
+                                    <i class="fa fa-crosshairs"></i> Use My Location
+                                </button>
+                                <button onclick="togglePickerMap()" class="loc-btn" title="Pick on Map">
+                                    <i class="fa fa-map-marker"></i> Select on Map
+                                </button>
+                            </div>
                         </div>
+                        
+                        <div id="picker-map-container">
+                            <div id="picker-map"></div>
+                            <div style="background:#111; padding:5px; font-size:10px; text-align:center; color:#777;">
+                                Drag the marker or click to pin location
+                            </div>
+                        </div>
+
                         <input type="text" id="ship-addr" class="dark-input" placeholder="Street, House No">
                     </div>
 
-                    <div class="row">
-                        <div class="col-6" style="padding-right:5px;">
-                            <div class="form-group">
-                                <label class="form-label">City</label>
-                                <input type="text" id="ship-city" class="dark-input" placeholder="City">
-                            </div>
+                    <div class="split-row">
+                        <div class="form-group">
+                            <label class="form-label">City</label>
+                            <input type="text" id="ship-city" class="dark-input" placeholder="City">
                         </div>
-                        <div class="col-6" style="padding-left:5px;">
-                            <div class="form-group">
-                                <label class="form-label">Pincode</label>
-                                <input type="text" id="ship-pin" class="dark-input" placeholder="123456">
-                            </div>
+                        <div class="form-group">
+                            <label class="form-label">Pincode</label>
+                            <input type="text" id="ship-pin" class="dark-input" placeholder="123456">
                         </div>
                     </div>
 
@@ -145,9 +196,13 @@
         const token = localStorage.getItem('token');
         if(!token) window.location.href = 'index.html';
 
+        // Global Map Variables
+        let pickerMap = null;
+        let pickerMarker = null;
+
         document.addEventListener('DOMContentLoaded', () => {
             loadCart();
-            // Check if user came back from payment page
+            // Handle Payment Return
             const params = new URLSearchParams(window.location.search);
             if(params.get('payment') === 'success') {
                 const saved = JSON.parse(sessionStorage.getItem('temp_order'));
@@ -160,34 +215,134 @@
 
         let cartData = [];
 
+        // --- 1. MAP PICKER LOGIC ---
+        function togglePickerMap() {
+            const container = document.getElementById('picker-map-container');
+            container.classList.toggle('active');
+
+            // Initialize map only when opened for the first time
+            if (container.classList.contains('active')) {
+                if (!pickerMap) {
+                    initPickerMap();
+                } else {
+                    // Refresh size if already init
+                    setTimeout(() => pickerMap.invalidateSize(), 300);
+                }
+            }
+        }
+
+        function initPickerMap() {
+            // Default: Hyderabad
+            const defaultLat = 17.3850;
+            const defaultLon = 78.4867;
+
+            pickerMap = L.map('picker-map').setView([defaultLat, defaultLon], 13);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(pickerMap);
+
+            // Create Draggable Marker
+            pickerMarker = L.marker([defaultLat, defaultLon], {draggable: true}).addTo(pickerMap);
+
+            // If user has GPS, move map there
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(pos => {
+                    const { latitude, longitude } = pos.coords;
+                    updateMapPosition(latitude, longitude);
+                });
+            }
+
+            // Listen for Drag End
+            pickerMarker.on('dragend', function(e) {
+                const { lat, lng } = e.target.getLatLng();
+                fetchAddressFromCoords(lat, lng);
+            });
+
+            // Listen for Map Click
+            pickerMap.on('click', function(e) {
+                const { lat, lng } = e.latlng;
+                updateMapPosition(lat, lng);
+                fetchAddressFromCoords(lat, lng);
+            });
+        }
+
+        function updateMapPosition(lat, lng) {
+            pickerMarker.setLatLng([lat, lng]);
+            pickerMap.setView([lat, lng], 15);
+        }
+
+        // --- 2. SHARED GEOCODING LOGIC ---
+        async function fetchAddressFromCoords(lat, lng) {
+            // Visual feedback
+            document.getElementById('ship-addr').placeholder = "Fetching address...";
+            
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`);
+                const data = await res.json();
+                fillAddressFields(data);
+            } catch(e) {
+                console.error(e);
+                alert("Could not fetch address from map.");
+            }
+        }
+
+        function fillAddressFields(data) {
+            const addr = data.address;
+            
+            // 1. Address Line (Fallbacks)
+            const road = addr.road || addr.pedestrian || "";
+            const area = addr.suburb || addr.neighbourhood || addr.residential || "";
+            const fullAddr = road ? `${road}, ${area}` : data.display_name.split(',').slice(0,3).join(',');
+            document.getElementById('ship-addr').value = fullAddr;
+
+            // 2. City (Robust Fallbacks)
+            const city = addr.city || addr.town || addr.village || addr.municipality || addr.county || addr.state_district || "";
+            document.getElementById('ship-city').value = city;
+
+            // 3. Pincode
+            document.getElementById('ship-pin').value = addr.postcode || "";
+        }
+
+        // --- 3. GPS BUTTON LOGIC ---
+        function geoLocateMe() {
+            if (!navigator.geolocation) return alert("Geolocation not supported");
+            
+            const btn = event.target.closest('button');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fa fa-circle-o-notch fa-spin"></i> Locating...';
+
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                const { latitude, longitude } = pos.coords;
+                
+                // If map is open, move marker there too
+                if(pickerMap) updateMapPosition(latitude, longitude);
+
+                await fetchAddressFromCoords(latitude, longitude);
+                btn.innerHTML = originalHTML;
+            }, () => {
+                alert("Location access denied.");
+                btn.innerHTML = originalHTML;
+            });
+        }
+
+        // --- 4. STANDARD CART LOGIC ---
         async function loadCart() {
             try {
-                const res = await fetch('/cart', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-
+                const res = await fetch('/cart', { headers: { 'Authorization': `Bearer ${token}` } });
                 if (res.ok) {
                     cartData = await res.json();
                     renderCart();
                 } else {
-                    document.getElementById('cart-items-container').innerHTML = 
-                        `<div class="empty-cart"><p>Failed to load cart.</p></div>`;
+                    document.getElementById('cart-items-container').innerHTML = `<div class="empty-cart"><p>Failed to load cart.</p></div>`;
                 }
-            } catch (e) {
-                console.error(e);
-            }
+            } catch (e) { console.error(e); }
         }
 
         function renderCart() {
             const container = document.getElementById('cart-items-container');
-            
             if (!cartData.items || cartData.items.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-cart">
-                        <i class="fa fa-shopping-cart"></i>
-                        <p>Your cart is empty.</p>
-                        <a href="dashboard.html" style="color:#00f3ff;">Go Shop</a>
-                    </div>`;
+                container.innerHTML = `<div class="empty-cart"><i class="fa fa-shopping-cart"></i><p>Your cart is empty.</p><a href="dashboard.html" style="color:#00f3ff;">Go Shop</a></div>`;
                 updateSummary(0);
                 return;
             }
@@ -199,25 +354,21 @@
                 const product = item.product;
                 const lineTotal = product.price * item.quantity;
                 runningTotal += lineTotal;
-
-                const imgSrc = product.image_url ? product.image_url : 'assets/img/default.png';
+                const imgSrc = product.image_url || 'assets/img/default.png';
 
                 html += `
                 <div class="cart-item">
                     <img src="${imgSrc}" alt="${product.name}" class="cart-img" onerror="this.src='https://via.placeholder.com/100x100?text=No+Img'">
-                    
                     <div class="item-details">
                         <div class="item-title">${product.name}</div>
                         <div class="item-cat">${product.category || 'Item'}</div>
                         <div class="item-price">₹${product.price.toFixed(2)}</div>
                     </div>
-
                     <div class="qty-control">
                         <button class="qty-btn" onclick="updateQuantity(${product.id}, -1)">-</button>
                         <div class="qty-val">${item.quantity}</div>
                         <button class="qty-btn" onclick="updateQuantity(${product.id}, 1)">+</button>
                     </div>
-
                     <button class="remove-btn" onclick="removeFromCart(${product.id})">
                         <i class="fa fa-trash"></i>
                     </button>
@@ -231,7 +382,6 @@
         function updateSummary(subtotal) {
             const tax = subtotal * 0.05;
             const total = subtotal + tax;
-
             document.getElementById('subtotal-display').innerText = '₹' + subtotal.toFixed(2);
             document.getElementById('tax-display').innerText = '₹' + tax.toFixed(2);
             document.getElementById('total-display').innerText = '₹' + total.toFixed(2);
@@ -240,45 +390,27 @@
         async function updateQuantity(productId, change) {
             const item = cartData.items.find(i => i.product.id === productId);
             if(item && item.quantity + change < 1) return;
-
             try {
                 const res = await fetch('/cart/add', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ product_id: productId, quantity: change })
                 });
-
-                if(res.ok) {
-                    loadCart(); 
-                } else {
-                    alert("Could not update quantity");
-                }
+                if(res.ok) loadCart(); 
             } catch(e) { console.error(e); }
         }
 
         async function removeFromCart(productId) {
             if(!confirm("Remove this item?")) return;
-
             try {
                 const item = cartData.items.find(i => i.product.id === productId);
                 if(item) {
                     const res = await fetch('/cart/add', {
                         method: 'POST',
-                        headers: { 
-                            'Content-Type': 'application/json', 
-                            'Authorization': `Bearer ${token}` 
-                        },
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                         body: JSON.stringify({ product_id: productId, quantity: -item.quantity })
                     });
-                    
-                    if(res.ok) {
-                        await loadCart();
-                    } else {
-                        alert("Failed to remove item.");
-                    }
+                    if(res.ok) await loadCart();
                 }
             } catch(e) { console.error(e); }
         }
@@ -296,19 +428,16 @@
                 return; 
             }
 
-            // --- PAYMENT LOGIC ---
             if(payMode === 'Online') {
                 const orderData = { addr, city, pin };
                 sessionStorage.setItem('temp_order', JSON.stringify(orderData));
                 window.location.href = `payment.html?amount=${amount}&returnUrl=cart.html`;
                 return;
             }
-            // ---------------------
 
             finalizeOrder(addr, city, pin, payMode);
         }
 
-        // Helper Function for Order Submission
         async function finalizeOrder(addr, city, pin, mode) {
             const btn = document.querySelector('.checkout-btn');
             const originalText = btn.innerHTML;
@@ -318,15 +447,10 @@
             try {
                 const res = await fetch('/order/checkout', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({
-                        shipping_address: addr, 
-                        shipping_city: city, 
-                        shipping_pincode: pin, 
-                        payment_mode: mode 
+                        shipping_address: addr, shipping_city: city, 
+                        shipping_pincode: pin, payment_mode: mode 
                     })
                 });
 
@@ -338,53 +462,11 @@
                     alert("Checkout Failed: " + (err.detail || "Unknown error"));
                 }
             } catch (e) {
-                console.error(e);
                 alert("Network error.");
             } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             }
-        }
-
-        // --- GEOLOCATION LOGIC ---
-        function geoLocateMe() {
-            if (!navigator.geolocation) {
-                alert("Geolocation is not supported by your browser.");
-                return;
-            }
-
-            const btn = event.target;
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fa fa-circle-o-notch fa-spin"></i> Locating...';
-
-            navigator.geolocation.getCurrentPosition(async (position) => {
-                const lat = position.coords.latitude;
-                const lon = position.coords.longitude;
-
-                try {
-                    // Call Free Nominatim API (Reverse Geocoding)
-                    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`;
-                    const res = await fetch(url);
-                    const data = await res.json();
-
-                    // Fill Inputs
-                    const addr = data.address;
-                    document.getElementById('ship-addr').value = 
-                        data.display_name || (addr.road || "") + ", " + (addr.suburb || addr.neighbourhood || "");
-                    document.getElementById('ship-city').value = 
-                        (addr.city || addr.town || addr.village || "");
-                    document.getElementById('ship-pin').value = addr.postcode || "";
-
-                } catch (error) {
-                    console.error(error);
-                    alert("Could not fetch address details.");
-                } finally {
-                    btn.innerHTML = originalText;
-                }
-            }, () => {
-                alert("Unable to retrieve your location.");
-                btn.innerHTML = originalText;
-            });
         }
 
         function logout() {
