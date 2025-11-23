@@ -11,27 +11,26 @@
     <style>
         body { background-color: #050505; color: #e0e0e0; font-family: 'Montserrat', sans-serif; }
         
-        /* Navbar - Orange Theme for Wholesalers */
+        /* Navbar */
         .navbar-default { background: #111; border-bottom: 1px solid #333; padding: 15px 0; }
         .navbar-brand { font-family: 'Orbitron'; font-size: 24px; color: #fff !important; }
-        .navbar-brand span { color: #ff9800; } /* Wholesaler Orange */
+        .navbar-brand span { color: #ff9800; } 
         
         /* Tabs */
         .nav-tabs { border-bottom: 1px solid #333; margin-top: 30px; }
-        .nav-tabs > li > a { color: #888; border: none; font-weight: bold; font-size: 16px; }
+        .nav-tabs > li > a { color: #888; border: none; font-weight: bold; font-size: 16px; cursor: pointer; }
         .nav-tabs > li.active > a, .nav-tabs > li.active > a:focus, .nav-tabs > li.active > a:hover {
             background-color: transparent; border: none; border-bottom: 3px solid #ff9800; color: #fff;
         }
 
         /* Cards */
-        .product-row, .order-card { 
-            background: #1a1a1a; border: 1px solid #333; padding: 15px; 
-            margin-bottom: 15px; border-radius: 5px; display: flex; align-items: center; 
+        .order-card, .inv-card { 
+            background: #1a1a1a; border: 1px solid #333; padding: 20px; 
+            margin-bottom: 15px; border-radius: 5px; position: relative;
         }
         .order-card { border-left: 4px solid #ff9800; }
-        
-        .prod-img { width: 60px; height: 60px; object-fit: cover; border-radius: 4px; margin-right: 15px; }
-        
+        .inv-card { display: flex; align-items: center; }
+
         /* Buttons */
         .btn-update {
             background: transparent; border: 1px solid #ff9800; color: #ff9800;
@@ -40,16 +39,32 @@
         .btn-update:hover { background: #ff9800; color: #000; }
 
         .btn-add-new {
-            background: #ff9800; color: #000; border: none; padding: 10px 20px; 
-            font-weight: bold; border-radius: 4px; float: right; margin-top: -50px;
+            background: #ff9800; color: #000; border: none; padding: 10px 25px; 
+            font-weight: bold; border-radius: 4px; float: right; margin-top: -50px; cursor: pointer;
         }
         .btn-add-new:hover { background: #e68900; color: #fff; }
+        
+        .dark-input { background: #000; border: 1px solid #444; color: #fff; padding: 5px; border-radius: 4px; width: 80px; text-align: center; }
 
-        /* Status Badge */
-        .badge-status { padding: 5px 10px; border-radius: 4px; font-size: 11px; text-transform: uppercase; font-weight: bold; }
-        .st-pending { background: #ff9800; color: #000; }
-        .st-approved { background: #4caf50; color: #fff; }
-        .st-shipped { background: #2196f3; color: #fff; }
+        /* Modal */
+        .custom-modal-overlay {
+            display: none;
+            position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            align-items: center; justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+        .custom-modal-content {
+            background-color: #1a1a1a; border: 1px solid #333; width: 90%; max-width: 500px;
+            padding: 25px; border-radius: 8px; position: relative; box-shadow: 0 0 20px rgba(255, 152, 0, 0.2);
+        }
+        .custom-modal-header h4 { margin-top: 0; color: #fff; font-family: 'Orbitron'; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .close-modal-btn { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #666; }
+        .close-modal-btn:hover { color: #fff; }
+        
+        .modal-input { width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 10px; margin-bottom: 15px; border-radius: 4px; }
+        .modal-label { font-size: 12px; color: #888; margin-bottom: 5px; display: block; }
+        .modal-btn { width: 100%; background: #ff9800; color: #000; border: none; padding: 12px; font-weight: bold; margin-top: 10px; cursor: pointer; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -66,142 +81,202 @@
     </nav>
 
     <div class="container">
-        <!-- Header & Add Button -->
         <h2 style="font-family:'Orbitron'; margin-top: 30px;">Bulk Dashboard</h2>
-        <button class="btn-add-new" onclick="alert('Feature coming soon: Add Wholesale Product')">+ Add Stock</button>
+        
+        <button class="btn-add-new" onclick="openAddModal()">+ Add Stock</button>
 
-        <!-- Tabs -->
         <ul class="nav nav-tabs">
-            <li class="active"><a data-toggle="tab" href="#orders">Retailer Orders</a></li>
-            <li><a data-toggle="tab" href="#inventory">Bulk Inventory</a></li>
-        </ul>
+            <li class="active"><a onclick="switchTab('orders')">Retailer Orders</a></li>
+            <li><a onclick="switchTab('inventory')">Bulk Inventory</a></li>
+            </ul>
 
         <div class="tab-content" style="padding-top: 20px;">
             
-            <!-- ORDERS TAB (Primary Focus for Wholesaler) -->
-            <div id="orders" class="tab-pane fade in active">
+            <div id="orders" class="tab-pane active">
                 <div id="orders-list">
                     <p class="text-center" style="padding:40px;">Loading bulk orders...</p>
                 </div>
             </div>
 
-            <!-- INVENTORY TAB -->
-            <div id="inventory" class="tab-pane fade">
-                <div id="inventory-list">
-                    <!-- For MVP, we can reuse the regular product list or a specific endpoint if created -->
-                    <p class="text-center" style="padding:40px; color:#777;">
-                        <i class="fa fa-cubes" style="font-size:40px; margin-bottom:10px;"></i><br>
-                        Your bulk inventory will appear here.
-                    </p>
-                </div>
+            <div id="inventory" class="tab-pane" style="display:none;">
+                <div id="inventory-list" class="row"></div>
             </div>
+            
         </div>
     </div>
 
-    <!-- Scripts -->
+    <div id="addModal" class="custom-modal-overlay">
+        <div class="custom-modal-content">
+            <span class="close-modal-btn" onclick="closeAddModal()">&times;</span>
+            <div class="custom-modal-header">
+                <h4>Add Wholesale Item</h4>
+            </div>
+            
+            <label class="modal-label">Item Name</label>
+            <input type="text" id="np-name" class="modal-input" placeholder="e.g. Basmati Rice 25kg">
+            
+            <div class="row">
+                <div class="col-xs-4">
+                    <label class="modal-label">Price (₹)</label>
+                    <input type="number" id="np-price" class="modal-input" placeholder="0.00">
+                </div>
+                <div class="col-xs-4">
+                    <label class="modal-label">Stock</label>
+                    <input type="number" id="np-stock" class="modal-input" placeholder="Qty">
+                </div>
+                <div class="col-xs-4">
+                    <label class="modal-label">Min Order</label>
+                    <input type="number" id="np-min" value="10" class="modal-input">
+                </div>
+            </div>
+
+            <label class="modal-label">Product Image</label>
+            <input type="file" id="np-image" class="modal-input" accept="image/*" style="padding:5px;">
+
+            <button class="modal-btn" onclick="addProduct()">Add to Inventory</button>
+        </div>
+    </div>
+
     <script src="assets/js/vendor/jquery-1.11.2.min.js"></script>
     <script src="assets/js/vendor/bootstrap.min.js"></script>
 
     <script>
         const token = localStorage.getItem('token');
-        const role = localStorage.getItem('user_role');
-
-        if(!token || role !== 'wholesaler') {
-            alert("Access Denied. Please login as a Wholesaler.");
-            window.location.href = "Wholesaler.html";
-        }
+        if(!token) window.location.href = "Wholesaler.html";
 
         document.addEventListener('DOMContentLoaded', () => {
             loadWholesaleOrders();
         });
 
-        // --- 1. LOAD WHOLESALE ORDERS ---
-        async function loadWholesaleOrders() {
-            try {
-                // Note: Ensure this endpoint is active in main.py
-                const res = await fetch('/wholesaler/orders', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                
-                if(!res.ok) throw new Error("Failed to load");
+        function switchTab(id) {
+            document.querySelectorAll('.tab-pane').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.nav-tabs li').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(id).style.display = 'block';
+            event.currentTarget.parentElement.classList.add('active');
+            
+            if(id === 'orders') loadWholesaleOrders();
+            if(id === 'inventory') loadInventory();
+        }
 
-                const orders = await res.json();
-                const container = document.getElementById('orders-list');
-                container.innerHTML = '';
+        function openAddModal() { document.getElementById('addModal').style.display = 'flex'; }
+        function closeAddModal() { document.getElementById('addModal').style.display = 'none'; }
 
-                if(orders.length === 0) {
-                    container.innerHTML = '<p class="text-center">No incoming orders from Retailers.</p>';
-                    return;
-                }
+        // --- INVENTORY ---
+        async function loadInventory() {
+            const res = await fetch('/wholesaler/my-products', { headers: { 'Authorization': `Bearer ${token}` } });
+            const items = await res.json();
+            const container = document.getElementById('inventory-list');
+            container.innerHTML = '';
 
-                // Show newest first
-                orders.reverse();
+            if(items.length === 0) container.innerHTML = '<p class="text-center" style="color:#777;">No items in inventory.</p>';
 
-                orders.forEach(o => {
-                    let badgeClass = 'st-pending';
-                    if(o.status === 'Shipped') badgeClass = 'st-shipped';
-                    if(o.status === 'Delivered') badgeClass = 'st-approved';
-
-                    const html = `
-                    <div class="order-card">
+            items.forEach(i => {
+                const imgUrl = i.image_url || 'assets/img/default.png';
+                container.innerHTML += `
+                <div class="col-md-6">
+                    <div class="inv-card">
+                        <img src="${imgUrl}" style="width:70px; height:70px; object-fit:cover; border-radius:5px; margin-right:15px; border:1px solid #333;">
                         <div style="flex-grow:1;">
-                            <h4 style="margin:0; color:#fff;">Bulk Order #${o.id}</h4>
-                            <p style="color:#777; margin:5px 0;">
-                                Retailer ID: <span style="color:#fff;">${o.retailer_id}</span> | 
-                                Date: ${new Date(o.order_date).toLocaleDateString()}
-                            </p>
-                            <h5 style="color:#ff9800;">Total Value: ₹${o.total_price}</h5>
-                            <div style="font-size:12px; color:#aaa;">
-                                Destination: ${o.delivery_address}
+                            <div style="display:flex; justify-content:space-between;">
+                                <h4 style="color:#fff; margin:0; font-size:16px;">${i.name}</h4>
+                                <button class="btn-update" onclick="updateItem(${i.id})">Save</button>
+                            </div>
+                            <hr style="border-color:#333; margin:10px 0;">
+                            <div class="row">
+                                <div class="col-xs-4"><label style="font-size:9px; color:#777;">PRICE</label><input type="number" id="p-${i.id}" value="${i.price}" class="dark-input"></div>
+                                <div class="col-xs-4"><label style="font-size:9px; color:#777;">STOCK</label><input type="number" id="s-${i.id}" value="${i.stock}" class="dark-input"></div>
+                                <div class="col-xs-4"><label style="font-size:9px; color:#777;">MIN</label><input type="number" id="m-${i.id}" value="${i.min_qty}" class="dark-input"></div>
                             </div>
                         </div>
-
-                        <div style="text-align:right;">
-                            <span class="badge-status ${badgeClass}" style="display:inline-block; margin-bottom:10px;">${o.status}</span>
-                            <br>
-                            
-                            ${o.status === 'Pending' ? 
-                                `<button class="btn-update" onclick="approveOrder(${o.id})">Approve & Ship</button>` : 
-                                `<span style="color:#555; font-size:12px;">Completed</span>`
-                            }
-                        </div>
-                    </div>`;
-                    container.innerHTML += html;
-                });
-            } catch(e) { 
-                console.error(e);
-                document.getElementById('orders-list').innerHTML = '<p class="text-center text-danger">Error fetching orders.</p>';
-            }
+                    </div>
+                </div>`;
+            });
         }
 
-        // --- 2. APPROVE ORDER ---
-        async function approveOrder(id) {
-            if(!confirm("Confirm shipment for Order #" + id + "?")) return;
+        async function addProduct() {
+            const btn = document.querySelector('.modal-btn');
+            btn.disabled = true; btn.innerText = "Uploading...";
+
+            const formData = new FormData();
+            formData.append('name', document.getElementById('np-name').value);
+            formData.append('price', document.getElementById('np-price').value);
+            formData.append('stock', document.getElementById('np-stock').value);
+            formData.append('min_qty', document.getElementById('np-min').value);
+            
+            const img = document.getElementById('np-image');
+            if (img.files[0]) formData.append('image', img.files[0]);
 
             try {
-                const res = await fetch(`/wholesaler/orders/${id}/status`, {
-                    method: 'PUT',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}` 
-                    },
-                    body: JSON.stringify({ status: "Shipped" })
+                const res = await fetch('/wholesaler/products/add', {
+                    method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: formData
                 });
-
+                
                 if(res.ok) {
-                    alert("Order Approved & Shipped!");
-                    loadWholesaleOrders(); // Refresh list
+                    alert("Product Added!");
+                    closeAddModal();
+                    loadInventory();
                 } else {
                     const err = await res.json();
-                    alert("Failed: " + err.detail);
+                    alert("Error: " + err.detail);
                 }
-            } catch(e) { console.error(e); }
+            } catch(e) { alert("Connection Error"); }
+            finally { btn.disabled = false; btn.innerText = "Add to Inventory"; }
         }
 
-        function logout() {
-            localStorage.clear();
-            window.location.href = 'index.html';
+        async function updateItem(id) {
+            const data = {
+                price: parseFloat(document.getElementById(`p-${id}`).value),
+                stock: parseInt(document.getElementById(`s-${id}`).value),
+                min_qty: parseInt(document.getElementById(`m-${id}`).value)
+            };
+            const res = await fetch(`/wholesaler/products/${id}`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(data)
+            });
+            if(res.ok) alert("Updated!");
         }
+
+        // --- ORDERS ---
+        async function loadWholesaleOrders() {
+            const res = await fetch('/wholesaler/orders', { headers: { 'Authorization': `Bearer ${token}` } });
+            const orders = await res.json();
+            const container = document.getElementById('orders-list');
+            container.innerHTML = '';
+            
+            if(orders.length === 0) { container.innerHTML = '<p class="text-center" style="color:#777;">No pending orders.</p>'; return; }
+
+            orders.forEach(o => {
+                let itemsHtml = o.items.map(i => `<div style="display:flex; justify-content:space-between; font-size:13px; color:#ccc; border-bottom:1px solid #222; padding:4px 0;"><span>${i.product_name} <span style="color:#777;">(x${i.quantity})</span></span><span>₹${i.price_per_unit}</span></div>`).join('');
+
+                container.innerHTML += `
+                <div class="order-card">
+                    <div style="flex-grow:1;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <h4 style="margin:0; color:#fff;">Order #${o.id}</h4>
+                            <span style="color:#ff9800; font-weight:bold;">${o.status}</span>
+                        </div>
+                        <p style="color:#777; margin:5px 0; font-size:12px;">${new Date(o.order_date).toLocaleDateString()} | <b style="color:#fff;">${o.retailer_name}</b></p>
+                        <div style="background:#0a0a0a; padding:10px; border-radius:5px; margin:10px 0;">${itemsHtml}</div>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div><h4 style="color:#00f3ff; margin:0;">Total: ₹${o.total_price}</h4></div>
+                            <button class="btn-update" onclick="approveOrder(${o.id})">Ship Order</button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+        }
+
+        async function approveOrder(id) {
+            if(!confirm("Confirm shipment?")) return;
+            const res = await fetch(`/wholesaler/orders/${id}/status`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ status: "Shipped" })
+            });
+            if(res.ok) { alert("Order Shipped!"); loadWholesaleOrders(); }
+            else { const err = await res.json(); alert("Failed: " + err.detail); }
+        }
+
+        function logout() { localStorage.clear(); window.location.href = 'index.html'; }
     </script>
 </body>
 </html>

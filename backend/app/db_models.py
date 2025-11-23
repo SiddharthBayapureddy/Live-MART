@@ -163,6 +163,18 @@ class WholesaleOrder(SQLModel, table=True):
     delivery_address: Optional[str] = Field(default=None)
 
 
+# --- Wholesaler Specific Inventory ---
+class WholesalerProduct(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    wholesaler_id: int = Field(foreign_key="wholesaler.id")
+    name: str
+    price: float  # Bulk price per unit
+    stock: int    # Total units available
+    min_qty: int = Field(default=10) # Minimum order quantity
+    image_url: Optional[str] = Field(default="product_images/default.png")
+
+
+
 
 # --------------------------------------------------------------------------------------------------------------------
 # Wholesale Order Item Table Definition (NEW)

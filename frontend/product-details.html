@@ -12,41 +12,43 @@
     <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700|Orbitron:400,700&display=swap" rel="stylesheet">
 
     <style>
-        /* Ensure background matches Dashboard */
+        /* Global Dark Theme */
         body {
             background-color: #050505;
             background-image: 
-                linear-gradient(rgba(0, 243, 255, 0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 243, 255, 0.1) 1px, transparent 1px);
+                linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
             background-size: 40px 40px;
             background-attachment: fixed;
             color: #e0e0e0;
+            font-family: 'Montserrat', sans-serif;
         }
 
         .navbar-default {
-            background-color: #fff;
-            border-bottom: 1px solid #e7e7e7;
+            background-color: rgba(17, 17, 17, 0.95);
+            border-bottom: 1px solid #333;
+            backdrop-filter: blur(5px);
         }
 
-        /* Specific Styles for Product Details */
+        /* Product Card */
         .details-container {
             margin-top: 80px;
-            background: rgba(20, 20, 20, 0.9);
+            background: rgba(20, 20, 20, 0.8);
             border: 1px solid #333;
             padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             margin-bottom: 50px;
+            backdrop-filter: blur(10px);
         }
 
         .product-preview-img {
             width: 100%;
-            height: 400px; /* Fixed height for consistency */
+            height: 400px; 
             object-fit: contain;
             border-radius: 8px;
-            border: 2px solid #333;
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
-            background: #fff;
+            background: rgba(255,255,255,0.03);
+            padding: 20px;
         }
 
         .details-title {
@@ -71,72 +73,44 @@
             font-size: 16px;
             line-height: 1.8;
             margin-bottom: 30px;
-            font-family: 'Montserrat', sans-serif;
         }
 
-        .meta-info {
-            color: #888;
-            font-size: 14px;
-            margin-bottom: 8px;
-            font-family: 'Montserrat', sans-serif;
-        }
+        .meta-info { color: #888; font-size: 14px; margin-bottom: 8px; }
 
         .btn-buy-now {
-            background: #00f3ff;
-            color: #000;
-            border: none;
-            padding: 12px 35px;
-            font-weight: bold;
-            font-size: 16px;
-            text-transform: uppercase;
-            margin-right: 15px;
-            transition: 0.3s;
-            border-radius: 2px;
-            cursor: pointer;
+            background: #00f3ff; color: #000; border: none; padding: 12px 35px;
+            font-weight: bold; font-size: 16px; text-transform: uppercase;
+            margin-right: 15px; transition: 0.3s; border-radius: 4px; cursor: pointer;
         }
-        .btn-buy-now:hover {
-            background: #fff;
-            box-shadow: 0 0 20px rgba(0, 243, 255, 0.6);
-        }
+        .btn-buy-now:hover { background: #fff; box-shadow: 0 0 20px rgba(0, 243, 255, 0.6); }
 
         .btn-add-cart {
-            background: transparent;
-            color: #00f3ff;
-            border: 2px solid #00f3ff;
-            padding: 10px 30px;
-            font-weight: bold;
-            font-size: 16px;
-            transition: 0.3s;
-            border-radius: 2px;
-            cursor: pointer;
+            background: transparent; color: #00f3ff; border: 2px solid #00f3ff;
+            padding: 10px 30px; font-weight: bold; font-size: 16px;
+            transition: 0.3s; border-radius: 4px; cursor: pointer;
         }
-        .btn-add-cart:hover {
-            background: rgba(0, 243, 255, 0.1);
-            color: #fff;
-        }
+        .btn-add-cart:hover { background: rgba(0, 243, 255, 0.1); color: #fff; }
         
         .btn-disabled {
-            background: #555 !important;
-            color: #aaa !important;
-            border-color: #555 !important;
+            background: rgba(255,255,255,0.05) !important;
+            color: #666 !important;
+            border-color: #444 !important;
             cursor: not-allowed;
         }
 
-        .nav-search-btn {
-            display: flex !important;
-            align-items: center;
-            justify-content: center;
-            width: 35px;
-            height: 35px;
-            padding: 0 !important;
-            margin: 0 !important;
-            border-radius: 50%;
-            background: #f5f5f5;
-            color: #333;
-            border: 1px solid #ddd;
-            position: relative;
-            top: 2px;
+        /* Reviews Section */
+        .review-box {
+            background: rgba(255,255,255,0.03);
+            padding: 25px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            margin-bottom: 30px;
         }
+        .review-input {
+            width: 100%; background: #000; border: 1px solid #444;
+            color: #fff; padding: 10px; border-radius: 4px; margin-top: 10px;
+        }
+        .review-input:focus { outline: none; border-color: #00f3ff; }
     </style>
 </head>
 <body>
@@ -150,17 +124,17 @@
             </div>
             <ul class="nav navbar-nav navbar-right" style="display: flex; align-items: center; height: 50px; margin: 0;">
                 <li style="margin-right: 20px; list-style: none;">
-                    <span class="nav-welcome-text" style="color: #333;">Welcome, <b id="user-name-display">Guest</b></span>
+                    <span class="nav-welcome-text" style="color: #ccc;">Welcome, <b id="user-name-display" style="color:#fff;">Guest</b></span>
                 </li>
                 <li style="list-style: none;">
-                    <button id="auth-btn" onclick="handleAuth()" style="border: 2px solid #333; background: transparent; color: #333; padding: 5px 15px; font-weight: bold;">Login</button>
+                    <button id="auth-btn" onclick="handleAuth()" style="border: 1px solid #ccc; background: transparent; color: #ccc; padding: 5px 15px; font-weight: bold; border-radius: 20px;">Login</button>
                 </li>
             </ul>
         </div>
     </nav>
 
     <div class="container details-container">
-        <a href="dashboard.html" style="color: #fff; text-decoration: none; margin-bottom: 20px; display: inline-block; font-family: 'Montserrat', sans-serif;">
+        <a href="dashboard.html" style="color: #aaa; text-decoration: none; margin-bottom: 20px; display: inline-block;">
             <i class="fa fa-arrow-left" style="color: #00f3ff;"></i> Back to Dashboard
         </a>
         
@@ -172,22 +146,58 @@
         </div>
     </div>
 
+    <div class="container" style="margin-bottom: 60px;">
+        <div class="row">
+            <div class="col-md-12">
+                <h3 style="color:#fff; font-family:'Orbitron'; margin-bottom: 20px;">Customer Reviews</h3>
+                
+                <div class="review-box">
+                    <h5 style="color:#00f3ff; margin-top:0;">Write a Review</h5>
+                    <select id="review-rating" class="review-input" style="width: auto;">
+                        <option value="5">⭐⭐⭐⭐⭐ Excellent (5/5)</option>
+                        <option value="4">⭐⭐⭐⭐ Good (4/5)</option>
+                        <option value="3">⭐⭐⭐ Average (3/5)</option>
+                        <option value="2">⭐⭐ Poor (2/5)</option>
+                        <option value="1">⭐ Terrible (1/5)</option>
+                    </select>
+                    <textarea id="review-comment" rows="3" class="review-input" placeholder="Share your thoughts about this product..."></textarea>
+                    <button onclick="submitReview()" style="margin-top:15px; background:#00f3ff; color:#000; border:none; padding:8px 20px; font-weight:bold; border-radius:4px;">Post Review</button>
+                </div>
+
+                <div id="reviews-list">
+                    <p style="color:#777; font-style:italic;">Loading reviews...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // 1. Initialize Page
+        let currentProductId = null;
+
+        // 1. Initialize
         document.addEventListener('DOMContentLoaded', () => {
             checkAuth();
-            loadProductDetails();
+            
+            const params = new URLSearchParams(window.location.search);
+            currentProductId = params.get('id');
+            
+            if(currentProductId) {
+                loadProductDetails(currentProductId);
+                loadReviews(currentProductId);
+            } else {
+                document.getElementById('product-content-area').innerHTML = `<h3 class="text-center">Invalid Product ID</h3>`;
+            }
         });
 
         // 2. Auth Checker
         function checkAuth() {
             const token = localStorage.getItem('token');
-            const userEmail = localStorage.getItem('user_email');
+            const userName = localStorage.getItem('user_name');
             const nameDisplay = document.getElementById('user-name-display');
             const authBtn = document.getElementById('auth-btn');
 
-            if (token && userEmail) {
-                nameDisplay.textContent = userEmail;
+            if (token) {
+                nameDisplay.textContent = userName || "User";
                 authBtn.textContent = "Logout";
             } else {
                 nameDisplay.textContent = "Guest";
@@ -198,7 +208,6 @@
         function handleAuth() {
             const token = localStorage.getItem('token');
             if (token) {
-                // Logout logic
                 localStorage.clear();
                 window.location.href = 'index.html';
             } else {
@@ -206,56 +215,35 @@
             }
         }
 
-        // 3. Main Logic: Fetch and Render
-        async function loadProductDetails() {
-            const params = new URLSearchParams(window.location.search);
-            const productId = params.get('id');
-            const contentArea = document.getElementById('product-content-area');
-
-            if (!productId) {
-                contentArea.innerHTML = `<div class="col-12 text-center"><h3>Invalid Product ID</h3></div>`;
-                return;
-            }
-
+        // 3. Load Product
+        async function loadProductDetails(pid) {
             try {
-                // Fetch from BACKEND (main.py: @app.get("/products/{product_id}"))
-                const response = await fetch(`/products/${productId}`);
-                
+                const response = await fetch(`/products/${pid}`);
                 if (!response.ok) throw new Error("Product not found");
-
                 const product = await response.json();
                 renderProduct(product);
-
             } catch (error) {
                 console.error(error);
-                contentArea.innerHTML = `
+                document.getElementById('product-content-area').innerHTML = `
                     <div class="col-md-12 text-center" style="margin-top:50px;">
                         <h2 style="color: #fff;">Product Not Found</h2>
-                        <p style="color: #777;">The item ID ${productId} does not exist.</p>
                         <a href="dashboard.html" style="color: #00f3ff;">Return to Shop</a>
                     </div>`;
             }
         }
 
-        // 4. Render HTML
         function renderProduct(product) {
             const contentArea = document.getElementById('product-content-area');
-            
-            // Check stock logic
             const inStock = product.stock > 0;
             const stockStatus = inStock 
                 ? `<span style="color:#0f0;">In Stock (${product.stock} available)</span>` 
                 : `<span style="color:#f00;">Out of Stock</span>`;
 
-            const btnState = inStock ? '' : 'disabled class="btn-add-cart btn-disabled"';
-            
-            // Fallback image
-            const imgSrc = product.image_url ? product.image_url : 'assets/img/default.png';
+            const imgSrc = product.image_url || 'assets/img/default.png';
 
             contentArea.innerHTML = `
                 <div class="col-md-6">
-                    <img src="${imgSrc}" alt="${product.name}" class="product-preview-img" 
-                        onerror="this.src='https://via.placeholder.com/600?text=No+Image'">
+                    <img src="${imgSrc}" alt="${product.name}" class="product-preview-img" onerror="this.src='https://via.placeholder.com/600?text=No+Image'">
                 </div>
                 <div class="col-md-6">
                     <h1 class="details-title">${product.name}</h1>
@@ -279,55 +267,83 @@
                             ${inStock ? 'Add to Cart' : 'Out of Stock'}
                         </button>
                     </div>
-                </div>
-            `;
+                </div>`;
         }
 
-        // 5. Add to Cart Functionality (Connected to Backend)
+        // 4. Load Reviews
+        async function loadReviews(pid) {
+            const res = await fetch(`/products/${pid}/feedback`);
+            const reviews = await res.json();
+            const list = document.getElementById('reviews-list');
+            list.innerHTML = '';
+
+            if(reviews.length === 0) {
+                list.innerHTML = '<p style="color:#777; font-style:italic;">No reviews yet. Be the first!</p>';
+                return;
+            }
+
+            reviews.forEach(r => {
+                list.innerHTML += `
+                <div style="border-bottom:1px solid #333; padding:20px 0;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <strong style="color:#fff; font-size:16px;">${r.user}</strong>
+                        <span style="color:#ff9800;">${"★".repeat(r.rating)}</span>
+                    </div>
+                    <p style="color:#ccc; margin-top:10px; font-size:14px;">${r.comment || ""}</p>
+                    <small style="color:#666;">${new Date(r.date).toDateString()}</small>
+                </div>`;
+            });
+        }
+
+        // 5. Submit Review
+        async function submitReview() {
+            const token = localStorage.getItem('token');
+            if(!token) return alert("Please login to write a review.");
+
+            const rating = document.getElementById('review-rating').value;
+            const comment = document.getElementById('review-comment').value;
+
+            try {
+                const res = await fetch('/feedback/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ product_id: currentProductId, rating: rating, comment: comment })
+                });
+
+                if(res.ok) {
+                    alert("Review Posted Successfully!");
+                    document.getElementById('review-comment').value = "";
+                    loadReviews(currentProductId);
+                } else {
+                    const err = await res.json();
+                    alert("Failed: " + (err.detail || "Unknown error"));
+                }
+            } catch(e) { alert("Connection error."); }
+        }
+
+        // 6. Add to Cart
         async function addToCart(productId) {
             const token = localStorage.getItem('token');
-            
             if (!token) {
                 alert("Please login to add items to your cart.");
                 window.location.href = 'index.html';
                 return;
             }
-
             try {
                 const response = await fetch('/cart/add', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        product_id: productId,
-                        quantity: 1
-                    })
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ product_id: productId, quantity: 1 })
                 });
-
-                if (response.ok) {
-                    alert("Item added to cart successfully!");
-                } else {
-                    const err = await response.json();
-                    alert("Error: " + (err.detail || "Failed to add to cart"));
-                }
-            } catch (error) {
-                console.error("Cart error:", error);
-                alert("Something went wrong. Check console.");
-            }
+                if (response.ok) alert("Item added to cart!");
+                else { const err = await response.json(); alert("Error: " + err.detail); }
+            } catch (error) { alert("Network error."); }
         }
 
         function buyNow(productId) {
-            // Check if logged in, then add to cart and redirect to cart page
             const token = localStorage.getItem('token');
-            if(!token) {
-                window.location.href = 'index.html';
-                return;
-            }
-            addToCart(productId).then(() => {
-                window.location.href = 'cart.html';
-            });
+            if(!token) { window.location.href = 'index.html'; return; }
+            addToCart(productId).then(() => window.location.href = 'cart.html');
         }
     </script>
 </body>

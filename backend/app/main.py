@@ -1,6 +1,5 @@
 # App
 
-
 # Importing FastAPI
 from fastapi import FastAPI , HTTPException , status, Depends, Form , BackgroundTasks,UploadFile,File
 
@@ -37,10 +36,12 @@ from auth import (
 
     oauth, # Google OAuth
 
+
     # SMPT OTP Config
     send_otp_email,
     send_verification_email, # <--- NEW: Imported for signup verification
-    generate_otp
+    generate_otp,
+    send_admin_query_email
 )
 
 # Importing custom-built database models and functions
@@ -87,6 +88,9 @@ from db_models import (Customer,
                         Category,
                         OrderItem,
                         WholesaleOrderItem,
+                        Feedback,
+                        WholesalerProduct,
+                        WholesaleOrder,
                     
                         )
 
@@ -463,6 +467,143 @@ async def get_me(wholesaler: Wholesaler = Depends(get_current_wholesaler)):
     return wholesaler
 
 
+# --- WHOLESALER INVENTORY MANAGEMENT ---
+
+# --- IN main.py ---
+
+@app.post("/wholesaler/products/add", response_model=WholesalerProduct, tags=["Wholesaler Workflow"])
+async def add_wholesale_product(
+    name: str = Form(...),
+    price: float = Form(...),
+    stock: int = Form(...),
+    min_qty: int = Form(10),
+    image: UploadFile = File(None), # <--- Image Upload
+    current_wholesaler: Wholesaler = Depends(get_current_wholesaler)
+):
+    # 1. Create DB Object
+    with Session(engine) as session:
+        new_item = WholesalerProduct(
+            wholesaler_id=current_wholesaler.id,
+            name=name,
+            price=price,
+            stock=stock,
+            min_qty=min_qty,
+            image_url="product_images/default.png" # Default
+        )
+        session.add(new_item)
+        session.commit()
+        session.refresh(new_item)
+
+        # 2. Handle Image File
+        if image:
+            try:
+                file_ext = image.filename.split(".")[-1]
+                # Unique Name: ws_{id}_{uuid}.ext
+                file_name = f"ws_{new_item.id}_{uuid.uuid4()}.{file_ext}"
+                file_path = os.path.join(product_images_dir, file_name)
+                
+                with open(file_path, "wb") as buffer:
+                    shutil.copyfileobj(image.file, buffer)
+                
+                # Update URL in DB
+                new_item.image_url = f"product_images/{file_name}"
+                session.add(new_item)
+                session.commit()
+                session.refresh(new_item)
+            except Exception as e:
+                print(f"Image upload failed: {e}")
+
+        return new_item
+
+@app.get("/wholesaler/my-products", response_model=List[WholesalerProduct], tags=["Wholesaler Workflow"])
+def get_my_wholesale_inventory(current_wholesaler: Wholesaler = Depends(get_current_wholesaler)):
+    with Session(engine) as session:
+        statement = select(WholesalerProduct).where(WholesalerProduct.wholesaler_id == current_wholesaler.id)
+        return session.exec(statement).all()
+
+@app.put("/wholesaler/products/{item_id}", response_model=WholesalerProduct, tags=["Wholesaler Workflow"])
+def update_wholesale_product(
+    item_id: int,
+    update_data: WholesalerProductUpdate,
+    current_wholesaler: Wholesaler = Depends(get_current_wholesaler)
+):
+    with Session(engine) as session:
+        item = session.get(WholesalerProduct, item_id)
+        if not item or item.wholesaler_id != current_wholesaler.id:
+            raise HTTPException(status_code=404, detail="Item not found")
+        
+        if update_data.price is not None: item.price = update_data.price
+        if update_data.stock is not None: item.stock = update_data.stock
+        if update_data.min_qty is not None: item.min_qty = update_data.min_qty
+        
+        session.add(item)
+        session.commit()
+        session.refresh(item)
+        return item
+    
+
+
+@app.get("/wholesaler/orders", response_model=List[WholesaleOrderRead], tags=["Wholesaler Workflow"])
+def get_wholesale_orders(current_wholesaler: Wholesaler = Depends(get_current_wholesaler)):
+    with Session(engine) as session:
+        # Fetch pending/processing orders
+        statement = select(WholesaleOrder).where(
+            (WholesaleOrder.wholesaler_id == current_wholesaler.id) &
+            (WholesaleOrder.status.in_(["Pending", "Processing"]))
+        ).order_by(WholesaleOrder.order_date.desc())
+        
+        orders = session.exec(statement).all()
+        return _build_order_response(session, orders)
+
+
+@app.get("/wholesaler/history", response_model=List[WholesaleOrderRead], tags=["Wholesaler Workflow"])
+def get_wholesale_history(current_wholesaler: Wholesaler = Depends(get_current_wholesaler)):
+    with Session(engine) as session:
+        # Fetch completed orders
+        statement = select(WholesaleOrder).where(
+            (WholesaleOrder.wholesaler_id == current_wholesaler.id) &
+            (WholesaleOrder.status.in_(["Shipped", "Delivered", "Approved"]))
+        ).order_by(WholesaleOrder.order_date.desc())
+        
+        orders = session.exec(statement).all()
+        return _build_order_response(session, orders)
+
+# --- HELPER FUNCTION TO POPULATE DETAILS ---
+def _build_order_response(session, orders):
+    results = []
+    for o in orders:
+        # 1. Get Retailer Name
+        retailer = session.get(Retailer, o.retailer_id)
+        r_name = retailer.business_name if retailer else f"Retailer #{o.retailer_id}"
+        
+        # 2. Get Items & Product Names
+        # We join WholesaleOrderItem with WholesalerProduct to get the name
+        items = session.exec(
+            select(WholesaleOrderItem, WholesalerProduct.name)
+            .join(WholesalerProduct, WholesalerProduct.id == WholesaleOrderItem.product_id)
+            .where(WholesaleOrderItem.wholesale_order_id == o.id)
+        ).all()
+        
+        item_list = []
+        for w_item, p_name in items:
+            item_list.append({
+                "product_name": p_name,
+                "quantity": w_item.quantity,
+                "price_per_unit": w_item.price_per_unit
+            })
+        
+        results.append({
+            "id": o.id,
+            "retailer_name": r_name,
+            "order_date": o.order_date,
+            "status": o.status,
+            "total_price": o.total_price,
+            "delivery_address": o.delivery_address,
+            "items": item_list
+        })
+    return results
+
+
 # -------------------------------------------------------------------------------------------------------------------------------------------------
 # Account Verification Endpoints 
 # -------------------------------------------------------------------------------------------------------------------------------------------------
@@ -779,26 +920,75 @@ async def get_customer_history(current_retailer: Retailer = Depends(get_current_
 # For simplicity, we'll return a mock list or query a specific "Wholesale" category if you have one.
 # Let's assume we create a fake list for now to demonstrate the UI.
 @app.get("/retailer/wholesale-market", tags=["Retailer Workflow"])
-async def get_wholesale_market(current_retailer: Retailer = Depends(get_current_retailer)):
-    # In a real app, you'd query the Product table where `is_wholesale=True`
-    # Here we return a static list for demonstration
-    return [
-        {"id": 901, "name": "Bulk Rice (50kg)", "price": 2500, "min_qty": 10, "supplier": "Global Grains"},
-        {"id": 902, "name": "Cotton T-Shirts (Pack of 100)", "price": 15000, "min_qty": 1, "supplier": "Textile Hub"},
-        {"id": 903, "name": "Smartphone Batch (10 units)", "price": 120000, "min_qty": 1, "supplier": "Tech Wholesalers"},
-        {"id": 904, "name": "Cooking Oil (20L)", "price": 3000, "min_qty": 5, "supplier": "Pure Oils Ltd"}
-    ]
+def get_wholesale_market(current_retailer: Retailer = Depends(get_current_retailer)):
+    with Session(engine) as session:
+        # Fetch REAL data from WholesalerProduct table
+        results = session.exec(
+            select(WholesalerProduct, Wholesaler.business_name)
+            .join(Wholesaler, Wholesaler.id == WholesalerProduct.wholesaler_id)
+            .where(WholesalerProduct.stock > 0)
+        ).all()
+        
+        market_items = []
+        for item, supplier_name in results:
+            market_items.append({
+                "id": item.id,
+                "name": item.name,
+                "price": item.price,
+                "min_qty": item.min_qty,
+                "stock": item.stock,
+                "supplier": supplier_name,
+                "image_url": item.image_url
+            })
+        return market_items
+    
+
 
 # 4. B2B: PLACE WHOLESALE ORDER
 @app.post("/retailer/wholesale-order", tags=["Retailer Workflow"])
-async def place_wholesale_order(
+def place_wholesale_order(
     item_id: int, 
     quantity: int, 
     current_retailer: Retailer = Depends(get_current_retailer)
 ):
-    # In a real app, this would create a WholesaleOrder record
-    # For now, we just simulate success
-    return {"message": f"Order placed for Item #{item_id} (Qty: {quantity}). Supplier notified."}
+    with Session(engine) as session:
+        # 1. Get Wholesaler Product
+        ws_product = session.get(WholesalerProduct, item_id)
+        if not ws_product:
+            raise HTTPException(status_code=404, detail="Item not found")
+            
+        # 2. Validate Stock
+        if ws_product.stock < quantity:
+            raise HTTPException(status_code=400, detail=f"Insufficient stock. Available: {ws_product.stock}")
+
+        # 3. DEDUCT STOCK (The Fix)
+        ws_product.stock -= quantity
+        session.add(ws_product)
+
+        # 4. Create Order Record
+        total_cost = ws_product.price * quantity
+        new_order = WholesaleOrder(
+            retailer_id=current_retailer.id,
+            wholesaler_id=ws_product.wholesaler_id,
+            status="Pending",
+            total_price=total_cost,
+            delivery_address=current_retailer.address
+        )
+        session.add(new_order)
+        session.commit()
+        session.refresh(new_order)
+        
+        # 5. Link Order Item
+        order_item = WholesaleOrderItem(
+            wholesale_order_id=new_order.id,
+            product_id=ws_product.id, # Linking to WholesalerProduct ID
+            quantity=quantity,
+            price_per_unit=ws_product.price
+        )
+        session.add(order_item)
+        session.commit()
+        
+        return {"message": "Order placed successfully! Stock reserved."}
 
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------
@@ -958,20 +1148,6 @@ async def update_order(
 
 # --- Wholesaler Workflow ---
 
-@app.get("/wholesaler/orders", response_model=List[WholesaleOrder], tags=["Wholesaler Workflow"])
-async def get_wholesale_orders(current_wholesaler: Wholesaler = Depends(get_current_wholesaler)):
-    with Session(engine) as session:
-        statement = select(WholesaleOrder).where(WholesaleOrder.wholesaler_id == current_wholesaler.id)
-        orders = session.exec(statement).all()
-        return orders
-
-# In main.py
-
-# ... inside main.py ...
-
-# REPLACE the existing update_wholesale_order_status with this:
-# FIND AND REPLACE THE ENTIRE 'update_wholesale_order_status' FUNCTION WITH THIS:
-
 @app.put("/wholesaler/orders/{order_id}/status", response_model=WholesaleOrder, tags=["Wholesaler Workflow"])
 def update_wholesale_order_status(
     order_id: int,
@@ -983,15 +1159,38 @@ def update_wholesale_order_status(
         if not order: raise HTTPException(status_code=404, detail="Order not found")
         if order.wholesaler_id != current_wholesaler.id: raise HTTPException(status_code=403, detail="Not authorized")
             
-        # --- ADDED STOCK UPDATE ---
-        if status_update.status in ["Shipped", "Approved"] and order.status not in ["Shipped", "Approved"]:
+        # --- STATUS LOGIC ---
+        # If changing to "Shipped", add stock to Retailer
+        if status_update.status == "Shipped" and order.status != "Shipped":
             items = session.exec(select(WholesaleOrderItem).where(WholesaleOrderItem.wholesale_order_id == order.id)).all()
+            
             for item in items:
-                product = session.get(Product, item.product_id)
-                if product:
-                    product.stock += item.quantity
-                    session.add(product)
-        # --------------------------
+                # Find product details from Wholesaler Inventory
+                ws_product = session.get(WholesalerProduct, item.product_id)
+                if not ws_product: continue
+
+                # Check if Retailer already has this product
+                retailer_product = session.exec(
+                    select(Product)
+                    .where(Product.retailer_id == order.retailer_id)
+                    .where(Product.name == ws_product.name)
+                ).first()
+
+                if retailer_product:
+                    retailer_product.stock += item.quantity
+                    session.add(retailer_product)
+                else:
+                    # Create new product for Retailer
+                    new_prod = Product(
+                        name=ws_product.name,
+                        price=ws_product.price * 1.2, # Default 20% markup
+                        stock=item.quantity,
+                        retailer_id=order.retailer_id,
+                        description="Sourced from Wholesaler",
+                        category_id=1, 
+                        image_url=ws_product.image_url
+                    )
+                    session.add(new_prod)
 
         order.status = status_update.status
         session.add(order)
@@ -1116,8 +1315,86 @@ async def verify_otp_only(request: OTPVerifyRequest):
 
 
 # ----------------------------------------------
-
+# FEEDBACK
 # -------------------------------------------------------------------------------------------------------------------------------------------------
+# --- CUSTOMER QUERY (CONTACT US) ---
+@app.post("/contact/send", status_code=status.HTTP_200_OK, tags=["General"])
+async def send_contact_query(form: ContactForm, background_tasks: BackgroundTasks):
+    await send_admin_query_email(form.model_dump(), background_tasks)
+    return {"message": "Query sent successfully!"}
+
+# --- FEEDBACK SYSTEM ---
+
+@app.post("/feedback/add", response_model=Feedback, tags=["Products"])
+def add_product_feedback(
+    feedback: FeedbackCreate,
+    customer: Customer = Depends(get_current_customer)
+):
+    with Session(engine) as session:
+        # Verify product exists
+        product = session.get(Product, feedback.product_id)
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+
+        new_feedback = Feedback(
+            product_id=feedback.product_id,
+            customer_id=customer.id,
+            rating=feedback.rating,
+            comment=feedback.comment
+        )
+        session.add(new_feedback)
+        session.commit()
+        session.refresh(new_feedback)
+        return new_feedback
+
+@app.get("/products/{product_id}/feedback", tags=["Products"])
+def get_product_reviews(product_id: int):
+    with Session(engine) as session:
+        # Join with Customer to get names
+        results = session.exec(
+            select(Feedback, Customer.name)
+            .join(Customer, Customer.id == Feedback.customer_id)
+            .where(Feedback.product_id == product_id)
+            .order_by(Feedback.created_at.desc())
+        ).all()
+        
+        reviews = []
+        for fb, c_name in results:
+            reviews.append({
+                "user": c_name,
+                "rating": fb.rating,
+                "comment": fb.comment,
+                "date": fb.created_at
+            })
+        return reviews
+
+@app.get("/retailer/feedback", response_model=List[FeedbackRead], tags=["Retailer Workflow"])
+def get_retailer_feedback(current_retailer: Retailer = Depends(get_current_retailer)):
+    with Session(engine) as session:
+        # Get feedback for ALL products owned by this retailer
+        results = session.exec(
+            select(Feedback, Product.name, Customer.name)
+            .join(Product, Product.id == Feedback.product_id)
+            .join(Customer, Customer.id == Feedback.customer_id)
+            .where(Product.retailer_id == current_retailer.id)
+            .order_by(Feedback.created_at.desc())
+        ).all()
+        
+        feedback_list = []
+        for fb, p_name, c_name in results:
+            feedback_list.append({
+                "id": fb.id,
+                "product_name": p_name,
+                "customer_name": c_name,
+                "rating": fb.rating,
+                "comment": fb.comment,
+                "created_at": fb.created_at
+            })
+        return feedback_list
+    
+# --- IN main.py ---
+
+\
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------------------------------------------------------

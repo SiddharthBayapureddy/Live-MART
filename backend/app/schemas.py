@@ -319,3 +319,53 @@ class AccountVerificationRequest(BaseModel):
     email: str
     otp: str
     role: Optional[str] = None
+
+# --------------------------------------------------------------------------------------------------------------------------------------------
+# --- Contact & Feedback Schemas ---
+
+class ContactForm(BaseModel):
+    name: str
+    email: EmailStr
+    subject: str
+    message: str
+
+class FeedbackCreate(BaseModel):
+    product_id: int
+    rating: int
+    comment: Optional[str] = None
+
+class FeedbackRead(BaseModel):
+    id: int
+    product_name: str
+    customer_name: str
+    rating: int
+    comment: Optional[str]
+    created_at: datetime
+
+# --- Wholesaler Inventory Schemas ---
+class WholesalerProductCreate(BaseModel):
+    name: str
+    price: float
+    stock: int
+    min_qty: int = 10
+
+class WholesalerProductUpdate(BaseModel):
+    price: Optional[float] = None
+    stock: Optional[int] = None
+    min_qty: Optional[int] = None
+
+# --- Wholesaler Order Read Schemas ---
+
+class WholesaleItemRead(BaseModel):
+    product_name: str
+    quantity: int
+    price_per_unit: float
+
+class WholesaleOrderRead(BaseModel):
+    id: int
+    retailer_name: str
+    order_date: datetime
+    status: str
+    total_price: float
+    delivery_address: Optional[str] = None
+    items: List[WholesaleItemRead] = []

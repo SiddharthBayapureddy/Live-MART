@@ -24,7 +24,7 @@
         .nav-menu { list-style: none; padding: 0; }
         .nav-menu li a {
             display: block; padding: 15px 25px; color: #888; text-decoration: none;
-            font-size: 14px; border-left: 3px solid transparent; transition: 0.3s;
+            font-size: 14px; border-left: 3px solid transparent; transition: 0.3s; cursor: pointer;
         }
         .nav-menu li a:hover, .nav-menu li a.active {
             background: #1a1a1a; color: #fff; border-left-color: #ff013c;
@@ -41,26 +41,21 @@
         }
         .dashboard-card:hover { border-color: #ff013c; transform: translateY(-2px); }
         
-        /* Inventory Specifics */
         .inv-img { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; border: 1px solid #333; float: left; margin-right: 20px; }
         .inv-details { overflow: hidden; }
         .inv-title { font-size: 16px; color: #fff; font-weight: bold; margin-bottom: 5px; }
         .inv-price { color: #ff013c; font-size: 18px; font-weight: bold; }
         
-        .edit-controls { 
-            display: flex; gap: 10px; margin-top: 10px; align-items: center;
-        }
-        .edit-input { 
-            background: #000; border: 1px solid #444; color: #fff; width: 70px; padding: 5px; text-align: center; border-radius: 4px;
-        }
+        .edit-controls { display: flex; gap: 10px; margin-top: 10px; align-items: center; }
+        .edit-input { background: #000; border: 1px solid #444; color: #fff; width: 70px; padding: 5px; text-align: center; border-radius: 4px; }
         
-        /* Action Buttons */
-        .btn-action {
-            padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; border: none; cursor: pointer;
-        }
+        /* Buttons */
+        .btn-action { padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; border: none; cursor: pointer; }
         .btn-save { background: #ff013c; color: #fff; }
         .btn-delete { background: transparent; border: 1px solid #444; color: #aaa; }
         .btn-delete:hover { border-color: red; color: red; }
+        .btn-edit { background: transparent; border: 1px solid #ff013c; color: #ff013c; margin-left: 10px; }
+        .btn-edit:hover { background: #ff013c; color: #fff; }
         .btn-add { background: #ff013c; color: #fff; padding: 10px 25px; border: none; border-radius: 30px; font-weight: bold; }
 
         /* Tables */
@@ -72,100 +67,125 @@
         /* Sections */
         .section-view { display: none; }
         .section-view.active { display: block; }
+        
+        /* MODAL STYLES */
+        .custom-modal-overlay { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .custom-modal-content { background-color: #1a1a1a; border: 1px solid #333; width: 90%; max-width: 500px; padding: 25px; border-radius: 8px; position: relative; box-shadow: 0 0 30px rgba(255, 1, 60, 0.2); }
+        .close-modal-btn { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #666; }
+        .close-modal-btn:hover { color: #fff; }
+        .modal-input { width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 10px; margin-bottom: 15px; border-radius: 4px; }
+        .modal-label { font-size: 12px; color: #888; margin-bottom: 5px; display: block; }
+        .modal-btn { width: 100%; background: #ff013c; color: #fff; border: none; padding: 12px; font-weight: bold; margin-top: 10px; cursor: pointer; border-radius: 4px; }
     </style>
 </head>
 <body>
 
-    <!-- SIDEBAR -->
     <div class="sidebar">
         <div class="sidebar-brand">Live <span>MART</span></div>
         <ul class="nav-menu">
-            <li><a href="#" onclick="showSection('inventory')" class="active" id="nav-inventory"><i class="fa fa-cubes"></i> My Inventory</a></li>
-            <li><a href="#" onclick="showSection('orders')" id="nav-orders"><i class="fa fa-shopping-cart"></i> Incoming Orders</a></li>
-            <li><a href="#" onclick="showSection('customers')" id="nav-customers"><i class="fa fa-users"></i> Customer History</a></li>
-            <li><a href="#" onclick="showSection('wholesale')" id="nav-wholesale"><i class="fa fa-truck"></i> Buy Wholesale</a></li>
-            <li><a href="#" onclick="logout()" style="margin-top: 50px;"><i class="fa fa-sign-out"></i> Logout</a></li>
+            <li><a onclick="showSection('inventory')" class="active" id="nav-inventory"><i class="fa fa-cubes"></i> My Inventory</a></li>
+            <li><a onclick="showSection('orders')" id="nav-orders"><i class="fa fa-shopping-cart"></i> Incoming Orders</a></li>
+            <li><a onclick="showSection('customers')" id="nav-customers"><i class="fa fa-users"></i> Customer History</a></li>
+            <li><a onclick="showSection('wholesale')" id="nav-wholesale"><i class="fa fa-truck"></i> Buy Wholesale</a></li>
+            <li><a onclick="showSection('feedback')" id="nav-feedback"><i class="fa fa-comments"></i> Customer Feedback</a></li>
+            <li><a onclick="logout()" style="margin-top: 50px;"><i class="fa fa-sign-out"></i> Logout</a></li>
         </ul>
     </div>
 
-    <!-- MAIN CONTENT -->
     <div class="main-content">
         
-        <!-- 1. INVENTORY SECTION -->
         <div id="inventory" class="section-view active">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
                 <h2 style="font-family:'Orbitron'; margin:0;">My Products</h2>
-                <button class="btn-add" onclick="window.location.href='retailer-add-product.html'">+ Add New Product</button>
+                <button class="btn-add" onclick="window.location.href='retailer-add-product.html'">+ Add Product</button>
             </div>
             <div id="inventory-list" class="row"></div>
         </div>
 
-        <!-- 2. ORDERS SECTION -->
         <div id="orders" class="section-view">
             <h2 style="font-family:'Orbitron'; margin-bottom:30px;">Incoming Orders</h2>
             <div id="orders-list"></div>
         </div>
 
-        <!-- 3. CUSTOMER HISTORY SECTION -->
         <div id="customers" class="section-view">
-            <h2 style="font-family:'Orbitron'; margin-bottom:30px;">Customer Purchase History</h2>
+            <h2 style="font-family:'Orbitron'; margin-bottom:30px;">Purchase History</h2>
             <div style="background:#1a1a1a; border:1px solid #333; border-radius:8px; overflow:hidden;">
                 <table class="dark-table">
                     <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Order ID</th>
-                            <th>Customer</th>
-                            <th>Product</th>
-                            <th>Qty</th>
-                            <th>Total Paid</th>
-                        </tr>
+                        <tr><th>Date</th><th>Order</th><th>Customer</th><th>Product</th><th>Qty</th><th>Total</th></tr>
                     </thead>
                     <tbody id="customer-history-body"></tbody>
                 </table>
             </div>
         </div>
 
-        <!-- 4. WHOLESALE SECTION -->
         <div id="wholesale" class="section-view">
             <h2 style="font-family:'Orbitron'; margin-bottom:30px;">Wholesale Market (B2B)</h2>
             <p style="color:#777; margin-bottom:20px;">Restock your inventory by ordering in bulk from our verified wholesalers.</p>
             <div id="wholesale-list" class="row"></div>
         </div>
 
+        <div id="feedback" class="section-view">
+            <h2 style="font-family:'Orbitron'; margin-bottom:30px;">Customer Feedback</h2>
+            <div id="feedback-list" class="row">
+                <p style="color:#777;">Loading feedback...</p>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="editModal" class="custom-modal-overlay">
+        <div class="custom-modal-content">
+            <span class="close-modal-btn" onclick="closeEditModal()">&times;</span>
+            <h3 style="margin-top:0; color:#fff; font-family:'Orbitron'; margin-bottom:20px;">Edit Product</h3>
+            <input type="hidden" id="edit-id">
+            <label class="modal-label">Name</label>
+            <input type="text" id="edit-name" class="modal-input">
+            <div class="row">
+                <div class="col-xs-6"><label class="modal-label">Price (₹)</label><input type="number" id="edit-price" class="modal-input"></div>
+                <div class="col-xs-6"><label class="modal-label">Stock</label><input type="number" id="edit-stock" class="modal-input"></div>
+            </div>
+            <label class="modal-label">Description</label>
+            <textarea id="edit-desc" class="modal-input"></textarea>
+            <label class="modal-label">Category</label>
+            <select id="edit-cat" class="modal-input">
+                <option value="1">Electronics</option><option value="2">Groceries</option><option value="3">Fashion</option>
+                <option value="7">Home</option><option value="8">Sports</option><option value="5">Books</option>
+            </select>
+            <label class="modal-label">Image (Optional)</label>
+            <input type="file" id="edit-image" class="modal-input" accept="image/*">
+            <button class="modal-btn" onclick="submitEdit()">Save Changes</button>
+        </div>
     </div>
 
     <script>
         const token = localStorage.getItem('token');
         if(!token) window.location.href = "Retailer.html";
+        let inventoryData = [];
 
-        document.addEventListener('DOMContentLoaded', () => {
-            loadInventory(); // Default
-        });
+        document.addEventListener('DOMContentLoaded', () => { loadInventory(); });
 
         function showSection(id) {
-            // UI Toggle
             document.querySelectorAll('.section-view').forEach(el => el.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            
             document.querySelectorAll('.nav-menu a').forEach(el => el.classList.remove('active'));
             document.getElementById('nav-'+id).classList.add('active');
 
-            // Load Data
             if(id === 'inventory') loadInventory();
             if(id === 'orders') loadOrders();
             if(id === 'customers') loadCustomerHistory();
             if(id === 'wholesale') loadWholesaleMarket();
+            if(id === 'feedback') loadFeedback();
         }
 
-        // --- 1. INVENTORY LOGIC ---
+        // --- 1. INVENTORY & EDIT LOGIC ---
         async function loadInventory() {
             const res = await fetch('/retailer/my-products', { headers: { 'Authorization': `Bearer ${token}` } });
-            const products = await res.json();
+            inventoryData = await res.json();
             const container = document.getElementById('inventory-list');
             container.innerHTML = '';
 
-            products.forEach(p => {
+            inventoryData.forEach(p => {
                 const img = p.image_url || 'assets/img/default.png';
                 container.innerHTML += `
                 <div class="col-md-6" id="product-card-${p.id}">
@@ -173,20 +193,10 @@
                         <img src="${img}" class="inv-img" onerror="this.src='https://via.placeholder.com/80'">
                         <div class="inv-details">
                             <div class="inv-title">${p.name}</div>
-                            <div style="display:flex; gap:20px;">
-                                <div>
-                                    <label style="font-size:10px; color:#555; display:block;">PRICE</label>
-                                    <div class="inv-price">₹<input type="number" id="price-${p.id}" value="${p.price}" class="edit-input" style="background:transparent; border:none; color:#ff013c; font-weight:bold; width:60px;"></div>
-                                </div>
-                                <div>
-                                    <label style="font-size:10px; color:#555; display:block;">STOCK</label>
-                                    <input type="number" id="stock-${p.id}" value="${p.stock}" class="edit-input">
-                                </div>
-                            </div>
-                            <div class="edit-controls">
-                                <button class="btn-action btn-save" onclick="updateProduct(${p.id})">Update</button>
+                            <div style="font-size:12px; color:#aaa; margin-bottom:10px;">Stock: ${p.stock} | Price: ₹${p.price}</div>
+                            <div>
+                                <button class="btn-action btn-edit" onclick="openEditModal(${p.id})">Edit</button>
                                 <button class="btn-action btn-delete" onclick="deleteProduct(${p.id})"><i class="fa fa-trash"></i></button>
-                                <a href="retailer-edit-product.html?id=${p.id}" style="color:#aaa; font-size:12px; margin-left:auto;">Edit Details</a>
                             </div>
                         </div>
                     </div>
@@ -194,134 +204,189 @@
             });
         }
 
-        async function updateProduct(id) {
-            const price = document.getElementById(`price-${id}`).value;
-            const stock = document.getElementById(`stock-${id}`).value;
-            await fetch(`/retailer/products/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ price: price, stock: stock })
-            });
-            alert("Updated!");
+        function openEditModal(id) {
+            const p = inventoryData.find(item => item.id === id);
+            if(!p) return;
+            document.getElementById('edit-id').value = p.id;
+            document.getElementById('edit-name').value = p.name;
+            document.getElementById('edit-price').value = p.price;
+            document.getElementById('edit-stock').value = p.stock;
+            document.getElementById('edit-desc').value = p.description || "";
+            document.getElementById('edit-cat').value = p.category_id || 1;
+            document.getElementById('edit-image').value = "";
+            document.getElementById('editModal').style.display = 'flex';
+        }
+        function closeEditModal() { document.getElementById('editModal').style.display = 'none'; }
+
+        async function submitEdit() {
+            const id = document.getElementById('edit-id').value;
+            const btn = document.querySelector('.modal-btn');
+            btn.innerText = "Saving..."; btn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('name', document.getElementById('edit-name').value);
+            formData.append('price', document.getElementById('edit-price').value);
+            formData.append('stock', document.getElementById('edit-stock').value);
+            formData.append('description', document.getElementById('edit-desc').value);
+            formData.append('category_id', document.getElementById('edit-cat').value);
+            
+            const imgInput = document.getElementById('edit-image');
+            if (imgInput.files[0]) {
+                formData.append('image', imgInput.files[0]);
+            }
+
+            try {
+                const res = await fetch(`/retailer/products/${id}`, {
+                    method: 'PUT', headers: { 'Authorization': `Bearer ${token}` }, body: formData
+                });
+                if(res.ok) { alert("Updated!"); closeEditModal(); loadInventory(); } 
+                else alert("Update Failed");
+            } catch(e) { console.error(e); alert("Connection Error"); }
+            finally { btn.innerText = "Save Changes"; btn.disabled = false; }
         }
 
         async function deleteProduct(id) {
-            if(!confirm("Permanently delete this product?")) return;
-            const res = await fetch(`/retailer/products/${id}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            
-            if(res.ok) {
-                // Smooth removal from DOM
-                const card = document.getElementById(`product-card-${id}`);
-                if(card) {
-                    card.style.opacity = "0";
-                    setTimeout(() => card.remove(), 300);
-                } else {
-                    loadInventory();
-                }
-            } else {
-                alert("Failed to delete.");
-            }
+            if(!confirm("Delete product?")) return;
+            const res = await fetch(`/retailer/products/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+            if(res.ok) loadInventory();
         }
 
-        // --- 2. ORDERS LOGIC (Same as before but styled) ---
+        // --- 2. ORDERS ---
         async function loadOrders() {
             const res = await fetch('/retailer/orders', { headers: { 'Authorization': `Bearer ${token}` } });
             const orders = await res.json();
             const container = document.getElementById('orders-list');
             container.innerHTML = '';
-            
-            if(orders.length === 0) container.innerHTML = '<p style="color:#777;">No orders found.</p>';
+            if(orders.length===0) container.innerHTML = '<p style="color:#777;">No orders.</p>';
 
             orders.reverse().forEach(o => {
+                let itemsStr = o.items ? o.items.map(i => `<div>- ${i.product_name} (x${i.quantity})</div>`).join('') : 'No details';
                 container.innerHTML += `
-                <div class="dashboard-card" style="display:flex; justify-content:space-between; align-items:center;">
+                <div class="dashboard-card" style="display:flex; justify-content:space-between;">
                     <div>
                         <h4 style="color:#fff; margin:0;">Order #${o.id}</h4>
                         <p style="color:#777; margin:5px 0;">${new Date(o.order_date).toDateString()} | ₹${o.total_price}</p>
+                        <div style="font-size:13px; color:#aaa; margin-bottom:5px;">${itemsStr}</div>
                         <small style="color:#555;">${o.shipping_address}</small>
                     </div>
                     <div style="text-align:right;">
-                        <span style="color:${o.status==='Delivered'?'#4caf50':'#ff9800'}; font-weight:bold; text-transform:uppercase;">${o.status}</span><br>
-                        <select id="status-${o.id}" onchange="updateOrderStatus(${o.id})" style="background:#000; color:#fff; border:1px solid #333; margin-top:10px; padding:5px;">
-                            <option value="Processing" ${o.status==='Processing'?'selected':''}>Processing</option>
-                            <option value="Shipped" ${o.status==='Shipped'?'selected':''}>Shipped</option>
-                            <option value="Delivered" ${o.status==='Delivered'?'selected':''}>Delivered</option>
+                        <span style="color:${o.status==='Delivered'?'#0f0':'#f90'}">${o.status}</span><br>
+                        <select id="status-${o.id}" onchange="updStatus(${o.id})" style="background:#000; color:#fff; margin-top:5px;">
+                            <option value="Processing">Processing</option><option value="Shipped">Shipped</option><option value="Delivered">Delivered</option>
                         </select>
                     </div>
                 </div>`;
             });
         }
-
-        async function updateOrderStatus(id) {
+        async function updStatus(id) {
             const status = document.getElementById(`status-${id}`).value;
             await fetch(`/retailer/orders/${id}/status`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ status: status })
+                method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ status })
             });
-            alert("Order status updated!");
+            alert("Updated");
         }
 
-        // --- 3. CUSTOMER HISTORY LOGIC ---
+        // --- 3. HISTORY ---
         async function loadCustomerHistory() {
             const res = await fetch('/retailer/customer-history', { headers: { 'Authorization': `Bearer ${token}` } });
             const history = await res.json();
             const tbody = document.getElementById('customer-history-body');
             tbody.innerHTML = '';
-
             history.forEach(h => {
-                tbody.innerHTML += `
-                <tr>
-                    <td>${new Date(h.date).toLocaleDateString()}</td>
-                    <td>#${h.order_id}</td>
-                    <td>${h.customer_name}<br><small style="color:#555;">${h.customer_email}</small></td>
-                    <td style="color:#ff013c;">${h.product_name}</td>
-                    <td>${h.quantity}</td>
-                    <td>₹${h.total_paid}</td>
-                </tr>`;
+                tbody.innerHTML += `<tr><td>${new Date(h.date).toLocaleDateString()}</td><td>#${h.order_id}</td><td>${h.customer_name}</td><td>${h.product_name}</td><td>${h.quantity}</td><td>₹${h.total_paid}</td></tr>`;
             });
         }
 
-        // --- 4. WHOLESALE MARKET LOGIC ---
+        // --- 4. WHOLESALE MARKET LOGIC (UPDATED) ---
         async function loadWholesaleMarket() {
             const res = await fetch('/retailer/wholesale-market', { headers: { 'Authorization': `Bearer ${token}` } });
             const items = await res.json();
             const container = document.getElementById('wholesale-list');
             container.innerHTML = '';
+            
+            if(items.length === 0) {
+                container.innerHTML = '<p style="color:#777;">No wholesale items available.</p>';
+                return;
+            }
 
             items.forEach(i => {
+                // Fallback image if not provided
+                const img = i.image_url || 'assets/img/default.png';
+                
                 container.innerHTML += `
                 <div class="col-md-4">
                     <div class="dashboard-card" style="border-color:#444;">
+                        <img src="${img}" style="width:100%; height:150px; object-fit:contain; margin-bottom:10px; border-radius:5px; background:#fff;">
                         <h4 style="color:#fff; margin-top:0;">${i.name}</h4>
                         <div style="color:#777; font-size:12px; margin-bottom:10px;">Supplier: ${i.supplier}</div>
                         <h3 style="color:#00f3ff;">₹${i.price}</h3>
-                        <p style="font-size:12px;">Min Qty: ${i.min_qty}</p>
-                        <button class="btn-action" style="background:#00f3ff; color:#000; width:100%;" onclick="placeWholesaleOrder(${i.id})">Order Stock</button>
+                        <p style="font-size:12px;">Min Qty: ${i.min_qty} | Stock: ${i.stock}</p>
+                        
+                        <button class="btn-action" style="background:#00f3ff; color:#000; width:100%;" 
+                            onclick="buyStock(${i.id}, ${i.price}, ${i.stock})">
+                            Order Stock
+                        </button>
                     </div>
                 </div>`;
             });
         }
 
-        async function placeWholesaleOrder(id) {
+        async function buyStock(id, price, availableStock) {
             const qty = prompt("Enter quantity to order:", "10");
             if(!qty) return;
             
-            const res = await fetch(`/retailer/wholesale-order?item_id=${id}&quantity=${qty}`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await res.json();
-            alert(data.message);
+            if(parseInt(qty) > availableStock) {
+                alert(`Insufficient stock! Only ${availableStock} available.`);
+                return;
+            }
+
+            const total = price * qty;
+
+            // OPEN PAYMENT POPUP
+            window.open(`payment.html?amount=${total}`, 'Pay', 'width=500,height=600');
+
+            // LISTEN FOR SUCCESS MESSAGE
+            window.addEventListener('message', async function(e) {
+                if(e.data === 'payment_success') {
+                    const res = await fetch(`/retailer/wholesale-order?item_id=${id}&quantity=${qty}`, {
+                        method: 'POST', headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    
+                    if(res.ok) {
+                        const data = await res.json();
+                        alert(data.message);
+                        // Refresh market to show updated stock
+                        loadWholesaleMarket();
+                    } else {
+                        const err = await res.json();
+                        alert("Error: " + err.detail);
+                    }
+                }
+            }, { once: true });
         }
 
-        function logout() {
-            localStorage.clear();
-            window.location.href = 'index.html';
+        // --- 5. FEEDBACK ---
+        async function loadFeedback() {
+            const res = await fetch('/retailer/feedback', { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            const list = document.getElementById('feedback-list');
+            list.innerHTML = '';
+            if(data.length===0) { list.innerHTML = '<p style="color:#777;">No reviews yet.</p>'; return; }
+            data.forEach(f => {
+                const stars = "★".repeat(f.rating);
+                list.innerHTML += `
+                <div class="col-md-12">
+                    <div class="dashboard-card" style="border-left: 4px solid #00f3ff;">
+                        <h4 style="margin:0; color:#fff;">${f.product_name} <span style="color:#ff9800;">${stars}</span></h4>
+                        <p style="color:#ccc; font-style:italic; margin-top:5px;">"${f.comment}"</p>
+                        <small style="color:#555;">By ${f.customer_name}</small>
+                    </div>
+                </div>`;
+            });
         }
+
+        function logout() { localStorage.clear(); window.location.href = 'index.html'; }
     </script>
 </body>
 </html>

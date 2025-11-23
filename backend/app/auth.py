@@ -201,3 +201,22 @@ oauth.register(
 )
 
 #--------------------------------------------------------------------------------------------------------------------------------------------
+
+# In auth.py
+
+async def send_admin_query_email(form_data: dict, background_tasks: BackgroundTasks):
+    # Email to the Admin
+    message = MessageSchema(
+        subject=f"New Query: {form_data['subject']}",
+        recipients=["livemart.bphc@gmail.com"], # Admin Email
+        body=f"""
+        <h3>New Customer Query</h3>
+        <p><b>Name:</b> {form_data['name']}</p>
+        <p><b>Email:</b> {form_data['email']}</p>
+        <hr>
+        <p>{form_data['message']}</p>
+        """,
+        subtype=MessageType.html
+    )
+    fm = FastMail(mail_config)
+    background_tasks.add_task(fm.send_message, message)
