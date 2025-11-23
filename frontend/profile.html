@@ -10,59 +10,79 @@
     <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700|Orbitron:400,700&display=swap" rel="stylesheet">
     
     <style>
-        /* --- CYBERPUNK THEME SETUP --- */
+        /* --- THEME VARIABLES --- */
+        :root {
+            /* Dark Mode (Deep Cyberpunk) */
+            --bg-body: #050505; /* Much darker base (True Black) */
+            --bg-nav: rgba(10, 10, 10, 0.95);
+            --bg-card: rgba(15, 15, 15, 0.8); /* Semi-transparent for glass effect */
+            --text-main: #dcdcdc;
+            --text-head: #ffffff;
+            --border-color: #2a2a2a;
+            --accent: #00f3ff;
+        }
+
         body {
-            background-color: #ffffff;
+            background-color: #050505;
             background-image: 
-                linear-gradient(rgba(0, 242, 255, 0.293) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 221, 255, 0.358) 1px, transparent 1px),
-                radial-gradient(circle at 15% 50%, rgba(0, 255, 255, 0.46), transparent 50%),
-                radial-gradient(circle at 85% 30%, rgba(255, 0, 60, 0.473), transparent 50%);
+                /* Grid: Very faint, deep teal - barely visible texture */
+                linear-gradient(rgba(0, 255, 242, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 242, 0.05) 1px, transparent 1px),
+                
+                /* Left Glow: Deep Purple/Blue (Night City feel) */
+                radial-gradient(circle at 0% 0%, rgba(76, 29, 149, 0.25), transparent 60%),
+                
+                /* Right Glow: Intense Cyan/Blue (Cyberpunk accent) */
+                radial-gradient(circle at 100% 50%, rgba(6, 182, 212, 0.2), transparent 50%);
+
+            /* Grid Size vs Gradient Size */
             background-size: 40px 40px, 40px 40px, 100% 100%, 100% 100%;
             background-attachment: fixed;
             font-family: 'Montserrat', sans-serif;
-            color: #e0e0e0;
+            color: var(--text-main);
+            transition: background 0.3s, color 0.3s;
         }
 
-        h1, h2, h3, h4, h5, .navbar-brand, strong {
-            font-family: 'Orbitron', sans-serif;
-            letter-spacing: 1px;
+        /* LIGHT MODE OVERRIDES */
+        /* LIGHT MODE OVERRIDES */
+        body.light-mode {
+            --bg-nav: #ffffff;
+            --bg-card: rgba(255, 255, 255, 0.85); /* Glass effect */
+            --text-main: #333;
+            --text-head: #000;
+            --border-color: #ccc;
+            --accent: #294a6e;
+
+                    /* 1. Bright Base (Replaces #949494 with clean off-white) */
+            background-color: #f8fafc; 
+
+            background-image:   
+                /* Grid 1: Crisp Light Cyan (Your requested tone, adjusted opacity) */
+                linear-gradient(rgba(157, 244, 249, 0.4) 1px, transparent 1px),
+                
+                /* Grid 2: Deep Ocean Blue (Your requested tone, adjusted opacity) */
+                linear-gradient(90deg, rgba(25, 104, 161, 0.15) 1px, transparent 1px),
+                
+                /* Left Glow: Deep Blue/Azure (Atmospheric) */
+                radial-gradient(circle at 10% 50%, rgba(8, 118, 196, 0.15), transparent 60%),
+                
+                /* Right Glow: Vibrant Sunset Orange (Warmth) */
+                radial-gradient(circle at 90% 20%, rgba(255, 77, 0, 0.15), transparent 50%);
+            
+            /* --- THE FIX IS BELOW --- */
+            /* Order matches images: Grid 1, Grid 2, Gradient 1, Gradient 2 */
+            background-size: 40px 40px, 40px 40px, 100% 100%, 100% 100%;
+            background-attachment: fixed;
         }
 
-        /* --- Navbar Styles --- */
-        .navbar-default {
-            background: #111;
-            border-bottom: 1px solid #333;
-            padding: 10px 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        /* Apply Variables to Cards & Nav */
+        .navbar-default { background: var(--bg-nav) !important; border-bottom: 1px solid var(--border-color); }
+        .welcome-section, .action-card { 
+            background: var(--bg-card) !important; 
+            border: 1px solid var(--border-color) !important;
         }
-        
-        .navbar-brand {
-            font-size: 24px;
-            color: #fff !important;
-            font-weight: 700;
-        }
-
-        .navbar-brand span {
-            color: #00f3ff; /* Neon Cyan Accent */
-            text-shadow: 0 0 5px rgba(0, 243, 255, 0.5);
-        }
-
-        .navbar-nav > li > a {
-            color: #aaa;
-            font-weight: 600;
-            padding: 15px 20px;
-            transition: color 0.3s;
-        }
-
-        .navbar-nav > li > a:hover, 
-        .navbar-nav > li > a:focus,
-        .navbar-default .navbar-nav > .open > a, 
-        .navbar-default .navbar-nav > .open > a:focus, 
-        .navbar-default .navbar-nav > .open > a:hover {
-            color: #00f3ff;
-            background-color: transparent;
-        }
+        .welcome-section h2, .action-card h4 { color: var(--text-head) !important; }
+        .navbar-brand { color: var(--text-head) !important; }
 
         /* --- Dropdown Styles (Dark Mode) --- */
         .dropdown-menu {
@@ -187,6 +207,11 @@
 
             <div id="navbar" class="navbar-collapse collapse">
                 <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="#" onclick="toggleTheme()" title="Toggle Theme">
+                            <i class="fa fa-moon-o" id="theme-icon"></i>
+                        </a>
+                    </li>
                     <li><a href="index.html">Home</a></li>
                     <li><a href="cart.html"><i class="fa fa-shopping-cart"></i> Cart</a></li>
                     
@@ -271,6 +296,39 @@
     <script src="assets/js/bootstrap.min.js"></script>
 
     <script>
+        // --- THEME LOGIC ---
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if(savedTheme === 'light') {
+                document.body.classList.add('light-mode');
+                updateThemeIcon(true);
+            } else {
+                updateThemeIcon(false);
+            }
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const isLight = document.body.classList.contains('light-mode');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            updateThemeIcon(isLight);
+        }
+
+        function updateThemeIcon(isLight) {
+            const icon = document.getElementById('theme-icon');
+            if(icon) {
+                if(isLight) {
+                    icon.className = 'fa fa-sun-o';
+                    icon.style.color = '#f9a825'; // Sun Orange
+                } else {
+                    icon.className = 'fa fa-moon-o';
+                    icon.style.color = '#aaa'; // Moon Grey
+                }
+            }
+        }
+
+        // Initialize immediately
+        initTheme();
         // 1. Check Auth on Load
         const token = localStorage.getItem('token');
         if (!token) {
