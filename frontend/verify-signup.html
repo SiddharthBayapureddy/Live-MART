@@ -4,69 +4,24 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Verify Account | Live-MART</title>
-  
-  <link rel="stylesheet" href="assets/css/font-awesome.min.css">
   <link rel="stylesheet" href="assets/css/bootstrap.css">
   <link href='https://fonts.googleapis.com/css?family=Montserrat:400,800' rel='stylesheet'>
-
   <style>
-    * { box-sizing: border-box; }
-    body {
-      background-color: #050505; 
-      background-image: 
-        linear-gradient(rgba(0, 243, 255, 0.1) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 243, 255, 0.1) 1px, transparent 1px);
-      background-size: 40px 40px;
-      background-attachment: fixed;
-      display: flex; flex-direction: column; min-height: 100vh; margin: 0;
-      color: #fff; font-family: 'Montserrat', sans-serif;
-    }
-    .main-content { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; padding: 40px 0; }
-    h1 { font-weight: bold; margin: 0; }
-    h2 { font-weight: bold; margin: 0 0 20px 0; color: #fff; text-align: center; }
-    p { font-size: 14px; font-weight: 100; line-height: 20px; letter-spacing: 0.5px; margin: 20px 0 30px; }
-    span { font-size: 12px; color: #ccc; }
-    .login-container { background-color: #000; border-radius: 10px; box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22); position: relative; overflow: hidden; width: 480px; max-width: 100%; min-height: 500px; display: flex; align-items: center; justify-content: center; }
-    form { background-color: #000; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 0 50px; height: 100%; width: 100%; text-align: center; }
-    input { background-color: #222; border: none; padding: 12px 15px; margin: 15px 0; width: 100%; color: #fff; border-radius: 4px; outline: none; text-align: center; letter-spacing: 4px; font-size: 18px; }
-    button { border-radius: 20px; border: 1px solid #00f3ff; background-color: #00f3ff; color: #000; font-size: 12px; font-weight: bold; padding: 12px 45px; letter-spacing: 1px; text-transform: uppercase; transition: transform 80ms ease-in; cursor: pointer; margin-top: 20px; }
-    button:active { transform: scale(0.95); }
-    button:focus { outline: none; }
-    button:disabled { background-color: #555; border-color: #555; cursor: not-allowed; }
-    
-    .resend-link { margin-top: 15px; font-size: 12px; color: #888; cursor: pointer; text-decoration: underline; }
-    .resend-link:hover { color: #fff; }
-    .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
-    @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
-    
-    .social-container { margin: 20px 0; }
-    .social { border: 1px solid #DDDDDD; border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; margin: 0 5px; height: 40px; width: 40px; color: #fff; text-decoration: none; }
+    body { background-color: #050505; color: #fff; font-family: 'Montserrat', sans-serif; height: 100vh; display: flex; justify-content: center; align-items: center; }
+    .login-container { background: #000; padding: 40px; border-radius: 10px; text-align: center; width: 400px; box-shadow: 0 0 20px rgba(0, 243, 255, 0.2); }
+    input { background: #222; border: none; color: #fff; padding: 10px; width: 100%; margin: 15px 0; text-align: center; letter-spacing: 5px; font-size: 20px; }
+    button { background: #00f3ff; border: none; padding: 10px 30px; border-radius: 20px; font-weight: bold; margin-top: 20px; cursor: pointer; width: 100%; }
+    button:disabled { background: #555; cursor: not-allowed; }
   </style>
 </head>
 <body>
 
-  <div class="main-content">
-      <h2>Account Verification</h2>
-
-      <div class="login-container">
-          <form id="verifyForm" onsubmit="return false;">
-            <h1>Verify Your Email</h1>
-            <div class="social-container">
-                <a href="#" class="social"><i class="fa fa-envelope-o"></i></a>
-            </div>
-            <span>We sent a code to:</span>
-            <b id="email-display" style="color: #00f3ff; margin-bottom: 10px;">Loading...</b>
-            <span>Enter the 6-digit OTP below to activate your account.</span>
-            
-            <input type="text" id="otp-input" placeholder="XXXXXX" maxlength="6" required />
-            
-            <p id="status-msg" style="color: #ff4b2b; font-size: 12px; min-height: 20px; margin: 5px 0;"></p>
-            
-            <button type="button" id="verify-btn" onclick="verifyAccount()">Verify Account</button>
-            
-            <a onclick="resendOTP()" class="resend-link" id="resend-btn">Resend Code</a>
-          </form>
-      </div>
+  <div class="login-container">
+      <h2>Verify Email</h2>
+      <p>Enter the code sent to <br><span id="email-display" style="color:#00f3ff">...</span></p>
+      <input type="text" id="otp-input" placeholder="XXXXXX" maxlength="6">
+      <p id="status-msg" style="font-size:12px; height:20px; margin-top:10px;"></p>
+      <button id="verify-btn" onclick="verifyAccount()">Verify & Login</button>
   </div>
 
   <script>
@@ -76,26 +31,29 @@
     
     let userEmail = '';
 
-    // 1. Load Email from Session Storage (Set during Signup)
+    // 1. Load Data
     window.onload = function() {
         userEmail = sessionStorage.getItem('pending_verification_email');
+        
+        // DEBUG: Check if email exists
         if (!userEmail) {
-            alert("No pending verification found. Please sign up again.");
+            alert("DEBUG: Session Storage is empty! \nDid you come from the Signup page?");
             window.location.href = 'index.html';
+            return;
         }
+        
         emailDisplay.textContent = userEmail;
     };
 
-    // 2. Verify Logic
+    // 2. Verify & Auto-Login Logic
     async function verifyAccount() {
         const otp = otpInput.value.trim();
         const btn = document.getElementById('verify-btn');
+        const role = sessionStorage.getItem('pending_verification_role'); // Get Role
 
         if (otp.length !== 6) {
             statusMsg.style.color = "#ff4b2b";
             statusMsg.textContent = "Please enter a valid 6-digit OTP.";
-            document.getElementById('verifyForm').classList.add('shake');
-            setTimeout(() => document.getElementById('verifyForm').classList.remove('shake'), 500);
             return;
         }
 
@@ -103,60 +61,77 @@
         btn.disabled = true;
 
         try {
+            // Note: We are sending 'role' to help the backend
+            const payload = { email: userEmail, otp: otp, role: role };
+            
             const response = await fetch('/auth/verify-account', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: userEmail, otp: otp })
+                body: JSON.stringify(payload)
             });
 
+            const result = await response.json();
+
+            // --- DEBUG POPUP: SHOW SERVER RESPONSE ---
+            // alert("Server Response:\n" + JSON.stringify(result)); 
+            // -----------------------------------------
+
             if (response.ok) {
-                statusMsg.style.color = "#00f3ff";
-                statusMsg.textContent = "Success! Redirecting to Login...";
-                sessionStorage.removeItem('pending_verification_email');
-                
-                // Determine where to go based on role (optional logic, defaulting to index)
-                setTimeout(() => {
-                    // Alert user they can now login
-                    alert("Verification successful! Please login.");
-                    window.location.href = 'index.html'; 
-                }, 1500);
+                if (result.access_token) {
+                    // SUCCESS CASE
+                    statusMsg.style.color = "#00f3ff";
+                    statusMsg.textContent = "Success! Logging in...";
+                    
+                    // 1. Save Token & Role
+                    localStorage.setItem('token', result.access_token);
+                    // Use the role returned by server, or fallback to session
+                    localStorage.setItem('user_role', result.role || role);
+                    
+                    // 2. Clean Session
+                    sessionStorage.removeItem('pending_verification_email');
+                    sessionStorage.removeItem('pending_verification_role');
+
+                    // 3. Redirect
+                    setTimeout(() => {
+                        const targetRole = result.role || role;
+                        if (targetRole === 'retailer') {
+                            window.location.href = 'retailer-dashboard.html';
+                        } else if (targetRole === 'wholesaler') {
+                            window.location.href = 'wholesaler-dashboard.html';
+                        } else {
+                            window.location.href = 'dashboard.html'; 
+                        }
+                    }, 1000);
+
+                } else {
+                    // FAILURE: Server said OK but sent no token
+                    alert("CRITICAL ERROR: Server verified you but did not send a Login Token.\n\nThis means your backend code in main.py is outdated.");
+                }
+
             } else {
-                const err = await response.json();
+                // FAILURE: Wrong OTP or Server Error
+                const err = result.detail || "Verification failed.";
                 statusMsg.style.color = "#ff4b2b";
-                statusMsg.textContent = err.detail || "Verification failed.";
+                statusMsg.textContent = err;
+                alert("Verification Failed:\n" + err);
                 btn.disabled = false;
                 btn.textContent = "Verify Account";
             }
         } catch (error) {
             console.error(error);
-            statusMsg.textContent = "Server error.";
+            alert("Network Error:\n" + error.message);
             btn.disabled = false;
             btn.textContent = "Verify Account";
         }
     }
 
-    // 3. Resend Logic
     async function resendOTP() {
-        const btn = document.getElementById('resend-btn');
-        statusMsg.textContent = "Sending...";
-        
         try {
-            // Assuming backend uses query param for resend: /auth/resend-verification?email=...
-            const response = await fetch(`/auth/resend-verification?email=${userEmail}`, {
-                method: 'POST'
-            });
-
-            if (response.ok) {
-                statusMsg.style.color = "#00f3ff";
-                statusMsg.textContent = "New OTP sent to your email.";
-            } else {
-                statusMsg.style.color = "#ff4b2b";
-                statusMsg.textContent = "Failed to resend OTP.";
-            }
-        } catch (error) {
-            statusMsg.textContent = "Network Error.";
-        }
+            const res = await fetch(`/auth/resend-verification?email=${userEmail}`, { method: 'POST' });
+            if(res.ok) alert("OTP Sent!");
+            else alert("Failed.");
+        } catch(e) { alert("Error."); }
     }
-  </script>
+</script>
 </body>
 </html>

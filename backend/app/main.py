@@ -1,5 +1,6 @@
 # App
 
+
 # Importing FastAPI
 from fastapi import FastAPI , HTTPException , status, Depends, Form , BackgroundTasks,UploadFile,File
 
@@ -85,7 +86,8 @@ from db_models import (Customer,
                         OrderRecords,
                         Category,
                         OrderItem,
-                        WholesaleOrderItem
+                        WholesaleOrderItem,
+                    
                         )
 
 # Importing the Schemas
@@ -94,13 +96,6 @@ from schemas import *
 # Image Management
 import shutil
 from fastapi import File , UploadFile
-# --------------------------------------------------------------------------------------------------------------------------------------------
-
-# --- NEW: Verification Request Schema ---
-class AccountVerificationRequest(BaseModel):
-    email: str
-    otp: str
-
 # -----------------------------
 # Building the App
 # -----------------------------
@@ -469,18 +464,48 @@ async def get_me(wholesaler: Wholesaler = Depends(get_current_wholesaler)):
 
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------
-# --- NEW: Account Verification Endpoints ---
+# Account Verification Endpoints 
 # -------------------------------------------------------------------------------------------------------------------------------------------------
 
 @app.post("/auth/verify-account", status_code=status.HTTP_200_OK, tags=["Auth"])
 async def verify_account_endpoint(req: AccountVerificationRequest):
     
-    success = await run_in_threadpool(verify_user_account, req.email, req.otp)
-    
+    # 1. Convert to Dict (Safest way to read data)
+    try:
+        data = req.model_dump() # Pydantic v2
+    except AttributeError:
+        data = req.dict()       # Pydantic v1 fallback
+        
+    email = data.get("email")
+    otp = data.get("otp")
+    role = data.get("role") # Safely get role (returns None if missing)
+
+    # 2. Verify OTP
+    success = await run_in_threadpool(verify_user_account, email, otp)
     if not success:
         raise HTTPException(status_code=400, detail="Invalid or Expired OTP")
+
+    # 3. Determine Final Role
+    final_role = role
+    
+    # Fallback: If frontend didn't send role, check DB
+    if not final_role:
+        if await run_in_threadpool(get_customer_by_email, email): final_role = "customer"
+        elif await run_in_threadpool(get_retailer_by_email, email): final_role = "retailer"
+        elif await run_in_threadpool(get_wholesaler_by_email, email): final_role = "wholesaler"
+
+    if not final_role:
+        raise HTTPException(status_code=404, detail="User verified but role not found.")
+
+    # 4. Generate Token
+    access_token = create_access_token(data={"sub": email, "role": final_role})
         
-    return {"message": "Account verified successfully. You can now login."}
+    return {
+        "message": "Verified",
+        "access_token": access_token,
+        "token_type": "bearer",
+        "role": final_role
+    }
 
 
 @app.post("/auth/resend-verification", tags=["Auth"])

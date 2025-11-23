@@ -5,26 +5,132 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="css/whole_style.css">
 <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
-<title>Login | Signup</title>
+<link rel="stylesheet" href="assets/css/font-awesome.min.css">
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<title>Retailer | Login</title>
 <style>
     .message { font-size: 14px; margin-top: 15px; }
     .message.success { color: #3c763d; }
     .message.error { color: #a94442; }
     .social img { width: 24px !important; height: 24px !important; object-fit: contain;}
-    /* Make form taller */
-    .container { min-height: 700px; }
-    .form-container form { padding: 50px 40px; height: 100%; display: flex; flex-direction: column; justify-content: center; }
-    input { margin: 8px 0; }
-    h2 { margin-bottom: 15px; }
+    
+    /* Container Height */
+    .container { min-height: 800px; }
+    .form-container form { padding: 20px 40px; height: 100%; display: flex; flex-direction: column; justify-content: center; }
+    input { margin: 6px 0; }
+    h2 { margin-bottom: 10px; }
+
+    /* --- MAP MODAL STYLES --- */
+    .map-modal-overlay {
+        display: none; 
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.85); 
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(5px);
+        animation: fadeIn 0.3s;
+    }
+    
+    .map-modal-content {
+        background-color: #fff;
+        width: 90%;
+        max-width: 800px;
+        height: 80%;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 15px 50px rgba(0,0,0,0.5);
+        overflow: hidden;
+    }
+
+    .map-header {
+        padding: 15px 20px;
+        background: #f4f4f4;
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .map-header h3 { margin: 0; font-size: 18px; color: #333; font-weight: bold; }
+    .close-btn { font-size: 28px; cursor: pointer; color: #666; line-height: 20px; }
+    .close-btn:hover { color: #000; }
+
+    #modal-map-view {
+        flex-grow: 1;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+    }
+
+    .map-footer {
+        padding: 15px;
+        background: #fff;
+        border-top: 1px solid #ddd;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .btn-confirm {
+        background: #FF4B2B;
+        color: white;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 20px;
+        font-weight: bold;
+        cursor: pointer;
+        font-size: 14px;
+        transition: 0.3s;
+    }
+    .btn-confirm:hover { background: #e03a1e; box-shadow: 0 5px 15px rgba(255, 75, 43, 0.3); }
+
+    @keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} }
+
+    /* Location Buttons */
+    .loc-btn {
+        background: transparent;
+        border: 1px solid #FF4B2B;
+        color: #FF4B2B;
+        padding: 5px 12px;
+        font-size: 11px;
+        border-radius: 15px;
+        cursor: pointer;
+        margin-left: 8px;
+        transition: 0.2s;
+        font-weight: bold;
+    }
+    .loc-btn:hover { background: #FF4B2B; color: #fff; }
 </style>
 </head>
 <body>
+
+<div id="mapModal" class="map-modal-overlay">
+    <div class="map-modal-content">
+        <div class="map-header">
+            <h3>Select Shop Location</h3>
+            <span class="close-btn" onclick="closeMapModal()">&times;</span>
+        </div>
+        <div id="modal-map-view"></div>
+        <div class="map-footer">
+            <span id="map-status-text" style="font-size:13px; color:#555;">Drag the marker to your shop</span>
+            <button class="btn-confirm" onclick="closeMapModal()">Confirm Location</button>
+        </div>
+    </div>
+</div>
 <h1>Welcome to Live-MART</h1><br><br>
 <div class="container" id="container">
     <div class="form-container sign-up-container">
         <form id="sign-up-form">
             <h2>Create Retailer Account</h2>
-            <span>Use your business-email for registration</span>
+            <span style="font-size: 1rem;">Use your business-email for registration</span>
             <input type="text" id="signup-name" placeholder="Your Full Name" required />
             <input type="text" id="signup-business-name" placeholder="Business Name" required />
             <input type="email" id="signup-email" placeholder="Business Email" required />
@@ -32,19 +138,21 @@
             
             <input type="hidden" id="signup-lat">
             <input type="hidden" id="signup-lon">
-            
-            <div style="text-align:right; width:100%; margin-bottom:2px;">
-                <button type="button" onclick="getRetailerLocation()" style="background:none; border:none; color:#00f3ff; cursor:pointer; font-size:12px; padding:0;">
-                    Auto-fill Location
-                </button>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-top:5px; margin-bottom: 5px;">
+                <span style="font-size:12px; color:#888; font-weight:bold;">Business Address</span>
+                <div>
+                    <button type="button" onclick="geoLocateMe()" class="loc-btn"><i class="fa fa-crosshairs"></i> GPS</button>
+                    <button type="button" onclick="openMapModal()" class="loc-btn"><i class="fa fa-map-marker"></i> Map</button>
+                </div>
             </div>
-            
-            <input type="text" id="signup-address" placeholder="Business Address" required />
+
+            <input type="text" id="signup-address" placeholder="Address" required />
             <input type="text" id="signup-city" placeholder="City" required />
             <input type="text" id="signup-state" placeholder="State" required />
             <input type="text" id="signup-pincode" placeholder="Pincode" required />
             <input type="tel" id="signup-phone" placeholder="Phone (Optional)" />
-            <button type="submit">Sign Up</button>
+            <button type="submit" style="margin-top:10px;">Sign Up</button>
             <p id="signup-message" class="message"></p>
         </form>
     </div>
@@ -80,8 +188,7 @@
     </div>
 </div>
 
-<footer>
-    <footer id="contact" class="footer action-lage bg-black p-top-80" style="margin-top: 60px; font-size: 1rem; width: 100%; position: relative;">
+<footer id="contact" class="footer action-lage bg-black p-top-80" style="margin-top: 60px; font-size: 1rem; width: 100%; position: relative;">
     <div class="container" style="font-size: 1rem;">
         <div class="row">
             <div class="col-md-12">
@@ -92,12 +199,17 @@
                             <p class="m-top-20">Connecting Retailers, Wholesalers, and Customers for a seamless shopping experience.</p>
                             <div class="widget_ab_item m-top-30" style="display:flex; font-size: 1.5rem; align-items: flex-start; margin-bottom: 15px;">
                                 <div class="item_icon" style="margin-right: 15px;"><i class="fa fa-location-arrow"></i></div>
-                                <div class="widget_ab_item_text">
-                                    <h6 class="text-white" style="margin:0;">Location</h6>
-                                    <p style="margin:0;">Shamirpet, Hyderabad</p>
-                                </div>
+                                <div class="widget_ab_item_text"><h6 class="text-white" style="margin:0;">Location</h6><p style="margin:0;">Shamirpet, Hyderabad</p></div>
                             </div>
+                            <div class="widget_ab_item m-top-30" style="display:flex; align-items: flex-start; margin-bottom: 15px;">
+                                <div class="item_icon" style="margin-right: 15px;"><i class="fa fa-phone"></i></div>
+                                <div class="widget_ab_item_text"><h6 class="text-white" style="margin:0;">Phone</h6><p style="margin:0;">+9676744544</p></div>
                             </div>
+                            <div class="widget_ab_item m-top-30" style="display:flex; align-items: flex-start; margin-bottom: 15px;">
+                                <div class="item_icon" style="margin-right: 15px;"><i class="fa fa-envelope-o"></i></div>
+                                <div class="widget_ab_item_text"><h6 class="text-white" style="margin:0;">Email</h6><p style="margin:0;">Livemart.bphc@gmail.com</p></div>
+                            </div>
+                        </div>
                     </div>
                     <div class="col-md-6 col-sm-6">
                         <div class="widget_item widget_newsletter sm-m-top-50">
@@ -108,6 +220,15 @@
                                     <button type="submit" class="btn text-center" style="width: 100%; padding: 10px;">Subscribe</button>
                                 </div>
                             </form>
+                            <div class="widget_brand m-top-40" style="margin-top: 30px;">
+                                <h5 class="text-white">Follow Us</h5>
+                                <ul class="list-inline m-top-20" style="padding: 0; list-style: none; display: flex; gap: 15px;">
+                                    <li><a href="#"><i class="fa fa-facebook"></i></a></li>
+                                    <li><a href="#"><i class="fa fa-twitter"></i></a></li>
+                                    <li><a href="#"><i class="fa fa-linkedin"></i></a></li>
+                                    <li><a href="#"><i class="fa fa-google-plus"></i></a></li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -123,7 +244,11 @@
 
 <script src="js/js.js"></script>
 <script>
-    // --- GOOGLE LOGIN TOKEN CHECK ---
+    // --- GLOBAL VARIABLES ---
+    let pickerMap = null;
+    let pickerMarker = null;
+
+    // --- TOKEN CHECK ---
     window.onload = function() {
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get('token');
@@ -134,35 +259,110 @@
         }
     };
 
-    // --- GEOLOCATION LOGIC ---
-    function getRetailerLocation() {
+    // --- MODAL MAP LOGIC ---
+    function openMapModal() {
+        const modal = document.getElementById('mapModal');
+        modal.style.display = "flex"; 
+
+        // Initialize map after modal is visible (critical for Leaflet)
+        setTimeout(() => {
+            if (!pickerMap) {
+                initPickerMap();
+            } else {
+                pickerMap.invalidateSize();
+            }
+        }, 150);
+    }
+
+    function closeMapModal() {
+        document.getElementById('mapModal').style.display = "none";
+    }
+
+    function initPickerMap() {
+        const defaultLat = 17.3850; // Hyderabad
+        const defaultLon = 78.4867;
+        
+        pickerMap = L.map('modal-map-view').setView([defaultLat, defaultLon], 13);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(pickerMap);
+
+        pickerMarker = L.marker([defaultLat, defaultLon], {draggable: true}).addTo(pickerMap);
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(pos => {
+                updateMapPosition(pos.coords.latitude, pos.coords.longitude);
+            });
+        }
+
+        pickerMarker.on('dragend', function(e) {
+            const { lat, lng } = e.target.getLatLng();
+            fetchAddressFromCoords(lat, lng);
+        });
+
+        pickerMap.on('click', function(e) {
+            updateMapPosition(e.latlng.lat, e.latlng.lng);
+            fetchAddressFromCoords(e.latlng.lat, e.latlng.lng);
+        });
+    }
+
+    function updateMapPosition(lat, lng) {
+        pickerMarker.setLatLng([lat, lng]);
+        pickerMap.setView([lat, lng], 15);
+        document.getElementById('signup-lat').value = lat;
+        document.getElementById('signup-lon').value = lng;
+    }
+
+    async function fetchAddressFromCoords(lat, lng) {
+        document.getElementById('map-status-text').textContent = "Fetching address...";
+        document.getElementById('signup-address').value = "Fetching...";
+        
+        try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`);
+            const data = await res.json();
+            fillAddressFields(data);
+            
+            document.getElementById('map-status-text').textContent = "Selected: " + (data.display_name.substring(0, 45) + "...");
+            document.getElementById('signup-lat').value = lat;
+            document.getElementById('signup-lon').value = lng;
+        } catch(e) { console.error(e); }
+    }
+
+    function fillAddressFields(data) {
+        const addr = data.address;
+        document.getElementById('signup-address').value = data.display_name || "";
+        
+        // Robust City Logic
+        const city = addr.city || addr.town || addr.village || addr.municipality || addr.county || "";
+        document.getElementById('signup-city').value = city;
+        document.getElementById('signup-state').value = addr.state || "";
+        document.getElementById('signup-pincode').value = addr.postcode || "";
+    }
+
+    // --- GPS BUTTON LOGIC ---
+    function geoLocateMe() {
         if (!navigator.geolocation) return alert("Geolocation not supported");
         
-        navigator.geolocation.getCurrentPosition(async (pos) => {
-            const lat = pos.coords.latitude;
-            const lon = pos.coords.longitude;
-            
-            // Store in hidden fields
-            document.getElementById('signup-lat').value = lat;
-            document.getElementById('signup-lon').value = lon;
+        const btn = event.target.closest('button');
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
 
-            // Get Address text
-            try {
-                const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`;
-                const res = await fetch(url);
-                const data = await res.json();
-                
-                const addr = data.address;
-                document.getElementById('signup-address').value = data.display_name || "";
-                document.getElementById('signup-city').value = addr.city || addr.town || addr.village || "";
-                document.getElementById('signup-state').value = addr.state || "";
-                document.getElementById('signup-pincode').value = addr.postcode || "";
-            } catch(e) {
-                console.error(e);
-                alert("Failed to fetch address details.");
-            }
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+            const { latitude, longitude } = pos.coords;
             
-        }, () => alert("Location access denied"));
+            if(pickerMap) updateMapPosition(latitude, longitude);
+            else {
+                document.getElementById('signup-lat').value = latitude;
+                document.getElementById('signup-lon').value = longitude;
+            }
+
+            await fetchAddressFromCoords(latitude, longitude);
+            btn.innerHTML = originalHTML;
+        }, () => {
+            alert("Permission denied");
+            btn.innerHTML = originalHTML;
+        });
     }
 
     // --- SIGN UP LOGIC ---
@@ -179,7 +379,8 @@
             state: document.getElementById('signup-state').value,
             pincode: document.getElementById('signup-pincode').value,
             phone_number: document.getElementById('signup-phone').value,
-            // ADDED: Lat/Lon
+            
+            // Lat/Lon
             lat: parseFloat(document.getElementById('signup-lat').value) || null,
             lon: parseFloat(document.getElementById('signup-lon').value) || null
         };
@@ -190,9 +391,12 @@
                 body: JSON.stringify(data)
             });
             if (response.ok) {
-                const result = await response.json();
                 sessionStorage.setItem('pending_verification_email', data.mail);
-                messageEl.textContent = 'Account created! Redirecting to verification...';
+                
+                // *** CRITICAL REDIRECT ROLE ***
+                sessionStorage.setItem('pending_verification_role', 'retailer'); 
+                
+                messageEl.textContent = 'Account created! Redirecting...';
                 messageEl.className = 'message success';
                 setTimeout(() => { window.location.href = 'verify-signup.html'; }, 1000);
             } else {
@@ -210,7 +414,7 @@
     document.getElementById('sign-in-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const messageEl = document.getElementById('signin-message');
-        const emailVal = document.getElementById('signin-email').value; // Capture email
+        const emailVal = document.getElementById('signin-email').value;
         const data = {
             mail: emailVal,
             password: document.getElementById('signin-password').value
@@ -230,15 +434,12 @@
                 setTimeout(() => window.location.href = '/retailer-dashboard.html', 1000);
             } else {
                 const error = await response.json();
-
                 if (response.status === 403) {
                     sessionStorage.setItem('pending_verification_email', emailVal);
-                    messageEl.innerHTML = `
-                        Account not verified. 
-                        <a href="verify-signup.html" style="color: #FF4B2B; font-weight: bold; text-decoration: underline; margin-left: 5px; cursor:pointer;">
-                            Verify Now
-                        </a>
-                    `;
+                    // Ensure role is set if verifying on login attempt
+                    sessionStorage.setItem('pending_verification_role', 'retailer');
+                    
+                    messageEl.innerHTML = `Account not verified. <a href="verify-signup.html" style="color:#FF4B2B; font-weight:bold;">Verify Now</a>`;
                     messageEl.className = 'message error';
                 } else {
                     messageEl.textContent = 'Error: ' + error.detail;

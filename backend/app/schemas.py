@@ -318,3 +318,4 @@ class ResetPasswordRequest(BaseModel):
 class AccountVerificationRequest(BaseModel):
     email: str
     otp: str
+    role: Optional[str] = None
