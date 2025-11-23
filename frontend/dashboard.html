@@ -13,6 +13,330 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
+            /* --- FINAL REVISION: GLITCH-INTENSE NEON VORTEX PRELOADER STYLES --- */
+
+        :root {
+            --neon-blue: #00ffff; /* Primary Neon Color */
+            --neon-shadow-color: rgba(0, 255, 255, 0.7);
+            --glitch-color-1: #ff00ff; /* Magenta/Red Glitch Color */
+            --glitch-color-2: #00ff00; /* Green Glitch Color */
+        }
+
+        #loading {
+            background-color: var(--bg-body);
+            height: 100%;
+            width: 100%;
+            position: fixed;
+            z-index: 10000;
+            top: 0px;
+            left: 0px;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+            transition: opacity 0.5s ease-out;
+        }
+
+        /* DOTS CONTAINER (Rotates) */
+        #loading-center {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            animation: full-spin 10s linear infinite;
+        }
+
+        #loading-center-absolute {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            height: 80px; 
+            width: 80px;
+            margin-top: -40px;
+            margin-left: -40px;
+            animation: central-pulse 3s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite alternate;
+        }
+
+                /* --- FINAL REVISION: GLITCH-INTENSE NEON VORTEX PRELOADER STYLES --- */
+
+        :root {
+            --neon-blue: #00ffff; /* Primary Neon Color */
+            --neon-shadow-color: rgba(0, 255, 255, 0.7);
+            --glitch-color-1: #ff00ff; /* Magenta/Red Glitch Color */
+            --glitch-color-2: #00ff00; /* Green Glitch Color */
+        }
+
+        #loading {
+            background-color: var(--bg-body);
+            height: 100%;
+            width: 100%;
+            position: fixed;
+            z-index: 10000;
+            top: 0px;
+            left: 0px;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+            transition: opacity 0.5s ease-out;
+        }
+
+        /* DOTS CONTAINER (Rotates) */
+        #loading-center {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            animation: full-spin 10s linear infinite;
+        }
+
+        #loading-center-absolute {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            height: 80px; 
+            width: 80px;
+            margin-top: -40px;
+            margin-left: -40px;
+            animation: central-pulse 3s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite alternate;
+        }
+
+        .object {
+            width: 16px; 
+            height: 16px;
+            background-color: var(--neon-blue);
+            position: absolute;
+            border-radius: 50%;
+            
+            /* Ensure initial shadow is applied */
+            box-shadow: 
+                0 0 5px var(--neon-blue), 
+                0 0 10px var(--neon-shadow-color);
+                
+            /* FIX: Combine the two separate animations here */
+            animation: 
+                /* 1. Rotates, scales, and pulses the shadow */
+                neon-pulse-spin 1.5s infinite, 
+                /* 2. Controls the color and shadow flash to green */
+                dot-color-flash 2s infinite linear alternate; 
+        }
+        #object_one { top: 0; left: 0; }
+        #object_two { top: 0; right: 0; animation-delay: 0.1s; }
+        #object_three { bottom: 0; right: 0; animation-delay: 0.2s; }
+        #object_four { bottom: 0; left: 0; animation-delay: 0.3s; }
+
+        /* TEXT STATUS (Fixed Position - GLITCHES HARD) */
+        #loading-status {
+            position: absolute;
+            bottom: 25%; 
+            left: 50%;
+            transform: translateX(-50%); 
+            color: var(--neon-blue);
+            font-family: 'Orbitron', monospace; 
+            font-size: 16px; 
+            letter-spacing: 3px;
+            white-space: nowrap; 
+            text-shadow: 
+                0 0 5px var(--neon-blue),
+                0 0 10px var(--neon-shadow-color);
+                
+            /* APPLIES THE AGGRESSIVE GLITCH EFFECT */
+            animation: 
+                text-glitch-translate 0.3s infinite steps(2),
+                text-glitch-color 2s infinite linear alternate;
+            
+            z-index: 10002; 
+        }
+
+
+        /* --- KEYFRAMES --- */
+
+        /* DOTS: Rotation and Pulse */
+        @keyframes neon-pulse-spin {
+            0% { transform: scale(0.8) rotate(0deg); opacity: 0.5; box-shadow: 0 0 5px var(--neon-blue); }
+            50% { 
+                transform: scale(1.2) rotate(180deg); 
+                opacity: 1; 
+                box-shadow: 0 0 15px var(--neon-blue), 0 0 30px var(--neon-shadow-color), 0 0 50px rgba(0, 255, 255, 0.3);
+            }
+            100% { transform: scale(0.8) rotate(360deg); opacity: 0.5; box-shadow: 0 0 5px var(--neon-blue); }
+        }
+
+        @keyframes central-pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
+        }
+
+        @keyframes full-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* NEW: Dots Color Flash Animation, synchronized with text */
+        @keyframes dot-color-flash {
+            /* 0% and 100% (blue) match the start and end of the text color animation */
+            0% { 
+                background-color: var(--neon-blue); 
+                box-shadow: 0 0 5px var(--neon-blue); 
+            }
+            30% { 
+                background-color: var(--glitch-color-1); 
+                box-shadow: 0 0 7px var(--glitch-color-1); 
+            }
+            /* 60% (green) is the brightest flash, matching the text */
+            60% { 
+                background-color: var(--glitch-color-2); 
+                box-shadow: 
+                    0 0 10px var(--glitch-color-2), 
+                    0 0 25px rgba(0, 255, 0, 0.8);
+            }
+            100% { 
+                /* Hold on the green success color at the end */
+                background-color: var(--glitch-color-2); 
+                box-shadow: 0 0 8px var(--glitch-color-2); 
+            }
+        }
+
+
+        /* TEXT: Aggressive Glitch Translation (Jumping) */
+        @keyframes text-glitch-translate {
+            0% { transform: translate(-50%, 0); }
+            25% { transform: translate(-48%, 2px); } /* Larger, more visible jump */
+            50% { transform: translate(-52%, -2px); }
+            75% { transform: translate(-51%, 1px); }
+            100% { transform: translate(-50%, 0); }
+        }
+
+        /* TEXT: Color Flicker/Shift - NOW WITH BRIGHT GREEN END STATE */
+        @keyframes text-glitch-color {
+            0% { 
+                color: var(--neon-blue); 
+                text-shadow: 0 0 5px var(--neon-blue); 
+            }
+            30% { 
+                color: var(--glitch-color-1); 
+                text-shadow: 0 0 7px var(--glitch-color-1); 
+            }
+            /* BRIGHTEST FLASH AT 66% (Green/Success color) */
+            60% { 
+                color: var(--glitch-color-2); 
+                text-shadow: 
+                    0 0 10px var(--glitch-color-2), /* base glow */
+                    0 0 20px rgba(0, 255, 0, 0.8), /* stronger layer */
+                    0 0 35px rgba(0, 255, 0, 0.5); /* widest, softest layer */
+            }
+            100% { 
+                /* Hold on the green success color at the end */
+                color: var(--glitch-color-2); 
+                text-shadow: 0 0 8px var(--glitch-color-2); 
+            }
+        }
+        #object_one { top: 0; left: 0; }
+        #object_two { top: 0; right: 0; animation-delay: 0.1s; }
+        #object_three { bottom: 0; right: 0; animation-delay: 0.2s; }
+        #object_four { bottom: 0; left: 0; animation-delay: 0.3s; }
+
+        /* TEXT STATUS (Fixed Position - GLITCHES HARD) */
+        #loading-status {
+            position: absolute;
+            bottom: 25%; 
+            left: 50%;
+            transform: translateX(-50%); 
+            color: var(--neon-blue);
+            font-family: 'Orbitron', monospace; 
+            font-size: 16px; 
+            letter-spacing: 3px;
+            white-space: nowrap; 
+            text-shadow: 
+                0 0 5px var(--neon-blue),
+                0 0 10px var(--neon-shadow-color);
+                
+            /* APPLIES THE AGGRESSIVE GLITCH EFFECT */
+            animation: 
+                text-glitch-translate 0.3s infinite steps(2),
+                text-glitch-color 2s infinite linear alternate;
+            
+            z-index: 10002; 
+        }
+
+
+        /* --- KEYFRAMES --- */
+
+        /* DOTS: Rotation and Pulse (NOW ONLY CONTROLS TRANSFORM/OPACITY) */
+        @keyframes neon-pulse-spin {
+            0% { transform: scale(0.8) rotate(0deg); opacity: 0.5; }
+            50% { 
+                transform: scale(1.2) rotate(180deg); 
+                opacity: 1; 
+            }
+            100% { transform: scale(0.8) rotate(360deg); opacity: 0.5; }
+        }
+
+        @keyframes central-pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
+        }
+
+        @keyframes full-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* NEW: Dots Color Flash Animation, synchronized with text */
+        @keyframes dot-color-flash {
+            /* 0% and 100% (blue) match the start and end of the text color animation */
+            0% { 
+                background-color: var(--neon-blue); 
+                box-shadow: 0 0 5px var(--neon-blue); 
+            }
+            30% { 
+                background-color: var(--glitch-color-1); 
+                box-shadow: 0 0 7px var(--glitch-color-1); 
+            }
+            /* 60% (green) is the brightest flash, matching the text */
+            60% { 
+                background-color: var(--glitch-color-2); 
+                box-shadow: 
+                    0 0 10px var(--glitch-color-2), 
+                    0 0 25px rgba(0, 255, 0, 0.8);
+            }
+            100% { 
+                /* Hold on the green success color at the end */
+                background-color: var(--glitch-color-2); 
+                box-shadow: 0 0 8px var(--glitch-color-2); 
+            }
+        }
+
+
+        /* TEXT: Aggressive Glitch Translation (Jumping) */
+        @keyframes text-glitch-translate {
+            0% { transform: translate(-50%, 0); }
+            25% { transform: translate(-48%, 2px); } /* Larger, more visible jump */
+            50% { transform: translate(-52%, -2px); }
+            75% { transform: translate(-51%, 1px); }
+            100% { transform: translate(-50%, 0); }
+        }
+
+        /* TEXT: Color Flicker/Shift - NOW WITH BRIGHT GREEN END STATE */
+        @keyframes text-glitch-color {
+            0% { 
+                color: var(--neon-blue); 
+                text-shadow: 0 0 5px var(--neon-blue); 
+            }
+            30% { 
+                color: var(--glitch-color-1); 
+                text-shadow: 0 0 7px var(--glitch-color-1); 
+            }
+            /* BRIGHTEST FLASH AT 66% (Green/Success color) */
+            60% { 
+                color: var(--glitch-color-2); 
+                text-shadow: 
+                    0 0 10px var(--glitch-color-2), /* base glow */
+                    0 0 20px rgba(0, 255, 0, 0.8), /* stronger layer */
+                    0 0 35px rgba(0, 255, 0, 0.5); /* widest, softest layer */
+            }
+            100% { 
+                /* Hold on the green success color at the end */
+                color: var(--glitch-color-2); 
+                text-shadow: 0 0 8px var(--glitch-color-2); 
+            }
+        }
         /* --- THEME VARIABLES --- */
         :root {
             /* 1. Dark Mode Variables (Deep Cyberpunk) */
@@ -205,7 +529,21 @@
 
 
 </head>
-<body>
+    <body>
+        <div id="loading">
+            
+            <div id="loading-status">Loading...</div> 
+
+            <div id="loading-center">
+                <div id="loading-center-absolute">
+                    <div class="object" id="object_one"></div>
+                    <div class="object" id="object_two"></div>
+                    <div class="object" id="object_three"></div>
+                    <div class="object" id="object_four"></div>
+                </div>
+                
+            </div>
+        </div>
 
     <nav class="navbar-default">
         <div class="navbar-container">
@@ -357,6 +695,28 @@
 
     // Run immediately
     initTheme();
+        // Add this function definition to the dashboard.html <script>
+    function hidePreloader() {
+        const loadingScreen = document.getElementById('loading');
+        if (loadingScreen) {
+            // Use a slight delay for a smoother transition after content is ready
+            setTimeout(() => {
+                loadingScreen.style.opacity = '0'; // Start the fade out
+                // Remove the element from the DOM after the transition finishes
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                }, 500); 
+            }, 300); 
+        }
+    }
+
+    // CRITICAL: Call the hidePreloader function inside your DOMContentLoaded event
+    document.addEventListener('DOMContentLoaded', () => {
+        // ... existing initialization logic (initTheme, checkAuth, fetchProducts, etc.)
+
+        // ADD THIS LINE:
+        hidePreloader();
+    });
         let mapInstance = null;
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -608,13 +968,9 @@
 
         async function fetchUserProfile() {
             const token = localStorage.getItem('token');
-            if (!token) {
-                console.error("DEBUG: No token found in localStorage");
-                return;
-            }
+            if (!token) return;
 
             try {
-                console.log("DEBUG: Fetching /customer/me...");
                 const response = await fetch('/customer/me', {
                     method: 'GET',
                     headers: { 
@@ -626,15 +982,11 @@
                 if (response.ok) {
                     const userData = await response.json();
                     
-                    // --- CRITICAL DEBUGGING LOGS ---
-                    console.log("DEBUG: Full User Data Received:", userData);
-                    console.log("DEBUG: userData.profile_picture is:", userData.profile_picture);
-                    console.log("DEBUG: userData.image_url is:", userData.image_url);
-                    // -------------------------------
+                    // Debug: Check the console to confirm 'profile_pic' is now present
+                    console.log("USER DATA:", userData);
 
                     // 1. Update Name
-                    const nameEl = document.getElementById('dropdown-name');
-                    if (nameEl) nameEl.textContent = "Hello, " + userData.name;
+                    document.getElementById('dropdown-name').textContent = "Hello, " + userData.name;
 
                     // 2. Update Email
                     const emailEl = document.getElementById('dropdown-email');
@@ -644,34 +996,29 @@
                     }
 
                     // 3. Update Welcome
-                    const displayEl = document.getElementById('user-name-display');
-                    if (displayEl) displayEl.textContent = "Hello " + userData.name; 
+                    document.getElementById('user-name-display').textContent = "Hello " + userData.name; 
 
-                    // 4. Update Profile Picture
-                    const rawPath = userData.profile_picture || userData.image_url;
+                    // 4. [UPDATED] Update Profile Picture using 'profile_pic'
+                    // We check userData.profile_pic (Schema name) OR userData.image_url (Upload response name)
+                    const rawPath = userData.profile_pic || userData.image_url;
                     const pfpEl = document.getElementById('dropdown-pfp');
 
-                    if (!pfpEl) {
-                        console.error("DEBUG: Could not find element with id 'dropdown-pfp'");
-                    } else if (!rawPath) {
-                        console.warn("DEBUG: No profile picture path found in data. Keeping default.");
-                    } else {
-                        // Sanitizer Logic
+                    if (pfpEl && rawPath) {
+                        // SANITIZER: Strip away any "../backend/data" junk
                         const filename = rawPath.split(/[/\\]/).pop();
-                        const cleanUrl = '/profile_pictures/' + filename;
                         
-                        console.log("DEBUG: Updating image source to:", cleanUrl);
+                        // Construct the clean URL
+                        const cleanUrl = '/profile_pictures/' + filename;
+
+                        // Apply with cache busting
                         pfpEl.src = cleanUrl + '?t=' + Date.now();
-                        // Force display in case it was hidden
-                        pfpEl.style.display = 'block'; 
+                        pfpEl.style.display = 'block';
                     }
 
                     localStorage.setItem('user_name', userData.name);
-                } else {
-                    console.error("DEBUG: Server responded with status:", response.status);
                 }
             } catch (error) {
-                console.error("DEBUG: Profile load error:", error);
+                console.error("Profile load error:", error);
             }
         }
 
