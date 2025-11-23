@@ -44,7 +44,7 @@ class CustomerRead(BaseModel):
     lat: Optional[float] = None
     lon: Optional[float] = None
 
-    profile_pic : Optional[str]
+    profile_pic : Optional[str] = None
     date_joined : datetime
 
     class Config:

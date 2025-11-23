@@ -256,7 +256,7 @@
         };
 
         // Upload PFP
-    // Upload PFP
+        // Upload PFP
         document.getElementById('pfpForm').onsubmit = async (e) => {
             e.preventDefault();
             
@@ -267,9 +267,12 @@
             formData.append('file', fileInput.files[0]);
             
             try {
+                // Note: We use 'headers' (Authorization only). 
+                // Do NOT set 'Content-Type': 'application/json' manually for FormData, 
+                // or the upload will fail.
                 const res = await fetch('/customer/me/upload-pfp', {
                     method: 'POST', 
-                    headers: headers, // Ensure 'headers' includes your Auth token
+                    headers: headers, 
                     body: formData
                 });
 
@@ -277,21 +280,28 @@
                     // 1. Read the JSON response ONCE
                     const data = await res.json();
                     
-                    // 2. Debug: Look at this in your browser console to see the real field name
+                    // 2. Debug: Check what the server actually sent
                     console.log("UPLOAD SUCCESS. Server sent:", data);
 
-                    // 3. Handle different naming conventions (image_url vs profile_picture)
-                    // The backend likely returns one of these keys.
-                    const imagePath = data.image_url || data.profile_picture || data.filename;
+                    // 3. Find the path (Check all possible field names)
+                    // We added 'data.profile_pic' to match your Python Schema
+                    const rawPath = data.image_url || data.profile_pic || data.profile_picture || data.filename;
 
-                    if (imagePath) {
-                        // Update the image on THIS page immediately
-                        document.getElementById('currentPfp').src = '/' + imagePath + '?' + Date.now();
+                    if (rawPath) {
+                        // 4. SANITIZER [Critical Fix]
+                        // Removes folder paths like "../backend/data/" and keeps just "image.jpg"
+                        const filename = rawPath.split(/[/\\]/).pop();
+                        
+                        // 5. Construct the clean Web URL
+                        const cleanUrl = '/profile_pictures/' + filename;
+
+                        // 6. Update the image on THIS page immediately (with cache busting)
+                        document.getElementById('currentPfp').src = cleanUrl + '?t=' + Date.now();
                     }
 
                     show(document.getElementById('pfpMsg'), 'Uploaded!', 'success');
 
-                    // 4. Force Dashboard to update next time you visit it
+                    // 7. Force Dashboard to update next time you visit it
                     localStorage.removeItem('user_name'); 
                 } else {
                     console.error("Upload failed", res.status);
@@ -301,7 +311,6 @@
                 console.error("Error uploading:", err);
             }
         };
-
     </script>
 </body>
 </html>
