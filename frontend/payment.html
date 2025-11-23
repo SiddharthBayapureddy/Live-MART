@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Payment | Live MART</title>
+    <link rel="stylesheet" href="assets/css/font-awesome.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet">
+    <style>
+        body { background: #f4f7f6; font-family: 'Montserrat', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .payment-container { background: #fff; width: 450px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; }
+        .payment-header { background: #111; padding: 20px; color: #fff; text-align: center; }
+        .payment-header h3 { margin: 0; font-weight: 700; color: #00f3ff; }
+        .amount-tag { font-size: 28px; font-weight: bold; margin-top: 10px; display: block; }
+        .tab-nav { display: flex; border-bottom: 1px solid #eee; }
+        .tab-btn { flex: 1; padding: 15px; border: none; background: #f9f9f9; cursor: pointer; font-weight: bold; color: #777; transition: 0.3s; }
+        .tab-btn.active { background: #fff; color: #000; border-bottom: 3px solid #00f3ff; }
+        .tab-content { padding: 30px; display: none; }
+        .tab-content.active { display: block; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 20px; box-sizing: border-box; }
+        .btn-pay { width: 100%; padding: 15px; border: none; background: #000; color: #fff; font-weight: bold; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        .btn-pay:hover { background: #00f3ff; color: #000; }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; display: none; }
+        .spinner { width: 50px; height: 50px; border: 5px solid #eee; border-top: 5px solid #00f3ff; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+<div class="payment-container">
+    <div class="payment-header">
+        <h3>Live MART Gateway</h3>
+        <span class="amount-tag" id="display-amount">₹0.00</span>
+    </div>
+    <div class="tab-nav">
+        <button class="tab-btn active" onclick="switchTab('card')"><i class="fa fa-credit-card"></i> Card</button>
+        <button class="tab-btn" onclick="switchTab('upi')"><i class="fa fa-qrcode"></i> UPI</button>
+    </div>
+    <div id="tab-card" class="tab-content active">
+        <form id="card-form" onsubmit="return false;">
+            <input type="text" placeholder="Card Number (4242...)" maxlength="19" required>
+            <div style="display:flex; gap:10px;">
+                <input type="text" placeholder="MM/YY" maxlength="5" required>
+                <input type="password" placeholder="CVV" maxlength="3" required>
+            </div>
+            <input type="text" placeholder="Cardholder Name" required>
+            <button class="btn-pay" onclick="processSuccess('Card')">Pay Securely</button>
+        </form>
+    </div>
+    <div id="tab-upi" class="tab-content" style="text-align:center;">
+        <p>Scan with any UPI App</p>
+        <img id="qr-code" src="" style="width:180px; margin-bottom:20px; border:1px solid #ddd; padding:10px;">
+        <button class="btn-pay" style="background:#4caf50;" onclick="processSuccess('UPI')">I have Paid</button>
+    </div>
+</div>
+<div class="overlay" id="overlay"><div class="spinner"></div><h3 style="margin-top:20px;">Processing...</h3></div>
+<script>
+    window.onload = function() {
+        const params = new URLSearchParams(window.location.search);
+        const amount = params.get('amount') || "0";
+        document.getElementById('display-amount').textContent = "₹" + parseFloat(amount).toFixed(2);
+        document.getElementById('qr-code').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=livemart@upi&am=${amount}`;
+    };
+    function switchTab(tab) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById('tab-' + tab).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+    function processSuccess(method) {
+        if (method === 'Card' && !document.getElementById('card-form').checkValidity()) return document.getElementById('card-form').reportValidity();
+        document.getElementById('overlay').style.display = 'flex';
+        setTimeout(() => {
+            if (window.opener && !window.opener.closed) {
+                window.opener.postMessage("payment_success", "*");
+                window.close();
+            } else {
+                const url = new URLSearchParams(window.location.search).get('returnUrl');
+                if (url) window.location.href = url + "?payment=success";
+            }
+        }, 2500);
+    }
+</script>
+</body>
+</html>

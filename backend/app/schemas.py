@@ -240,6 +240,7 @@ class OrderItemRead(BaseModel):
     product_id: int
     quantity: int
     price_at_purchase: float
+    product_name : Optional[str] = None
 
     class Config:
         from_attributes = True

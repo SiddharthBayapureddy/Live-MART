@@ -2,30 +2,49 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Orders | Live MART</title>
-    <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="assets/css/bootstrap.css">
     <link rel="stylesheet" href="assets/css/font-awesome.min.css">
-    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700|Orbitron:400,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700|Orbitron:400,700" rel="stylesheet">
     <style>
         body { background-color: #050505; color: #e0e0e0; font-family: 'Montserrat', sans-serif; }
-        .order-card { background: #111; padding: 20px; margin-bottom: 20px; border-radius: 5px; border-left: 4px solid #00f3ff; }
-        .status-badge { padding: 5px 10px; border-radius: 4px; font-size: 12px; text-transform: uppercase; font-weight: bold; }
-        .status-pending { background: #ff9800; color: #000; }
-        .status-shipped { background: #00f3ff; color: #000; }
-        .status-delivered { background: #4caf50; color: #fff; }
+        
+        /* Header Links */
+        .back-link { color: #aaa; text-decoration: none; transition: 0.3s; }
+        .back-link:hover { color: #00f3ff; text-decoration: none; }
+
+        /* Cards */
+        .order-card { background: #111; padding: 20px; margin-bottom: 20px; border-radius: 5px; border-left: 4px solid #00f3ff; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        
+        /* Badges */
+        .status-badge { padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase; display: inline-block; }
+        .pending { background: #ff9800; color: #000; }
+        .shipped { background: #00f3ff; color: #000; }
+        .delivered { background: #4caf50; color: #fff; }
+
+        /* Text Utils */
+        .label-text { font-size: 11px; color: #777; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 2px; }
+        .value-text { font-size: 14px; color: #fff; font-weight: 600; }
+        .price-text { color: #00f3ff; font-size: 16px; font-weight: bold; }
+
+        /* Items List inside Card */
+        .items-container { margin-top: 15px; border-top: 1px solid #222; padding-top: 15px; }
+        .item-row { display: flex; justify-content: space-between; font-size: 13px; color: #ccc; margin-bottom: 8px; }
+        .item-qty { color: #777; margin-left: 5px; font-size: 12px; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div style="margin-top: 30px; margin-bottom: 30px;">
-            <a href="dashboard.html" style="color: #fff;"><i class="fa fa-arrow-left"></i> Back to Dashboard</a>
-            <h2 style="font-family: 'Orbitron'; margin-top: 20px;">My Order History</h2>
-        </div>
+    <div class="container" style="margin-top:40px;">
+        <a href="dashboard.html" class="back-link"><i class="fa fa-arrow-left"></i> Back to Shop</a>
+        <h2 style="font-family:'Orbitron'; color:#fff; margin:20px 0;">My Orders</h2>
         
         <div id="orders-list">
-            <div class="text-center">Loading orders...</div>
+            <div class="text-center" style="padding: 40px;">
+                <i class="fa fa-circle-o-notch fa-spin" style="color:#00f3ff; font-size:24px;"></i>
+                <p style="color:#555; margin-top:10px;">Loading your history...</p>
+            </div>
         </div>
     </div>
 
@@ -34,66 +53,87 @@
 
         async function loadOrders() {
             const token = localStorage.getItem('token');
-            if (!token) { window.location.href = 'Customer.html'; return; }
+            if(!token) window.location.href = 'index.html';
 
             try {
-                // Note: Ensure main.py has @app.get("/customer/orders") endpoint
-                const res = await fetch('/customer/orders', {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                const res = await fetch('/customer/orders', { 
+                    headers: { 'Authorization': `Bearer ${token}` } 
                 });
+                
+                const list = document.getElementById('orders-list');
+                
+                if(res.ok) {
+                    const orders = await res.json();
+                    list.innerHTML = '';
+                    
+                    if(orders.length === 0) { 
+                        list.innerHTML = `
+                            <div class="text-center" style="padding:50px; color:#555;">
+                                <i class="fa fa-shopping-basket" style="font-size:40px; margin-bottom:15px;"></i>
+                                <h4>No orders found.</h4>
+                                <a href="dashboard.html" style="color:#00f3ff;">Start Shopping</a>
+                            </div>`; 
+                        return; 
+                    }
 
-                if (!res.ok) throw new Error("Failed to fetch orders");
+                    orders.reverse(); // Show newest first
 
-                const orders = await res.json();
-                renderOrders(orders);
+                    orders.forEach(o => {
+                        // 1. Determine Status Color
+                        let statusClass = 'pending';
+                        if (o.status === 'Shipped') statusClass = 'shipped';
+                        if (o.status === 'Delivered') statusClass = 'delivered';
 
+                        const date = new Date(o.order_date).toLocaleDateString();
+
+                        // 2. Build Items HTML
+                        let itemsHtml = '<div class="items-container">';
+                        
+                        if(o.items && o.items.length > 0) {
+                            o.items.forEach(i => {
+                                // Fallback if product name is missing
+                                const pName = i.product_name || `Product #${i.product_id}`;
+                                itemsHtml += `
+                                    <div class="item-row">
+                                        <span>${pName} <span class="item-qty">x${i.quantity}</span></span>
+                                        <span>₹${i.price_at_purchase}</span>
+                                    </div>`;
+                            });
+                        } else {
+                            itemsHtml += '<span style="font-size:12px; color:#555;">Item details unavailable.</span>';
+                        }
+                        itemsHtml += '</div>';
+
+                        // 3. Render Card
+                        list.innerHTML += `
+                        <div class="order-card">
+                            <div class="row">
+                                <div class="col-xs-3">
+                                    <span class="label-text">ORDER ID</span>
+                                    <div class="value-text">#${o.id}</div>
+                                </div>
+                                <div class="col-xs-3">
+                                    <span class="label-text">DATE</span>
+                                    <div class="value-text">${date}</div>
+                                </div>
+                                <div class="col-xs-3">
+                                    <span class="label-text">TOTAL</span>
+                                    <div class="price-text">₹${o.total_price}</div>
+                                </div>
+                                <div class="col-xs-3 text-right">
+                                    <span class="status-badge ${statusClass}">${o.status}</span>
+                                </div>
+                            </div>
+                            ${itemsHtml}
+                        </div>`;
+                    });
+                } else {
+                    list.innerHTML = "<p class='text-center text-danger'>Error loading orders. Please try again.</p>";
+                }
             } catch (e) {
                 console.error(e);
-                document.getElementById('orders-list').innerHTML = '<p>Error loading history. (Did you add the endpoint to main.py?)</p>';
+                document.getElementById('orders-list').innerHTML = "<p class='text-center text-danger'>Server connection failed.</p>";
             }
-        }
-
-        function renderOrders(orders) {
-            const list = document.getElementById('orders-list');
-            list.innerHTML = '';
-
-            if (orders.length === 0) {
-                list.innerHTML = '<p>No past orders found.</p>';
-                return;
-            }
-
-            // Sort by date desc
-            orders.reverse();
-
-            orders.forEach(o => {
-                let statusClass = 'status-pending';
-                if (o.status === 'Shipped') statusClass = 'status-shipped';
-                if (o.status === 'Delivered') statusClass = 'status-delivered';
-
-                const date = new Date(o.order_date).toLocaleDateString();
-
-                const html = `
-                <div class="order-card">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <span style="color:#888; font-size:12px;">ORDER ID</span>
-                            <h4 style="margin-top:5px;">#${o.id}</h4>
-                        </div>
-                        <div class="col-md-3">
-                            <span style="color:#888; font-size:12px;">DATE</span>
-                            <h5 style="margin-top:5px;">${date}</h5>
-                        </div>
-                        <div class="col-md-3">
-                            <span style="color:#888; font-size:12px;">TOTAL</span>
-                            <h5 style="margin-top:5px; color:#00f3ff;">₹${o.total_price}</h5>
-                        </div>
-                        <div class="col-md-3 text-right">
-                            <span class="status-badge ${statusClass}">${o.status}</span>
-                        </div>
-                    </div>
-                </div>`;
-                list.innerHTML += html;
-            });
         }
     </script>
 </body>

@@ -3,9 +3,9 @@
 # Importing FastAPI
 from fastapi import FastAPI , HTTPException , status, Depends, Form , BackgroundTasks,UploadFile,File
 
-from typing import List, Annotated, Optional # <--- Added Optional here
-from pydantic import BaseModel # <--- Added for the name update schema
-import shutil # <--- Added for saving images
+from typing import List, Annotated, Optional 
+from pydantic import BaseModel 
+import shutil 
 import uuid 
 from fastapi.staticfiles import StaticFiles
 
@@ -84,7 +84,8 @@ from db_models import (Customer,
                         PasswordReset, 
                         OrderRecords,
                         Category,
-                        OrderItem
+                        OrderItem,
+                        WholesaleOrderItem
                         )
 
 # Importing the Schemas
@@ -265,7 +266,10 @@ async def upload_profile_picture(
     
     with Session(engine) as session:
         customer_db = session.get(Customer, current_customer.id)
-        customer_db.image_url = relative_url
+        
+        # FIX: Change 'image_url' to 'profile_pic'
+        customer_db.profile_pic = relative_url 
+        
         session.add(customer_db)
         session.commit()
         
@@ -293,14 +297,37 @@ async def get_customer_cart(
 
 
 # Cart items of the customer
+# In main.py
+
+# In main.py
+
+# FIND AND REPLACE THE ENTIRE 'get_my_orders' FUNCTION WITH THIS:
+
 @app.get("/customer/orders", response_model=List[OrderRecordsRead], tags=["Cart & Checkout"])
-async def get_my_orders(customer: Customer = Depends(get_current_customer)):
+def get_my_orders(customer: Customer = Depends(get_current_customer)):
     with Session(engine) as session:
-        statement = select(OrderRecords).where(OrderRecords.customer_id == customer.id)
-        orders = session.exec(statement).all()
-        return orders
-
-
+        orders_db = session.exec(select(OrderRecords).where(OrderRecords.customer_id == customer.id).order_by(OrderRecords.order_date.desc())).all()
+        
+        final_results = []
+        for order in orders_db:
+            order_schema = OrderRecordsRead.model_validate(order)
+            items_with_product = session.exec(
+                select(OrderItem, Product.name)
+                .join(Product, Product.id == OrderItem.product_id)
+                .where(OrderItem.orderrecords_id == order.id)
+            ).all()
+            
+            order_items_data = []
+            for item, p_name in items_with_product:
+                i_dict = item.model_dump()
+                i_dict['product_name'] = p_name
+                order_items_data.append(i_dict)
+            
+            order_schema.items = order_items_data
+            final_results.append(order_schema)
+            
+        return final_results
+    
 # -------------------------------------------------------------------------------------------------------------------------------------------------
 # --- Retailer Auth Endpoints ---
 # -------------------------------------------------------------------------------------------------------------------------------------------------
@@ -489,54 +516,52 @@ async def login_google(request: Request):
     redirect_uri = request.url_for('auth_google')
     return await oauth.google.authorize_redirect(request, redirect_uri)
 
+# FIND AND REPLACE THE ENTIRE 'auth_google' FUNCTION WITH THIS:
+
 @app.get("/auth/google", tags=["Social Auth"])
 async def auth_google(request: Request):
     try:
-        # 1. Exchange the auth code for a token
         token = await oauth.google.authorize_access_token(request)
-        
-        # 2. Get the user's info from Google
-        user_info = token.get('userinfo')
-        if not user_info:
-            user_info = await oauth.google.userinfo(token=token)
-            
+        user_info = token.get('userinfo') or await oauth.google.userinfo(token=token)
         email = user_info.get('email')
-        # Fallback if name is missing (common source of 400 errors)
         name = user_info.get('name') or email.split('@')[0] 
+
+        role = "customer"
+        redirect_page = "Customer.html"
         
-        # 3. Check if this customer already exists in our DB
-        customer = await run_in_threadpool(get_customer_by_email, mail=email)
+        # Check Retailer
+        retailer = await run_in_threadpool(get_retailer_by_email, email)
+        if retailer:
+            role = "retailer"
+            redirect_page = "Retailer.html"
+            if not retailer.is_verified:
+                with Session(engine) as s:
+                    r = s.get(Retailer, retailer.id)
+                    r.is_verified = True
+                    s.add(r); s.commit()
         
-        if not customer:
-            # 4. If not, create a new account
-            random_pass = hash_password(email + datetime.utcnow().isoformat())
-            customer = await run_in_threadpool(
-                add_customer,
-                name=name,
-                mail=email,
-                hashed_password=random_pass
-            )
+        # Check Wholesaler
+        elif await run_in_threadpool(get_wholesaler_by_email, email):
+            role = "wholesaler"
+            redirect_page = "Wholesaler.html"
+        
+        # Default to Customer
+        else:
+            customer = await run_in_threadpool(get_customer_by_email, mail=email)
+            if not customer:
+                random_pass = hash_password(email + datetime.utcnow().isoformat())
+                customer = await run_in_threadpool(add_customer, name=name, mail=email, hashed_password=random_pass)
             
-        # 5. AUTO-VERIFY (Fixes the bug for existing unverified users)
-        if not customer.is_verified:
-            with Session(engine) as session:
-                # Re-fetch the object within this session to update it
-                c_update = session.get(Customer, customer.id)
-                if c_update:
-                    c_update.is_verified = True
-                    session.add(c_update)
-                    session.commit()
-                    session.refresh(c_update)
-                    customer = c_update # Update local object reference
-            
-        # 6. Generate Token
-        access_token = create_access_token(data={"sub": customer.mail, "role": "customer"})
+            if not customer.is_verified:
+                 with Session(engine) as s:
+                    c = s.get(Customer, customer.id)
+                    c.is_verified = True
+                    s.add(c); s.commit()
         
-        # 7. Redirect
-        return RedirectResponse(url=f"/Customer.html?token={access_token}")
-        
+        access_token = create_access_token(data={"sub": email, "role": role})
+        return RedirectResponse(url=f"/{redirect_page}?token={access_token}")
+             
     except Exception as e:
-        # Print the actual error to your VS Code terminal so we can see it
         print(f"GOOGLE AUTH ERROR: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Google Login Failed: {str(e)}")
     
@@ -547,7 +572,7 @@ async def auth_google(request: Request):
 # 1. GET ALL PRODUCTS
 # Matches requests to "/products" (e.g., from dashboard.html)
 @app.get("/products", response_model=List[ProductRead], tags=["Products"])
-async def get_all_products(
+def get_all_products(
     q: Optional[str] = None,
     category: Optional[str] = None, 
     min_price: Optional[float] = None, 
@@ -557,6 +582,18 @@ async def get_all_products(
     with Session(engine) as session:
         query = select(Product)
         
+        # --- FIX: HARDCODED CATEGORY MAPPING ---
+        # Matches the IDs used in retailer-add-product.html
+        cat_map = {
+            "electronics": 1,
+            "groceries": 2,
+            "fashion": 3,
+            "books": 5,
+            "sports": 8, # Matches 'Sports' in your HTML
+            "home": 7    # Matches 'Home' in your HTML
+            # Add others if needed
+        }
+
         # Search Logic
         if q:
             search_term = f"%{q}%"
@@ -567,12 +604,15 @@ async def get_all_products(
                 )
             )
             
-        # Category Logic (Handles ID vs Name)
+        # Category Logic
         if category and category.lower() != "all":
             if category.isdigit():
                 query = query.where(Product.category_id == int(category))
             else:
-                query = query.join(Category).where(col(Category.name).ilike(category.strip()))
+                # Check our manual map instead of the empty DB table
+                cat_id = cat_map.get(category.lower())
+                if cat_id:
+                    query = query.where(Product.category_id == cat_id)
             
         # Filtering & Sorting
         if min_price is not None:
@@ -879,26 +919,39 @@ async def get_wholesale_orders(current_wholesaler: Wholesaler = Depends(get_curr
         orders = session.exec(statement).all()
         return orders
 
+# In main.py
+
+# ... inside main.py ...
+
+# REPLACE the existing update_wholesale_order_status with this:
+# FIND AND REPLACE THE ENTIRE 'update_wholesale_order_status' FUNCTION WITH THIS:
+
 @app.put("/wholesaler/orders/{order_id}/status", response_model=WholesaleOrder, tags=["Wholesaler Workflow"])
-async def update_wholesale_order_status(
+def update_wholesale_order_status(
     order_id: int,
     status_update: OrderStatusUpdate,
     current_wholesaler: Wholesaler = Depends(get_current_wholesaler)
 ):
     with Session(engine) as session:
         order = session.get(WholesaleOrder, order_id)
-        if not order:
-            raise HTTPException(status_code=404, detail="Order not found")
-        
-        if order.wholesaler_id != current_wholesaler.id:
-            raise HTTPException(status_code=403, detail="Not authorized")
+        if not order: raise HTTPException(status_code=404, detail="Order not found")
+        if order.wholesaler_id != current_wholesaler.id: raise HTTPException(status_code=403, detail="Not authorized")
             
+        # --- ADDED STOCK UPDATE ---
+        if status_update.status in ["Shipped", "Approved"] and order.status not in ["Shipped", "Approved"]:
+            items = session.exec(select(WholesaleOrderItem).where(WholesaleOrderItem.wholesale_order_id == order.id)).all()
+            for item in items:
+                product = session.get(Product, item.product_id)
+                if product:
+                    product.stock += item.quantity
+                    session.add(product)
+        # --------------------------
+
         order.status = status_update.status
         session.add(order)
         session.commit()
         session.refresh(order)
         return order
-
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -937,62 +990,54 @@ async def forgot_password(request: ForgotPasswordRequest , background_tasks: Bac
 
 
 # Password Reset Endpoint
-@app.post("/auth/reset-password" , status_code=status.HTTP_200_OK , tags=['Auth'])
-async def reset_password(request: ResetPasswordRequest):
-
-    # Checking if request has been made or not
+@app.post("/auth/reset-password", status_code=status.HTTP_200_OK, tags=['Auth'])
+def reset_password(request: ResetPasswordRequest): # Removed async
     with Session(engine) as session:
-
+        # 1. Validate OTP
         statement = select(PasswordReset).where(
             (PasswordReset.email == request.email) &
             (PasswordReset.otp == request.otp) 
         )
-
-        reset_record  = session.exec(statement).first()
+        reset_record = session.exec(statement).first()
 
         if not reset_record:
             raise HTTPException(status_code=400, detail="Invalid OTP.")
         
-        # If OTP expired
         if reset_record.expires_at < datetime.utcnow():
-            session.delete(reset_record) # 
+            session.delete(reset_record)
             session.commit()
             raise HTTPException(status_code=400, detail="OTP has expired.")
         
-
-        # Updating the password
+        # 2. Update Password (Hash it once)
         new_hashed_password = hash_password(request.new_password)
         
-        # Finding the user
         user_found = False
 
-        # Checking for customer
+        # Check Customer (Always check)
         customer = session.exec(select(Customer).where(Customer.mail == request.email)).first()
         if customer:
             customer.hashed_password = new_hashed_password
             session.add(customer)
             user_found = True
 
-        # Checking for Retailer
-        if not user_found:
-            retailer = session.exec(select(Retailer).where(Retailer.mail == request.email)).first()
-            if retailer:
-                retailer.hashed_password = new_hashed_password
-                session.add(retailer)
-                user_found = True
+        # Check Retailer (Always check - REMOVED "if not user_found")
+        retailer = session.exec(select(Retailer).where(Retailer.mail == request.email)).first()
+        if retailer:
+            retailer.hashed_password = new_hashed_password
+            session.add(retailer)
+            user_found = True
 
-        # Checking for Wholesaler
-        if not user_found:
-            wholesaler = session.exec(select(Wholesaler).where(Wholesaler.mail == request.email)).first()
-            if wholesaler:
-                wholesaler.hashed_password = new_hashed_password
-                session.add(wholesaler)
-                user_found = True
+        # Check Wholesaler (Always check - REMOVED "if not user_found")
+        wholesaler = session.exec(select(Wholesaler).where(Wholesaler.mail == request.email)).first()
+        if wholesaler:
+            wholesaler.hashed_password = new_hashed_password
+            session.add(wholesaler)
+            user_found = True
         
         if not user_found:
             raise HTTPException(status_code=404, detail="User account not found.")
 
-        # 3. Delete the OTP so it can't be used again
+        # 3. Delete the OTP
         session.delete(reset_record)
         session.commit()
         

@@ -148,6 +148,16 @@
 
 <script src="js/js.js"></script>
 <script>
+
+    window.onload = function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        if (token) {
+            localStorage.setItem('token', token);
+            localStorage.setItem('user_role', 'retailer'); 
+            window.location.href = 'retailer-dashboard.html'; 
+        }
+    };
     // --- SIGN UP LOGIC ---
     document.getElementById('sign-up-form').addEventListener('submit', async (e) => {
         e.preventDefault();

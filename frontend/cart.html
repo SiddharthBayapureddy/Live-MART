@@ -140,7 +140,18 @@
         const token = localStorage.getItem('token');
         if(!token) window.location.href = 'index.html';
 
-        document.addEventListener('DOMContentLoaded', loadCart);
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCart();
+            // Check if user came back from payment page
+            const params = new URLSearchParams(window.location.search);
+            if(params.get('payment') === 'success') {
+                const saved = JSON.parse(sessionStorage.getItem('temp_order'));
+                if(saved) {
+                    finalizeOrder(saved.addr, saved.city, saved.pin, "Online");
+                    sessionStorage.removeItem('temp_order');
+                }
+            }
+        });
 
         let cartData = [];
 
@@ -268,28 +279,37 @@
             } catch(e) { console.error(e); }
         }
 
-        async function processCheckout() {
+async function processCheckout() {
             const addr = document.getElementById('ship-addr').value.trim();
             const city = document.getElementById('ship-city').value.trim();
             const pin = document.getElementById('ship-pin').value.trim();
             const payMode = document.getElementById('payment-mode').value;
+            const totalText = document.getElementById('total-display').innerText;
+            const amount = parseFloat(totalText.replace('₹', ''));
 
             if(!addr || !city || !pin) { 
                 alert("Please fill in all shipping details."); 
                 return; 
             }
 
+            // --- PAYMENT LOGIC ---
+            if(payMode === 'Online') {
+                const orderData = { addr, city, pin };
+                sessionStorage.setItem('temp_order', JSON.stringify(orderData));
+                window.location.href = `payment.html?amount=${amount}&returnUrl=cart.html`;
+                return;
+            }
+            // ---------------------
+
+            finalizeOrder(addr, city, pin, payMode);
+        }
+
+        // New Helper Function
+        async function finalizeOrder(addr, city, pin, mode) {
             const btn = document.querySelector('.checkout-btn');
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Processing...';
             btn.disabled = true;
-
-            const payload = {
-                shipping_address: addr,
-                shipping_city: city,
-                shipping_pincode: pin,
-                payment_mode: payMode 
-            };
 
             try {
                 const res = await fetch('/order/checkout', {
@@ -298,21 +318,22 @@
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({
+                        shipping_address: addr, shipping_city: city, 
+                        shipping_pincode: pin, payment_mode: mode 
+                    })
                 });
 
                 if (res.ok) {
-                    alert("Order Placed Successfully! Redirecting to your orders...");
+                    alert("Order Placed Successfully!");
                     window.location.href = 'orders.html'; 
                 } else {
                     const err = await res.json();
-                    let msg = err.detail;
-                    if (typeof msg === 'object') msg = JSON.stringify(msg);
-                    alert("Checkout Failed: " + (msg || "Unknown error"));
+                    alert("Checkout Failed: " + (err.detail || "Unknown error"));
                 }
             } catch (e) {
                 console.error(e);
-                alert("Network error processing checkout. Please check your connection.");
+                alert("Network error.");
             } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;

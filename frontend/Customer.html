@@ -233,7 +233,7 @@
             } else {
                 const error = await response.json();
 
-                // --- VERIFICATION CHECK (This will work now) ---
+                // --- VERIFICATION CHECK ---
                 if (response.status === 403) {
                     sessionStorage.setItem('pending_verification_email', emailVal);
                     messageEl.innerHTML = `

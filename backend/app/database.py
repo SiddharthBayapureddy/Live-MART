@@ -21,7 +21,7 @@ from db_models import (
     WholesaleOrderItem,
     VerificationOTP
 )
-from schemas import OrderCreate, ProductUpdate, OrderStatusUpdate
+from schemas import OrderCreate, ProductUpdate, OrderStatusUpdate, OrderItemRead, OrderRecordsRead
 
 from fastapi import HTTPException, status
 
@@ -376,33 +376,47 @@ def update_order_status(order: OrderRecords, status_update: OrderStatusUpdate) -
         session.refresh(order)
         return order
 
-def get_orders_by_retailer(retailer_id: int) -> List[OrderRecords]:
+# In database.py
+
+# FIND AND REPLACE THE ENTIRE 'get_orders_by_retailer' FUNCTION WITH THIS:
+
+def get_orders_by_retailer(retailer_id: int) -> List[OrderRecordsRead]:
     with Session(engine) as session:
-        # 1. Find all product IDs for this retailer
-        product_ids = session.exec(
-            select(Product.id).where(Product.retailer_id == retailer_id)
-        ).all()
+        # 1. Get Product IDs
+        product_ids = session.exec(select(Product.id).where(Product.retailer_id == retailer_id)).all()
+        if not product_ids: return []
         
-        if not product_ids:
-            return []
+        # 2. Get Order IDs
+        order_ids = session.exec(select(OrderItem.orderrecords_id).where(OrderItem.product_id.in_(product_ids)).distinct()).all()
+        if not order_ids: return []
+        
+        # 3. Get Orders
+        orders_db = session.exec(select(OrderRecords).where(OrderRecords.id.in_(order_ids)).order_by(OrderRecords.order_date.desc())).all()
+
+        final_orders = []
+        for order in orders_db:
+            order_schema = OrderRecordsRead.model_validate(order)
+            retailer_total = 0
             
-        # 2. Find all order IDs that contain these products (UNIQUE IDs only)
-        # FIX: Use distinct() inside the select statement logic
-        order_ids = session.exec(
-            select(OrderItem.orderrecords_id)
-            .where(OrderItem.product_id.in_(product_ids))
-            .distinct()
-        ).all()
-        
-        if not order_ids:
-            return []
+            items_with_names = session.exec(
+                select(OrderItem, Product.name)
+                .join(Product, Product.id == OrderItem.product_id)
+                .where(OrderItem.orderrecords_id == order.id)
+                .where(OrderItem.product_id.in_(product_ids))
+            ).all()
+
+            schema_items = []
+            for item, p_name in items_with_names:
+                retailer_total += item.price_at_purchase * item.quantity
+                i_dict = item.model_dump()
+                i_dict['product_name'] = p_name
+                schema_items.append(i_dict)
             
-        # 3. Get the full OrderRecords
-        statement = select(OrderRecords).where(OrderRecords.id.in_(order_ids))
-        # Sort by date descending (newest first)
-        statement = statement.order_by(OrderRecords.order_date.desc())
-        
-        return session.exec(statement).all()
+            order_schema.items = schema_items
+            order_schema.total_price = retailer_total
+            final_orders.append(order_schema)
+
+        return final_orders
     
     
 # -----------------------------------------------------------------
@@ -457,14 +471,16 @@ def save_verification_otp(email: str, otp: str):
         session.add(new_otp)
         session.commit()
 
+
+
 def verify_user_account(email: str, otp: str) -> bool:
     """
-    Checks OTP, deletes it if valid, and updates the user's is_verified status.
-    Returns True if successful, False otherwise.
+    Checks OTP, deletes it if valid, and updates is_verified status 
+    for ALL user roles (Customer, Retailer, Wholesaler) with this email.
     """
     with Session(engine) as session:
         # 1. Check OTP
-        statement = select(VerificationOTP).where(
+        statement = select(VerificationOTP).where(      
             (VerificationOTP.email == email) & 
             (VerificationOTP.otp == otp)
         )
@@ -478,31 +494,30 @@ def verify_user_account(email: str, otp: str) -> bool:
             session.commit()
             return False
 
-        # 2. Update User Status (Check all 3 tables)
+        # 2. Update User Status (Check ALL tables independently)
+        # We removed "if not user_found" so it verifies ALL roles with this email
         user_found = False
         
-        # Customer
+        # Check Customer
         customer = session.exec(select(Customer).where(Customer.mail == email)).first()
         if customer:
             customer.is_verified = True
             session.add(customer)
             user_found = True
             
-        # Retailer
-        if not user_found:
-            retailer = session.exec(select(Retailer).where(Retailer.mail == email)).first()
-            if retailer:
-                retailer.is_verified = True
-                session.add(retailer)
-                user_found = True
+        # Check Retailer (Always check, even if customer was found)
+        retailer = session.exec(select(Retailer).where(Retailer.mail == email)).first()
+        if retailer:
+            retailer.is_verified = True
+            session.add(retailer)
+            user_found = True
                 
-        # Wholesaler
-        if not user_found:
-            wholesaler = session.exec(select(Wholesaler).where(Wholesaler.mail == email)).first()
-            if wholesaler:
-                wholesaler.is_verified = True
-                session.add(wholesaler)
-                user_found = True
+        # Check Wholesaler (Always check)
+        wholesaler = session.exec(select(Wholesaler).where(Wholesaler.mail == email)).first()
+        if wholesaler:
+            wholesaler.is_verified = True
+            session.add(wholesaler)
+            user_found = True
 
         if user_found:
             session.delete(record) # Consume OTP
