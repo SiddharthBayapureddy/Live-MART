@@ -861,6 +861,27 @@ async def get_my_products(current_retailer: Retailer = Depends(get_current_retai
     products = await run_in_threadpool(get_products_by_retailer, retailer_id=current_retailer.id)
     return products
 
+
+@app.get("/retailers/locations", tags=["Retailer Workflow"])
+def get_retailer_locations():
+    """Returns a list of retailers with their coordinates for the map."""
+    with Session(engine) as session:
+        # Fetch retailers who have lat/lon set
+        statement = select(Retailer).where(Retailer.lat != None).where(Retailer.lon != None)
+        retailers = session.exec(statement).all()
+        
+        map_data = []
+        for r in retailers:
+            map_data.append({
+                "id": r.id,
+                "name": r.business_name,
+                "lat": r.lat,
+                "lon": r.lon,
+                "address": r.address
+            })
+        return map_data
+
+
 @app.put("/retailer/products/{product_id}", response_model=ProductRead, tags=["Retailer Workflow"])
 async def update_product(
     product_id: int, 

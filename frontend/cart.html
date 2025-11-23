@@ -101,7 +101,12 @@
                     <h4>Shipping Details</h4>
                     
                     <div class="form-group">
-                        <label class="form-label">Address</label>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <label class="form-label">Address</label>
+                            <button onclick="geoLocateMe()" style="background:transparent; border:none; color:#00f3ff; font-size:11px; cursor:pointer; text-decoration:underline; margin-bottom:8px;">
+                                <i class="fa fa-map-marker"></i> Use my Location
+                            </button>
+                        </div>
                         <input type="text" id="ship-addr" class="dark-input" placeholder="Street, House No">
                     </div>
 
@@ -123,7 +128,7 @@
                     <div class="form-group">
                         <label class="form-label">Payment Mode</label>
                         <select id="payment-mode" class="dark-input">
-                            <option value="Online">Online Payment</option>
+                            <option value="Online">Online Payment (Card / UPI)</option>
                             <option value="COD">Cash on Delivery</option>
                         </select>
                     </div>
@@ -270,7 +275,6 @@
                     });
                     
                     if(res.ok) {
-                        // FIX: Immediate reload after removal
                         await loadCart();
                     } else {
                         alert("Failed to remove item.");
@@ -279,7 +283,7 @@
             } catch(e) { console.error(e); }
         }
 
-async function processCheckout() {
+        async function processCheckout() {
             const addr = document.getElementById('ship-addr').value.trim();
             const city = document.getElementById('ship-city').value.trim();
             const pin = document.getElementById('ship-pin').value.trim();
@@ -304,7 +308,7 @@ async function processCheckout() {
             finalizeOrder(addr, city, pin, payMode);
         }
 
-        // New Helper Function
+        // Helper Function for Order Submission
         async function finalizeOrder(addr, city, pin, mode) {
             const btn = document.querySelector('.checkout-btn');
             const originalText = btn.innerHTML;
@@ -319,8 +323,10 @@ async function processCheckout() {
                         'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({
-                        shipping_address: addr, shipping_city: city, 
-                        shipping_pincode: pin, payment_mode: mode 
+                        shipping_address: addr, 
+                        shipping_city: city, 
+                        shipping_pincode: pin, 
+                        payment_mode: mode 
                     })
                 });
 
@@ -338,6 +344,47 @@ async function processCheckout() {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             }
+        }
+
+        // --- GEOLOCATION LOGIC ---
+        function geoLocateMe() {
+            if (!navigator.geolocation) {
+                alert("Geolocation is not supported by your browser.");
+                return;
+            }
+
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa fa-circle-o-notch fa-spin"></i> Locating...';
+
+            navigator.geolocation.getCurrentPosition(async (position) => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+
+                try {
+                    // Call Free Nominatim API (Reverse Geocoding)
+                    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`;
+                    const res = await fetch(url);
+                    const data = await res.json();
+
+                    // Fill Inputs
+                    const addr = data.address;
+                    document.getElementById('ship-addr').value = 
+                        data.display_name || (addr.road || "") + ", " + (addr.suburb || addr.neighbourhood || "");
+                    document.getElementById('ship-city').value = 
+                        (addr.city || addr.town || addr.village || "");
+                    document.getElementById('ship-pin').value = addr.postcode || "";
+
+                } catch (error) {
+                    console.error(error);
+                    alert("Could not fetch address details.");
+                } finally {
+                    btn.innerHTML = originalText;
+                }
+            }, () => {
+                alert("Unable to retrieve your location.");
+                btn.innerHTML = originalText;
+            });
         }
 
         function logout() {

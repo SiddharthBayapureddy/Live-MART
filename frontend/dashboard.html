@@ -4,319 +4,192 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Live MART | Dashboard</title>
-    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/bootstrap.css">
     <link rel="stylesheet" href="assets/css/font-awesome.min.css">
-    <link rel="stylesheet" href="assets/css/style.css">
     <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700|Orbitron:400,700&display=swap" rel="stylesheet">
     
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <style>
-        /* --- NAVBAR FIXES --- */
-        .navbar-default {
-            background: #fff;
-            border-bottom: 1px solid #eee;
-            height: 70px; /* Fixed height for better alignment */
-            margin-bottom: 0;
-            display: flex;
-            align-items: center; /* Vertically center everything */
+        /* --- THEME VARIABLES --- */
+        :root {
+            /* Dark Mode (Cyberpunk / Minimal) */
+            --bg-body: #050505;
+            --bg-nav: rgba(10, 10, 10, 0.98); /* Almost opaque for readability */
+            --bg-card: rgba(20, 20, 20, 0.6);
+            --bg-img-wrap: rgba(255, 255, 255, 0.03); 
+            --bg-input: #1a1a1a;
+            
+            --text-main: #ccc;
+            --text-head: #fff;
+            --text-muted: #777;
+            
+            --border-color: #333;
+            --accent: #00f3ff; /* Cyan Neon */
+            --shadow: 0 4px 20px rgba(0, 243, 255, 0.1);
         }
+
+        body.light-mode {
+            /* Light Mode (Clean) */
+            --bg-body: #f4f7f6;
+            --bg-nav: #ffffff;
+            --bg-card: #ffffff;
+            --bg-img-wrap: #f8f9fa;
+            --bg-input: #f1f1f1;
+            
+            --text-main: #333;
+            --text-head: #000;
+            --text-muted: #666;
+            
+            --border-color: #e0e0e0;
+            --accent: #007bff; 
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        /* --- GLOBAL STYLES --- */
+        body { 
+            background-color: var(--bg-body); 
+            color: var(--text-main); 
+            font-family: 'Montserrat', sans-serif; 
+            transition: background-color 0.3s, color 0.3s;
+
+            /* Cyberpunk Grid Background */
+            background-image: 
+                linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            background-attachment: fixed;
+        }
+
+        body.light-mode { background-image: none; }
+
+        /* --- NAVBAR STYLES --- */
+        .navbar-default { 
+            background: var(--bg-nav); 
+            border-bottom: 1px solid var(--border-color); 
+            height: 70px; 
+            margin-bottom: 0; 
+            display: flex; 
+            align-items: center; 
+            backdrop-filter: blur(10px);
+            
+            /* --- FIX FOR DROPDOWN Z-INDEX --- */
+            position: relative; 
+            z-index: 2000; /* Ensures Navbar stays above everything else */
+        }
+        .navbar-container { width: 100%; max-width: 1170px; margin: 0 auto; padding: 0 15px; display: flex; justify-content: space-between; align-items: center; }
+        .navbar-brand-custom h3 { margin: 0; padding: 0; line-height: 1; color: var(--text-head); font-family: 'Orbitron', sans-serif; font-weight: bold; }
         
-        .navbar-container {
-            width: 100%;
-            max-width: 1170px;
-            margin: 0 auto;
-            padding: 0 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .search-container { flex-grow: 1; max-width: 500px; margin: 0 30px; position: relative; }
+        .dash-search-input { 
+            width: 100%; padding: 8px 15px; padding-right: 40px; 
+            border-radius: 20px; border: 1px solid var(--border-color); 
+            background: var(--bg-input); outline: none; height: 40px; color: var(--text-main); 
         }
+        .dash-search-input:focus { border-color: var(--accent); box-shadow: 0 0 10px var(--shadow); }
+        .search-btn-icon { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #777; cursor: pointer; }
 
-        /* Logo Alignment */
-        .navbar-brand-custom h3 {
-            margin: 0;
-            padding: 0;
-            line-height: 1;
-            color: #000;
-            font-family: 'Orbitron', sans-serif;
-            font-weight: bold;
-        }
+        .nav-right-menu { display: flex; align-items: center; gap: 20px; }
+        .nav-icon-btn { font-size: 20px; color: var(--text-main); position: relative; text-decoration: none; display: flex; align-items: center; cursor: pointer; transition: 0.2s; }
+        .nav-icon-btn:hover { color: var(--accent); }
+        .nav-icon-btn.active-map { color: #ff013c; }
+
+        /* --- USER MENU --- */
+        .user-menu-wrap { position: relative; margin-left: 15px; display: none; }
+        .user-icon-btn { width: 45px; height: 45px; border-radius: 50%; background-color: var(--bg-input); border: 2px solid var(--border-color); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
+        .user-icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .user-icon-btn i { font-size: 20px; color: var(--text-main); }
         
-        /* Search Bar Alignment */
-        .search-container {
-            flex-grow: 1;
-            max-width: 500px; /* Limit width so it doesn't stretch too much */
-            margin: 0 30px;
-            position: relative;
-        }
-        .dash-search-input {
-            width: 100%;
-            padding: 8px 15px;
-            padding-right: 40px;
-            border-radius: 20px;
-            border: 1px solid #ddd;
-            background: #f9f9f9;
-            outline: none;
-            height: 40px; /* Match height of other elements */
-        }
-        .dash-search-input:focus {
-            background: #fff;
-            border-color: #00f3ff;
-            box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
-        }
-        .search-btn-icon {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #777;
-            cursor: pointer;
-        }
-
-        /* Right Menu Alignment */
-        .nav-right-menu {
-            display: flex;
-            align-items: center;
-            gap: 20px; /* Space between icons */
-        }
+        .user-dropdown { display: none; position: absolute; top: 60px; right: 0; width: 280px; background: var(--bg-nav); border-radius: 8px; box-shadow: 0 5px 25px rgba(0,0,0,0.5); padding: 20px; z-index: 2001; border: 1px solid var(--border-color); backdrop-filter: blur(10px); }
+        .user-dropdown.active { display: block; }
+        .dropdown-header { border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 15px; }
+        .user-name { font-weight: 700; font-size: 16px; color: var(--text-head); margin: 0; }
+        .user-email { font-size: 13px; color: var(--text-muted); margin: 5px 0 0 0; }
         
-        .nav-icon-btn {
-            font-size: 20px;
-            color: #333;
-            position: relative;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-        }
-        .nav-icon-btn:hover { color: #00f3ff; }
-        
-        /* --- USER MENU STYLES --- */
-        .user-menu-wrap {
-            position: relative;
-            margin-left: 15px;
-            display: none; /* Hidden by default until logged in */
-        }
-        
-        .user-icon-btn {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background-color: #f1f1f1;
-            border: 2px solid #333;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
+        .dropdown-actions button { width: 100%; padding: 8px; border-radius: 4px; border: none; margin-bottom: 10px; cursor: pointer; }
+        .btn-expand { background-color: var(--accent); color: #000; font-weight: bold; }
+        .btn-logout { background-color: transparent; color: #dc3545; border: 1px solid #dc3545; }
+        .btn-logout:hover { background-color: #dc3545; color: white; }
 
-        .user-icon-btn:hover {
-            background-color: #e2e6ea;
-            border-color: #000;
-        }
-
-        .user-icon-btn i {
-            font-size: 20px;
-            color: #333;
-        }
-
-        .user-dropdown {
-            display: none; /* Hidden by default */
-            position: absolute;
-            top: 60px;
-            right: 0;
-            width: 280px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-            padding: 20px;
-            z-index: 1000;
-            border: 1px solid #eee;
-        }
-
-        .user-dropdown.active {
-            display: block;
-        }
-
-        .dropdown-header {
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-        }
-
-        .user-name {
-            font-weight: 700;
-            font-size: 16px;
-            color: #333;
-            margin: 0;
-        }
-
-        .user-email {
-            font-size: 13px;
-            color: #777;
-            margin: 5px 0 0 0;
-        }
-
-        .dropdown-actions .btn-expand {
-            width: 100%;
-            margin-bottom: 10px;
-            background-color: #333;
-            color: white;
-            border: none;
-            padding: 8px;
-            border-radius: 4px;
-        }
-
-        .dropdown-actions .btn-logout {
-            width: 100%;
-            background-color: #fff;
-            color: #dc3545;
-            border: 1px solid #dc3545;
-            padding: 8px;
-            border-radius: 4px;
-            transition: 0.2s;
-        }
-        
-        .dropdown-actions .btn-logout:hover {
-            background-color: #dc3545;
-            color: white;
-        }
-
-        .cart-count {
-            position: absolute; top: -8px; right: -8px; background: #ff013c; color: #fff;
-            font-size: 10px; padding: 2px 5px; border-radius: 50%; font-weight: bold;
-        }
-        
-        /* Auth Section */
-        .user-info {
-            text-align: right;
-            line-height: 1.2;
-            margin-right: 10px;
-            display: none; /* Hidden on very small screens */
-        }
+        .cart-count { position: absolute; top: -8px; right: -8px; background: #ff013c; color: #fff; font-size: 10px; padding: 2px 5px; border-radius: 50%; font-weight: bold; }
+        .user-info { text-align: right; line-height: 1.2; margin-right: 10px; display: none; color: var(--text-main); }
         @media(min-width: 768px) { .user-info { display: block; } }
+        .btn-login-logout { padding: 6px 20px; border: 2px solid var(--accent); background: transparent; color: var(--accent); font-weight: bold; border-radius: 20px; font-size: 12px; text-transform: uppercase; transition: 0.3s; }
+        .btn-login-logout:hover { background: var(--accent); color: #000; }
 
-        .btn-login-logout {
-            padding: 6px 20px;
-            border: 2px solid #000;
-            background: transparent;
-            color: #000;
-            font-weight: bold;
-            border-radius: 20px;
-            font-size: 12px;
-            text-transform: uppercase;
-            transition: 0.3s;
-        }
-        .btn-login-logout:hover { background: #000; color: #fff; }
+        /* --- PRODUCT GRID & CARD STYLES --- */
+        #product-grid { display: flex; flex-wrap: wrap; margin-right: -15px; margin-left: -15px; }
+        #product-grid > [class*='col-'] { display: flex; flex-direction: column; margin-bottom: 30px; }
 
-        /* --- LAYOUT & ALIGNMENT FIXES (Added Flexbox) --- */
-        
-        /* 1. Make the grid row a flex container to equalize column heights */
-        #product-grid {
-            display: flex;
-            flex-wrap: wrap;
-        }
-
-        /* 2. Make individual columns flex containers so their children fill the height */
-        #product-grid > [class*='col-'] {
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* 3. Product Card: Fills height, Flex column layout */
         .product-card {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            width: 100%;
-            background: #fff; /* Ensure card has background */
-            border: 1px solid #eee; /* Simple border if not already in CSS */
-            border-radius: 10px; /* Smooth corners */
-            overflow: hidden;
-            position: relative; /* For badges */
-            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex; flex-direction: column; height: 100%; width: 100%;
+            background: var(--bg-card); 
+            border: 1px solid var(--border-color); 
+            border-radius: 12px;
+            overflow: hidden; 
+            position: relative; 
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            backdrop-filter: blur(5px);
+            z-index: 1; /* Low z-index so navbar stays on top */
         }
-        
-        .product-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        .product-card:hover { 
+            transform: translateY(-5px); 
+            box-shadow: var(--shadow); 
+            border-color: var(--accent); 
         }
 
-        /* 4. Image Wrapper: Fixed height to prevent misalignment */
         .card-img-wrap {
-            height: 200px; /* Fixed height for all images */
-            width: 100%;
-            display: flex;
+            height: 220px; 
+            width: 100%; 
+            display: flex; 
             align-items: center;
-            justify-content: center;
-            background: #f8f9fa;
-            padding: 10px;
+            justify-content: center; 
+            background: var(--bg-img-wrap); 
+            padding: 20px; 
+            transition: background 0.3s;
         }
-        
-        .card-img-wrap img {
-            max-height: 100%;
-            max-width: 100%;
-            object-fit: contain; /* Ensures image is not cropped */
-        }
-
-        /* 5. Card Body: Flex column, grows to fill space */
-        .card-body {
-            padding: 15px;
-            flex-grow: 1; /* Pushes content to fill height */
-            display: flex;
-            flex-direction: column;
+        .card-img-wrap img { 
+            max-height: 100%; 
+            max-width: 100%; 
+            object-fit: contain; 
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.2)); 
         }
 
-        .card-title {
-            font-size: 15px;
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 8px;
-            /* Optional: Limit title to 2 lines */
-            display: -webkit-box;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
+        .card-body { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
+        .card-title { font-size: 16px; font-weight: 600; color: var(--text-head); margin-bottom: 10px; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
+        .card-price { font-size: 18px; font-weight: bold; color: var(--accent); margin-bottom: 20px; }
 
-        .card-price {
-            font-size: 18px;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 15px;
-        }
-
-        /* 6. Button: Margin-top auto pushes it to the bottom */
-        .btn-product {
+        .btn-product { 
             margin-top: auto; 
-            width: 100%;
-            border: none;
-            padding: 10px;
-            border-radius: 5px;
-            background: #000;
-            color: #fff;
-            font-weight: bold;
-            transition: 0.3s;
+            width: 100%; 
+            border: 1px solid var(--accent); 
+            padding: 10px; 
+            border-radius: 30px; 
+            background: transparent; 
+            color: var(--accent); 
+            font-weight: bold; 
+            transition: 0.3s; 
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 1px;
         }
-        .btn-product:hover { background: #00f3ff; color: #000; }
+        .btn-product:hover { background: var(--accent); color: #000; box-shadow: 0 0 15px var(--shadow); }
         
-        .cat-pill {
-            border: 1px solid #ddd;
-            background: #fff;
-            padding: 8px 20px;
-            border-radius: 20px;
-            margin: 5px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .cat-pill.active, .cat-pill:hover {
-            background: #000; color: #fff; border-color: #000;
-        }
+        .cat-pill { border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main); padding: 8px 25px; border-radius: 30px; margin: 5px; cursor: pointer; transition: 0.3s; backdrop-filter: blur(5px); font-size: 13px; font-weight: 600; }
+        .cat-pill.active, .cat-pill:hover { background: var(--accent); color: #000; border-color: var(--accent); box-shadow: 0 0 10px var(--shadow); }
+        
+        /* Map Styles */
+        #map-section { display: none; margin-bottom: 40px; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        #map-container { height: 400px; width: 100%; border-radius: 12px; border: 2px solid var(--border-color); z-index: 1; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
     </style>
 </head>
 <body>
 
     <nav class="navbar-default">
         <div class="navbar-container">
-            
             <a href="dashboard.html" class="navbar-brand-custom" style="text-decoration: none;">
                 <h3>LIVE<b>MART</b></h3>
             </a>
@@ -327,6 +200,15 @@
             </div>
 
             <div class="nav-right-menu">
+                
+                <a onclick="toggleTheme()" class="nav-icon-btn" title="Toggle Dark/Light Mode">
+                    <i class="fa fa-moon-o" id="theme-icon"></i>
+                </a>
+
+                <a onclick="toggleMap()" class="nav-icon-btn" title="View Nearby Stores" id="map-toggle-btn">
+                    <i class="fa fa-map-marker"></i>
+                </a>
+
                 <a href="orders.html" class="nav-icon-btn" title="My Orders">
                     <i class="fa fa-list"></i>
                 </a>
@@ -336,40 +218,35 @@
                     <span id="cart-badge" class="cart-count" style="display:none;">0</span>
                 </a>
 
-                <!-- User Profile Icon (Added) -->
-            <div class="user-menu-wrap" id="user-menu-wrap">
-                <div class="user-icon-btn" onclick="toggleUserMenu()">
-                    <i class="fa fa-user"></i>
-                </div>
-                
-                <!-- Dropdown -->
-                <div class="user-dropdown" id="user-dropdown">
-                    <div class="dropdown-header">
-                        <p class="user-name" id="dropdown-name">Loading...</p>
-                        <p class="user-email" id="dropdown-email">loading...</p>
+                <div class="user-menu-wrap" id="user-menu-wrap">
+                    <div class="user-icon-btn" onclick="toggleUserMenu()">
+                        <i class="fa fa-user"></i>
                     </div>
-                    <div class="dropdown-actions">
-                        <!-- This is the 'Expand' button you requested -->
-                        <button class="btn-expand" onclick="window.location.href='profile.html'">
-                            <i class="fa fa-th-large"></i> User Dashboard
-                        </button>
-                        <button class="btn-logout" onclick="logout()">
-                            <i class="fa fa-sign-out"></i> Logout
-                        </button>
+                    
+                    <div class="user-dropdown" id="user-dropdown">
+                        <div class="dropdown-header">
+                            <p class="user-name" id="dropdown-name">Loading...</p>
+                            <p class="user-email" id="dropdown-email">loading...</p>
+                        </div>
+                        <div class="dropdown-actions">
+                            <button class="btn-expand" onclick="window.location.href='profile.html'">
+                                <i class="fa fa-th-large"></i> User Dashboard
+                            </button>
+                            <button class="btn-logout" onclick="logout()">
+                                <i class="fa fa-sign-out"></i> Logout
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <!-- End User Profile Icon -->
 
-                <div style="display: flex; align-items: center; border-left: 1px solid #ddd; padding-left: 20px;">
+                <div style="display: flex; align-items: center; border-left: 1px solid #333; padding-left: 20px;">
                     <div class="user-info">
-                        <div style="font-size: 10px; color: #777;">Welcome,</div>
+                        <div style="font-size: 10px;">Welcome,</div>
                         <div style="font-weight: bold; font-size: 13px;" id="user-name-display">Guest</div>
                     </div>
                     <button id="auth-button" class="btn-login-logout">Login</button>
                 </div>
             </div>
-
         </div>
     </nav>
 
@@ -386,14 +263,26 @@
     </div>
 
     <div class="container" style="min-height: 600px;">
-        <div class="row">
-            <div class="col-md-12">
-                <h4 style="margin-bottom: 25px; color: #000; font-size: 2.5rem;"><b>Available Near You</b></h4>
+        
+        <div id="map-section">
+            <div class="row">
+                <div class="col-md-12">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <h4 style="margin:0; color: var(--text-head); font-size: 1.5rem;"><b>Retailers Near You</b></h4>
+                        <button onclick="toggleMap()" style="border:none; background:transparent; color:#ff013c; font-size:20px;">&times; Close Map</button>
+                    </div>
+                    <div id="map-container"></div>
+                </div>
             </div>
         </div>
 
-        <div class="row" id="product-grid">
+        <div class="row">
+            <div class="col-md-12">
+                <h4 style="margin-bottom: 25px; color: var(--text-head); font-size: 2.5rem;"><b>Available Near You</b></h4>
             </div>
+        </div>
+
+        <div class="row" id="product-grid"></div>
     </div>
 
     <footer>
@@ -403,12 +292,17 @@
     </footer>
 
     <script>
+        let mapInstance = null;
+
         document.addEventListener('DOMContentLoaded', () => {
+            // 1. Initialize Theme FIRST to avoid flashing
+            initTheme();
+            
             checkAuth();
             fetchProducts();
             updateCartCount();
+            initMap(); 
             
-            // Fix: Ensure element exists before adding listener
             const searchInput = document.getElementById('dash-search-input');
             if(searchInput) {
                 searchInput.addEventListener('keypress', function (e) {
@@ -417,32 +311,105 @@
             }
         });
 
-        // --- AUTHENTICATION & UI LOGIC ---
+        // --- THEME LOGIC ---
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if(savedTheme === 'light') {
+                document.body.classList.add('light-mode');
+                updateThemeIcon(true);
+            } else {
+                updateThemeIcon(false);
+            }
+        }
 
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const isLight = document.body.classList.contains('light-mode');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            updateThemeIcon(isLight);
+        }
+
+        function updateThemeIcon(isLight) {
+            const icon = document.getElementById('theme-icon');
+            if(isLight) {
+                icon.className = 'fa fa-sun-o';
+                icon.style.color = '#f9a825'; 
+            } else {
+                icon.className = 'fa fa-moon-o';
+                icon.style.color = '#e0e0e0';
+            }
+        }
+
+        // --- MAP LOGIC ---
+        function toggleMap() {
+            const section = document.getElementById('map-section');
+            const btn = document.getElementById('map-toggle-btn');
+            
+            if (section.style.display === 'none' || section.style.display === '') {
+                section.style.display = 'block';
+                btn.classList.add('active-map');
+                setTimeout(() => { if(mapInstance) mapInstance.invalidateSize(); }, 100);
+            } else {
+                section.style.display = 'none';
+                btn.classList.remove('active-map');
+            }
+        }
+
+        async function initMap() {
+            mapInstance = L.map('map-container').setView([17.3850, 78.4867], 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(mapInstance);
+
+            const redIcon = new L.Icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+            });
+
+            const blueIcon = new L.Icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+            });
+
+            try {
+                const res = await fetch('/retailers/locations');
+                if(res.ok) {
+                    const retailers = await res.json();
+                    retailers.forEach(r => {
+                        if(r.lat && r.lon) {
+                            L.marker([r.lat, r.lon], {icon: redIcon}).addTo(mapInstance)
+                                .bindPopup(`<b>${r.name}</b><br>${r.address}`);
+                        }
+                    });
+                }
+            } catch(e) { console.error("Map error", e); }
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(pos => {
+                    const { latitude, longitude } = pos.coords;
+                    mapInstance.setView([latitude, longitude], 13);
+                    L.marker([latitude, longitude], {icon: blueIcon}).addTo(mapInstance)
+                        .bindPopup("<b>You are here</b>").openPopup();
+                });
+            }
+        }
+
+        // --- AUTH LOGIC ---
         function checkAuth() {
             const token = localStorage.getItem('token');
-            // We can still use localStorage email as a temporary placeholder
             const userEmail = localStorage.getItem('user_email'); 
-            
             const userMenu = document.getElementById('user-menu-wrap');
             const oldAuthBtn = document.getElementById('auth-button');
             const oldUserInfo = document.querySelector('.user-info');
 
             if (token) {
-                // --- LOGGED IN ---
                 if (userMenu) userMenu.style.display = 'block';
                 if (oldAuthBtn) oldAuthBtn.style.display = 'none';
                 if (oldUserInfo) oldUserInfo.style.display = 'none';
-
-                // 1. Set temporary values (instant feedback)
                 const dropEmail = document.getElementById('dropdown-email');
                 if (dropEmail) dropEmail.textContent = userEmail || "Loading...";
-                
-                // 2. CALL THE BACKEND TO GET THE REAL NAME
                 fetchUserProfile(); 
-
             } else {
-                // --- GUEST ---
                 if (userMenu) userMenu.style.display = 'none';
                 if (oldAuthBtn) {
                     oldAuthBtn.style.display = 'block';
@@ -450,24 +417,16 @@
                     oldAuthBtn.onclick = () => window.location.href = 'index.html';
                 }
                 if (oldUserInfo) oldUserInfo.style.display = 'block';
-                const nameDisplay = document.getElementById('user-name-display');
-                if (nameDisplay) nameDisplay.textContent = 'Guest';
+                document.getElementById('user-name-display').textContent = 'Guest';
             }
         }
 
-        // --- HELPER FUNCTIONS FOR THE NEW MENU ---
+        function toggleUserMenu() { document.getElementById('user-dropdown').classList.toggle('active'); }
 
-        function toggleUserMenu() {
-            const dropdown = document.getElementById('user-dropdown');
-            if(dropdown) dropdown.classList.toggle('active');
-        }
-
-        // Close menu when clicking outside
         window.addEventListener('click', function(e) {
             const wrap = document.getElementById('user-menu-wrap');
-            const dropdown = document.getElementById('user-dropdown');
-            if (wrap && dropdown && !wrap.contains(e.target)) {
-                dropdown.classList.remove('active');
+            if (wrap && !wrap.contains(e.target)) {
+                document.getElementById('user-dropdown').classList.remove('active');
             }
         });
 
@@ -475,73 +434,44 @@
             localStorage.removeItem('token');
             localStorage.removeItem('user_email');
             localStorage.removeItem('user_role');
-            window.location.href = './index.html';
-        }
-        function logout() {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user_email');
-            localStorage.removeItem('user_role');
-            window.location.href = './index.html';
+            window.location.href = 'index.html';
         }
 
         function triggerSearch() {
             const input = document.getElementById('dash-search-input');
             if(input) {
-                const q = input.value;
-                fetchProducts(null, q);
+                const q = input.value.trim();
+                if(q) window.location.href = `search.html?q=${encodeURIComponent(q)}`;
             }
         }
 
-        // Updated to use /products endpoint
         async function fetchProducts(category = null, searchQuery = null) {
-            let url = '/products'; // Clean Endpoint
-            
+            let url = '/products';
             const params = new URLSearchParams();
-
-            // Handle Category
-            if (category && category !== 'all' && category !== 'All') {
-                params.append('category', category);
-            }
-
-            // Handle Search
-            if (searchQuery) {
-                params.append('q', searchQuery);
-            }
-            
-            // Append params to URL
-            if (params.toString()) {
-                url += `?${params.toString()}`;
-            }
+            if (category && category !== 'all' && category !== 'All') params.append('category', category);
+            if (searchQuery) params.append('q', searchQuery);
+            if (params.toString()) url += `?${params.toString()}`;
 
             try {
                 const response = await fetch(url);
-                if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
-                
                 const products = await response.json();
                 renderProducts(products);
             } catch (error) {
-                console.error("Error loading products:", error);
-                const grid = document.getElementById('product-grid');
-                if(grid) grid.innerHTML = `<div class="col-12 text-center text-danger"><h5>Error loading products. Check console.</h5></div>`;
+                document.getElementById('product-grid').innerHTML = `<div class="col-12 text-center text-danger"><h5>Error loading products.</h5></div>`;
             }
         }
 
         function renderProducts(products) {
             const grid = document.getElementById('product-grid');
-            if (!grid) return;
-            
             grid.innerHTML = '';
-
             if (!products || products.length === 0) {
                 grid.innerHTML = '<div class="col-12 text-center"><h5>No products found.</h5></div>';
                 return;
             }
-
             products.forEach(p => {
-                // Determine Button State
                 let btnHtml = p.stock > 0 
                     ? `<button class="btn-product" onclick="addToCart(${p.id})">Add to Cart</button>`
-                    : `<button class="btn-product" style="background:#ccc; cursor:not-allowed;" disabled>Out of Stock</button>`;
+                    : `<button class="btn-product" style="background:rgba(255,255,255,0.1); border-color:#666; color:#666; cursor:not-allowed;" disabled>Out of Stock</button>`;
 
                 const card = `
                     <div class="col-md-3 col-sm-6 mb-4">
@@ -553,53 +483,41 @@
                             </div>
                             <div class="card-body">
                                 <div class="card-title">${p.name}</div>
-                                <div class="card-price">$${p.price}</div>
+                                <div class="card-price">₹${p.price}</div>
                                 ${btnHtml}
                             </div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
                 grid.innerHTML += card;
             });
         }
 
-    async function addToCart(productId) {
+        async function addToCart(productId) {
             const token = localStorage.getItem('token');
-            
-            // FIX: Use './index.html' instead of just 'index.html'
             if(!token) {
                 alert("Please login first");
-                window.location.href = './index.html';
+                window.location.href = 'index.html';
                 return;
             }
-
             try {
                 const res = await fetch('/cart/add', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ product_id: productId, quantity: 1 })
                 });
-
                 if (res.ok) {
                     alert("Item added to cart!");
-                    updateCartCount(); // Refreshes the cart badge
+                    updateCartCount();
                 } else {
                     const err = await res.json();
                     alert("Error: " + (err.detail || "Could not add item"));
                 }
-            } catch (e) { 
-                console.error(e); 
-                alert("Connection error");
-            }
+            } catch (e) { alert("Connection error"); }
         }
 
         async function updateCartCount() {
             const token = localStorage.getItem('token');
             if(!token) return;
-
             try {
                 const res = await fetch('/cart', { headers: { 'Authorization': `Bearer ${token}` } });
                 if(res.ok) {
@@ -614,120 +532,36 @@
                         }
                     }
                 }
-            } catch(e) { console.error(e); }
+            } catch(e) {}
         }
 
         function filterProducts(cat, element) {
-            // 1. Remove 'active' class from ALL buttons
             document.querySelectorAll('.cat-pill').forEach(el => el.classList.remove('active'));
-            
-            // 2. Add 'active' class to the BUTTON THAT WAS CLICKED
-            if (element) {
-                element.classList.add('active');
-            }
-
-            // 3. Fetch the data
+            if (element) element.classList.add('active');
             fetchProducts(cat);
         }
-        // 1. Toggle the dropdown visibility
-        function toggleUserMenu() {
-            const dropdown = document.getElementById('user-dropdown');
-            dropdown.classList.toggle('active');
-        }
 
-        // 2. Close dropdown if clicked outside
-        window.addEventListener('click', function(e) {
-            const wrap = document.getElementById('user-menu-wrap');
-            if (!wrap.contains(e.target)) {
-                document.getElementById('user-dropdown').classList.remove('active');
-            }
-        });
-
-        // 3. Logout Logic
-        function logout() {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user_email'); // If you store this
-            window.location.href = 'index.html';
-        }
-
-        // 4. Fetch User Info (You need to ensure this endpoint exists in main.py)
-        // If you don't have a specific /me endpoint yet, we can decode the token or use a placeholder
-        async function loadUserProfile() {
-            const token = localStorage.getItem('token');
-            if (!token) return;
-
-            // OPTION A: If you have an endpoint like /users/me
-            try {
-                /* Uncomment this block once you have the endpoint.
-                   For now, I will simulate it below with placeholders or localStorage 
-                */
-                // const res = await fetch('/users/me', { 
-                //    headers: { 'Authorization': `Bearer ${token}` } 
-                // });
-                // const data = await res.json();
-                // document.getElementById('dropdown-name').textContent = data.name;
-                // document.getElementById('dropdown-email').textContent = data.email;
-
-                // OPTION B: Temporary Placeholder until you make the endpoint
-                document.getElementById('dropdown-name').textContent = "My Account"; 
-                // You might be storing email in localStorage on login?
-                const storedEmail = localStorage.getItem('user_email'); 
-                document.getElementById('dropdown-email').textContent = storedEmail || "user@example.com";
-
-            } catch (e) {
-                console.error("Failed to load profile", e);
-            }
-        }
         async function fetchUserProfile() {
             const token = localStorage.getItem('token');
             if (!token) return;
-
             try {
                 const response = await fetch('/customer/me', {
                     method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
                 });
-
                 if (response.ok) {
                     const userData = await response.json();
-                    
-                    // --- 1. Update Name ---
-                    const nameEl = document.getElementById('dropdown-name');
-                    if (nameEl) nameEl.textContent = "Hello, "+userData.name;
-
-                    // --- 2. Update Email with Privacy Masking ---
+                    document.getElementById('dropdown-name').textContent = "Hello, " + userData.name;
                     const emailEl = document.getElementById('dropdown-email');
                     if (emailEl) {
-                        // API returns 'mail', but we check 'email' just in case
                         let rawMail = userData.mail || userData.email || "";
-                        
-                        // Masking logic: Indices 2, 3, 4 (3rd, 4th, 5th chars)
-                        if (rawMail.length > 5) {
-                            const part1 = rawMail.substring(0, 2); // First 2 chars
-                            const part3 = rawMail.substring(5);    // Everything after 5th char
-                            emailEl.textContent = part1 + "***" + part3;
-                        } else {
-                            emailEl.textContent = rawMail;
-                        }
+                        emailEl.textContent = rawMail.length > 5 ? rawMail.substring(0, 2) + "***" + rawMail.substring(5) : rawMail;
                     }
-
-                    // --- 3. Update Greeting Message ---
-                    const displayEl = document.getElementById('user-name-display');
-                    if (displayEl) {
-                        // Adds the "Hello" prefix as requested
-                        displayEl.textContent = "Hello " + userData.name; 
-                    }
-                    
+                    document.getElementById('user-name-display').textContent = "Hello " + userData.name; 
                     localStorage.setItem('user_name', userData.name);
                 }
-            } catch (error) {
-                console.error("Error fetching user profile:", error);
-            }
+            } catch (error) {}
         }
-        
-        </script>
+    </script>
 </body>
 </html>

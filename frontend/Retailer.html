@@ -29,6 +29,16 @@
             <input type="text" id="signup-business-name" placeholder="Business Name" required />
             <input type="email" id="signup-email" placeholder="Business Email" required />
             <input type="password" id="signup-password" placeholder="Password" required />
+            
+            <input type="hidden" id="signup-lat">
+            <input type="hidden" id="signup-lon">
+            
+            <div style="text-align:right; width:100%; margin-bottom:2px;">
+                <button type="button" onclick="getRetailerLocation()" style="background:none; border:none; color:#00f3ff; cursor:pointer; font-size:12px; padding:0;">
+                    Auto-fill Location
+                </button>
+            </div>
+            
             <input type="text" id="signup-address" placeholder="Business Address" required />
             <input type="text" id="signup-city" placeholder="City" required />
             <input type="text" id="signup-state" placeholder="State" required />
@@ -69,25 +79,17 @@
         </div>
     </div>
 </div>
-<script>
-    document.getElementById('footer-newsletter-form')?.addEventListener('submit', function(e) {
-        e.preventDefault();
-        alert("Thank you for subscribing to the Live-MART newsletter!");
-        this.reset();
-    });
-</script>
+
 <footer>
     <footer id="contact" class="footer action-lage bg-black p-top-80" style="margin-top: 60px; font-size: 1rem; width: 100%; position: relative;">
     <div class="container" style="font-size: 1rem;">
         <div class="row">
             <div class="col-md-12">
                 <div class="footer-content" style="display: flex; justify-content: space-between; flex-wrap: wrap;">
-                    
                     <div class="col-md-6 col-sm-6" style="font-size: 1.5rem;">
                         <div class="widget_item widget_about" style="font-size: 1.5rem;">
                             <h5 class="text-white">About Us</h5>
                             <p class="m-top-20">Connecting Retailers, Wholesalers, and Customers for a seamless shopping experience.</p>
-                            
                             <div class="widget_ab_item m-top-30" style="display:flex; font-size: 1.5rem; align-items: flex-start; margin-bottom: 15px;">
                                 <div class="item_icon" style="margin-right: 15px;"><i class="fa fa-location-arrow"></i></div>
                                 <div class="widget_ab_item_text">
@@ -95,23 +97,8 @@
                                     <p style="margin:0;">Shamirpet, Hyderabad</p>
                                 </div>
                             </div>
-                            <div class="widget_ab_item m-top-30" style="display:flex; align-items: flex-start; margin-bottom: 15px;">
-                                <div class="item_icon" style="margin-right: 15px;"><i class="fa fa-phone"></i></div>
-                                <div class="widget_ab_item_text">
-                                    <h6 class="text-white" style="margin:0;">Phone</h6>
-                                    <p style="margin:0;">+9676744544</p>
-                                </div>
                             </div>
-                            <div class="widget_ab_item m-top-30" style="display:flex; align-items: flex-start; margin-bottom: 15px;">
-                                <div class="item_icon" style="margin-right: 15px;"><i class="fa fa-envelope-o"></i></div>
-                                <div class="widget_ab_item_text">
-                                    <h6 class="text-white" style="margin:0;">Email</h6>
-                                    <p style="margin:0;">Livemart.bphc@gmail.com</p>
-                                </div>
-                            </div>
-                        </div>
                     </div>
-
                     <div class="col-md-6 col-sm-6">
                         <div class="widget_item widget_newsletter sm-m-top-50">
                             <h5 class="text-white">Newsletter</h5>
@@ -121,21 +108,9 @@
                                     <button type="submit" class="btn text-center" style="width: 100%; padding: 10px;">Subscribe</button>
                                 </div>
                             </form>
-                            
-                            <div class="widget_brand m-top-40" style="margin-top: 30px;">
-                                <h5 class="text-white">Follow Us</h5>
-                                <ul class="list-inline m-top-20" style="padding: 0; list-style: none; display: flex; gap: 15px;">
-                                    <li><a href="https://www.facebook.com/live.mart/"><i class="fa fa-facebook"></i></a></li>
-                                    <li><a href="#"><i class="fa fa-twitter"></i></a></li>
-                                    <li><a href="#"><i class="fa fa-linkedin"></i></a></li>
-                                    <li><a href="#"><i class="fa fa-google-plus"></i></a></li>
-                                </ul>
-                            </div>
                         </div>
                     </div>
-
                 </div>
-                
                 <div class="row">
                     <div class="col-md-12 text-center" style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 20px; padding-top: 20px;">
                         <p style="font-size: 12px;">© 2025 Live-MART. All rights reserved.</p>
@@ -148,7 +123,7 @@
 
 <script src="js/js.js"></script>
 <script>
-
+    // --- GOOGLE LOGIN TOKEN CHECK ---
     window.onload = function() {
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get('token');
@@ -158,6 +133,38 @@
             window.location.href = 'retailer-dashboard.html'; 
         }
     };
+
+    // --- GEOLOCATION LOGIC ---
+    function getRetailerLocation() {
+        if (!navigator.geolocation) return alert("Geolocation not supported");
+        
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+            
+            // Store in hidden fields
+            document.getElementById('signup-lat').value = lat;
+            document.getElementById('signup-lon').value = lon;
+
+            // Get Address text
+            try {
+                const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                
+                const addr = data.address;
+                document.getElementById('signup-address').value = data.display_name || "";
+                document.getElementById('signup-city').value = addr.city || addr.town || addr.village || "";
+                document.getElementById('signup-state').value = addr.state || "";
+                document.getElementById('signup-pincode').value = addr.postcode || "";
+            } catch(e) {
+                console.error(e);
+                alert("Failed to fetch address details.");
+            }
+            
+        }, () => alert("Location access denied"));
+    }
+
     // --- SIGN UP LOGIC ---
     document.getElementById('sign-up-form').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -171,7 +178,10 @@
             city: document.getElementById('signup-city').value,
             state: document.getElementById('signup-state').value,
             pincode: document.getElementById('signup-pincode').value,
-            phone_number: document.getElementById('signup-phone').value
+            phone_number: document.getElementById('signup-phone').value,
+            // ADDED: Lat/Lon
+            lat: parseFloat(document.getElementById('signup-lat').value) || null,
+            lon: parseFloat(document.getElementById('signup-lon').value) || null
         };
         try {
             const response = await fetch('/signup/retailer', {
@@ -196,7 +206,7 @@
         }
     });
 
-    // --- SIGN IN LOGIC (UPDATED) ---
+    // --- SIGN IN LOGIC ---
     document.getElementById('sign-in-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const messageEl = document.getElementById('signin-message');
@@ -221,7 +231,6 @@
             } else {
                 const error = await response.json();
 
-                // --- NEW: Check for Unverified Account Error ---
                 if (response.status === 403) {
                     sessionStorage.setItem('pending_verification_email', emailVal);
                     messageEl.innerHTML = `
@@ -242,7 +251,6 @@
         }
     });
 
-    // Footer Script
     document.getElementById('footer-newsletter-form')?.addEventListener('submit', function(e) {
         e.preventDefault();
         alert("Thank you for subscribing!");
