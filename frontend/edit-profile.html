@@ -9,56 +9,129 @@
     <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700|Orbitron:400,700&display=swap" rel="stylesheet">
     
     <style>
-        /* --- CYBERPUNK THEME REPLICA --- */
-        body {
-            background-color: #373737;
-            background-image: 
-                linear-gradient(rgba(141, 151, 151, 0.293) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 221, 255, 0.358) 1px, transparent 1px),
-                radial-gradient(circle at 15% 50%, rgba(0, 255, 255, 0.46), transparent 50%),
-                radial-gradient(circle at 85% 30%, rgba(255, 0, 60, 0.473), transparent 50%);
-            background-size: 40px 40px, 40px 40px, 100% 100%, 100% 100%;
-            background-attachment: fixed;
-            font-family: 'Montserrat', sans-serif;
-            color: #e0e0e0;
-        }
-        .container { margin-top: 50px; max-width: 800px; }
+    /* --- THEME VARIABLES --- */
+    :root {
+        /* Dark Mode Defaults (Deep Cyberpunk) */
+        --bg-body: #050505;
+        --bg-card: rgba(20, 20, 20, 0.9);
+        --text-main: #dcdcdc;
+        --text-head: #ffffff;
+        --border-color: #333;
+        --input-bg: #0a0a0a;
+        --input-text: #fff;
         
-        /* Cards */
-        .edit-card {
-            background: rgba(20, 20, 20, 0.9);
-            border: 1px solid #333;
-            border-radius: 10px;
-            padding: 30px;
-            box-shadow: 0 0 20px rgba(0, 242, 255, 0.1);
-            margin-bottom: 30px;
-        }
-        
-        /* Titles */
-        h2 { font-family: 'Orbitron'; color: #fff; text-shadow: 0 0 10px rgba(0, 242, 255, 0.8); margin-bottom: 30px; }
-        .section-title { font-family: 'Orbitron'; color: #00f2ff; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
-        
-        /* Forms */
-        .form-control { background-color: #0a0a0a; border: 1px solid #333; color: #fff; }
-        .form-control:focus { background-color: #111; border-color: #00f2ff; color: #fff; }
-        
-        /* Buttons */
-        .btn-cyber {
-            background: transparent; border: 1px solid #00f2ff; color: #00f2ff;
-            font-family: 'Orbitron'; padding: 8px 20px; transition: all 0.3s; margin-top: 15px;
-        }
-        .btn-cyber:hover { background: #00f2ff; color: #000; box-shadow: 0 0 15px #00f2ff; }
-        
-        .btn-danger-cyber { border-color: #ff0055; color: #ff0055; }
-        .btn-danger-cyber:hover { background: #ff0055; color: #fff; box-shadow: 0 0 15px #ff0055; }
+        /* The accent color (Neon Cyan in Dark Mode) */
+        --accent: #00f2ff; 
+        --accent-hover: #fff;
+    }
 
-        /* Utils */
-        .avatar-preview { width: 100px; height: 100px; border-radius: 50%; border: 2px solid #00f2ff; object-fit: cover; }
-        .alert-msg { margin-top: 10px; padding: 10px; border-radius: 5px; display: none; }
-        .success { color: #00ff80; border: 1px solid #00ff80; background: rgba(0,255,128,0.1); }
-        .error { color: #ff0055; border: 1px solid #ff0055; background: rgba(255,0,85,0.1); }
+    /* LIGHT MODE OVERRIDES */
+    body.light-mode {
+        --bg-card: rgba(255, 255, 255, 0.95);
+        --text-main: #111111; /* Darker text for readability */
+        --text-head: #000000;
+        --border-color: #999; /* Darker border for definition */
+        --input-bg: #f0f0f0;
+        --input-text: #000;
+
+        /* The accent color (Dark Teal in Light Mode for contrast) */
+        --accent: #0011ff; 
+        --accent-hover: #000;
+
+        background-color: #f8fafc; 
+        background-image:   
+            linear-gradient(rgba(0, 121, 128, 0.1) 1px, transparent 1px), /* Darker Grid */
+            linear-gradient(90deg, rgba(0, 121, 128, 0.1) 1px, transparent 1px),
+            radial-gradient(circle at 10% 50%, rgba(8, 118, 196, 0.1), transparent 60%),
+            radial-gradient(circle at 90% 20%, rgba(255, 77, 0, 0.1), transparent 50%);
+        background-size: 40px 40px, 40px 40px, 100% 100%, 100% 100%;
+        background-attachment: fixed;
+    }
+
+    body {
+        background-color: var(--bg-body);
+        /* Default Dark Mode Background */
+        background-image: 
+            linear-gradient(rgba(0, 255, 242, 0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 255, 242, 0.05) 1px, transparent 1px),
+            radial-gradient(circle at 0% 0%, rgba(76, 29, 149, 0.25), transparent 60%),
+            radial-gradient(circle at 100% 50%, rgba(6, 182, 212, 0.2), transparent 50%);
+
+        background-size: 40px 40px, 40px 40px, 100% 100%, 100% 100%;
+        background-attachment: fixed;
+        font-family: 'Montserrat', sans-serif;
+        color: var(--text-main);
+        transition: background 0.3s, color 0.3s;
+    }
     
-    </style>
+    .container { margin-top: 50px; max-width: 800px; }
+
+    /* Cards */
+    .edit-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 30px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+        transition: background 0.3s;
+    }
+    
+    /* Titles */
+    h2 { 
+        font-family: 'Orbitron'; 
+        color: var(--text-head); 
+        text-shadow: 0 0 10px rgba(0, 242, 255, 0.2); 
+        margin-bottom: 30px; 
+    }
+    
+    .section-title { 
+        font-family: 'Orbitron'; 
+        color: var(--accent); /* Uses variable now */
+        border-bottom: 1px solid var(--border-color); 
+        padding-bottom: 10px; 
+        margin-bottom: 20px; 
+    }
+    
+    /* Forms */
+    .form-control { 
+        background-color: var(--input-bg); 
+        border: 1px solid var(--border-color); 
+        color: var(--input-text); 
+    }
+    .form-control:focus { 
+        background-color: var(--input-bg); 
+        border-color: var(--accent); 
+        color: var(--input-text); 
+    }
+    
+    /* Buttons */
+    .btn-cyber {
+        background: transparent; 
+        border: 1px solid var(--accent); /* Uses variable */
+        color: var(--accent); /* Uses variable */
+        font-family: 'Orbitron'; 
+        padding: 8px 20px; 
+        transition: all 0.3s; 
+        margin-top: 15px;
+    }
+    .btn-cyber:hover { 
+        background: var(--accent); 
+        color: var(--accent-hover); /* Adapts text color on hover */
+        box-shadow: 0 0 15px var(--accent); 
+    }
+    
+    .btn-danger-cyber { border-color: #ff0055; color: #ff0055; }
+    .btn-danger-cyber:hover { background: #ff0055; color: #fff; box-shadow: 0 0 15px #ff0055; }
+
+    /* Utils */
+    .avatar-preview { width: 100px; height: 100px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; }
+    .alert-msg { margin-top: 10px; padding: 10px; border-radius: 5px; display: none; }
+    .success { color: #00ff80; border: 1px solid #00ff80; background: rgba(0,255,128,0.1); }
+    .error { color: #ff0055; border: 1px solid #ff0055; background: rgba(255,0,85,0.1); }
+
+</style>
+
 
 </head>
 
@@ -66,7 +139,12 @@
     <div class="container">
         <div class="d-flex justify-content-between align-items-center">
             <h2>EDIT PROFILE</h2>
-            <a href="profile.html" class="btn btn-cyber">Back to Profile</a>
+            <div>
+                <button onclick="toggleTheme()" class="btn btn-cyber" style="margin-right: 10px; border:none; font-size:18px;">
+                    <i class="fa fa-moon-o" id="theme-icon"></i>
+                </button>
+                <a href="profile.html" class="btn btn-cyber">Back to Profile</a>
+            </div>
         </div>
         <br><br>
 
@@ -113,6 +191,39 @@
     </div>
 
     <script>
+        // --- THEME LOGIC (Copied from Profile) ---
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if(savedTheme === 'light') {
+                document.body.classList.add('light-mode');
+                updateThemeIcon(true);
+            } else {
+                updateThemeIcon(false);
+            }
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const isLight = document.body.classList.contains('light-mode');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            updateThemeIcon(isLight);
+        }
+
+        function updateThemeIcon(isLight) {
+            const icon = document.getElementById('theme-icon');
+            if(icon) {
+                if(isLight) {
+                    icon.className = 'fa fa-sun-o';
+                    icon.style.color = '#f9a825';
+                } else {
+                    icon.className = 'fa fa-moon-o';
+                    icon.style.color = '#00f2ff';
+                }
+            }
+        }
+
+        // Initialize immediately
+        initTheme();
         const token = localStorage.getItem('token');
         if(!token) window.location.href = 'login.html';
         
@@ -145,18 +256,49 @@
         };
 
         // Upload PFP
+    // Upload PFP
         document.getElementById('pfpForm').onsubmit = async (e) => {
             e.preventDefault();
-            const formData = new FormData();
-            formData.append('file', document.getElementById('pfpInput').files[0]);
             
-            const res = await fetch('/customer/me/upload-pfp', {
-                method: 'POST', headers: headers, body: formData
-            });
-            if(res.ok) {
-                const data = await res.json();
-                document.getElementById('currentPfp').src = '/' + data.image_url + '?' + Date.now();
-                show(document.getElementById('pfpMsg'), 'Uploaded!', 'success');
+            const fileInput = document.getElementById('pfpInput');
+            if (fileInput.files.length === 0) return; // Don't submit if empty
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            
+            try {
+                const res = await fetch('/customer/me/upload-pfp', {
+                    method: 'POST', 
+                    headers: headers, // Ensure 'headers' includes your Auth token
+                    body: formData
+                });
+
+                if(res.ok) {
+                    // 1. Read the JSON response ONCE
+                    const data = await res.json();
+                    
+                    // 2. Debug: Look at this in your browser console to see the real field name
+                    console.log("UPLOAD SUCCESS. Server sent:", data);
+
+                    // 3. Handle different naming conventions (image_url vs profile_picture)
+                    // The backend likely returns one of these keys.
+                    const imagePath = data.image_url || data.profile_picture || data.filename;
+
+                    if (imagePath) {
+                        // Update the image on THIS page immediately
+                        document.getElementById('currentPfp').src = '/' + imagePath + '?' + Date.now();
+                    }
+
+                    show(document.getElementById('pfpMsg'), 'Uploaded!', 'success');
+
+                    // 4. Force Dashboard to update next time you visit it
+                    localStorage.removeItem('user_name'); 
+                } else {
+                    console.error("Upload failed", res.status);
+                    show(document.getElementById('pfpMsg'), 'Upload failed', 'error');
+                }
+            } catch (err) {
+                console.error("Error uploading:", err);
             }
         };
 
