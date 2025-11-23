@@ -16,29 +16,19 @@
             height: 100vh; width: 250px; position: fixed; top: 0; left: 0;
             background: #111; border-right: 1px solid #333; padding-top: 20px;
         }
-        .sidebar-brand {
-            font-family: 'Orbitron'; font-size: 24px; color: #fff; text-align: center; margin-bottom: 40px;
-        }
+        .sidebar-brand { font-family: 'Orbitron'; font-size: 24px; color: #fff; text-align: center; margin-bottom: 40px; }
         .sidebar-brand span { color: #ff013c; }
         
         .nav-menu { list-style: none; padding: 0; }
-        .nav-menu li a {
-            display: block; padding: 15px 25px; color: #888; text-decoration: none;
-            font-size: 14px; border-left: 3px solid transparent; transition: 0.3s; cursor: pointer;
-        }
-        .nav-menu li a:hover, .nav-menu li a.active {
-            background: #1a1a1a; color: #fff; border-left-color: #ff013c;
-        }
+        .nav-menu li a { display: block; padding: 15px 25px; color: #888; text-decoration: none; font-size: 14px; border-left: 3px solid transparent; transition: 0.3s; cursor: pointer; }
+        .nav-menu li a:hover, .nav-menu li a.active { background: #1a1a1a; color: #fff; border-left-color: #ff013c; }
         .nav-menu li a i { margin-right: 10px; width: 20px; text-align: center; }
 
         /* MAIN CONTENT */
         .main-content { margin-left: 250px; padding: 40px; }
         
         /* CARDS */
-        .dashboard-card {
-            background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 20px;
-            margin-bottom: 20px; transition: 0.3s; position: relative;
-        }
+        .dashboard-card { background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 20px; margin-bottom: 20px; transition: 0.3s; position: relative; }
         .dashboard-card:hover { border-color: #ff013c; transform: translateY(-2px); }
         
         .inv-img { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; border: 1px solid #333; float: left; margin-right: 20px; }
@@ -51,19 +41,17 @@
         
         /* Buttons */
         .btn-action { padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; border: none; cursor: pointer; }
-        .btn-save { background: #ff013c; color: #fff; }
-        .btn-delete { background: transparent; border: 1px solid #444; color: #aaa; }
-        .btn-delete:hover { border-color: red; color: red; }
         .btn-edit { background: transparent; border: 1px solid #ff013c; color: #ff013c; margin-left: 10px; }
         .btn-edit:hover { background: #ff013c; color: #fff; }
+        .btn-delete { background: transparent; border: 1px solid #444; color: #aaa; margin-left: 10px; }
+        .btn-delete:hover { border-color: red; color: red; }
         .btn-add { background: #ff013c; color: #fff; padding: 10px 25px; border: none; border-radius: 30px; font-weight: bold; }
 
         /* Tables */
         .dark-table { width: 100%; border-collapse: collapse; }
         .dark-table th { text-align: left; padding: 15px; color: #888; border-bottom: 1px solid #333; font-size: 12px; text-transform: uppercase; }
         .dark-table td { padding: 15px; border-bottom: 1px solid #222; color: #e0e0e0; }
-        .dark-table tr:hover { background: #151515; }
-
+        
         /* Sections */
         .section-view { display: none; }
         .section-view.active { display: block; }
@@ -246,7 +234,7 @@
         }
 
         async function deleteProduct(id) {
-            if(!confirm("Delete product?")) return;
+            if(!confirm("Delete?")) return;
             const res = await fetch(`/retailer/products/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
             if(res.ok) loadInventory();
         }
@@ -280,11 +268,23 @@
         }
         async function updStatus(id) {
             const status = document.getElementById(`status-${id}`).value;
-            await fetch(`/retailer/orders/${id}/status`, {
-                method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ status })
-            });
-            alert("Updated");
+            
+            try {
+                const res = await fetch(`/retailer/orders/${id}/status`, {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ status })
+                });
+
+                if (res.ok) {
+                    alert(`Status updated to ${status}. Confirmation email sent to customer.`);
+                    loadOrders(); // Reload orders list to see change
+                } else {
+                    const err = await res.json();
+                    alert("Failed to update status: " + (err.detail || "Server error"));
+                }
+            } catch(e) {
+                alert("Network Error: Could not connect to server.");
+            }
         }
 
         // --- 3. HISTORY ---
@@ -311,7 +311,6 @@
             }
 
             items.forEach(i => {
-                // Fallback image if not provided
                 const img = i.image_url || 'assets/img/default.png';
                 
                 container.innerHTML += `
@@ -358,6 +357,7 @@
                         alert(data.message);
                         // Refresh market to show updated stock
                         loadWholesaleMarket();
+                        loadInventory(); // Show the new stock in inventory
                     } else {
                         const err = await res.json();
                         alert("Error: " + err.detail);

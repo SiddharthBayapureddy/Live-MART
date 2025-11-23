@@ -129,10 +129,6 @@
                         <span>Subtotal</span>
                         <span id="subtotal-display">$0.00</span>
                     </div>
-                    <div class="summary-row">
-                        <span>Tax (5%)</span>
-                        <span id="tax-display">$0.00</span>
-                    </div>
                     <div class="summary-row total">
                         <span>Total</span>
                         <span id="total-display">$0.00</span>
@@ -380,10 +376,9 @@
         }
 
         function updateSummary(subtotal) {
-            const tax = subtotal * 0.05;
-            const total = subtotal + tax;
+            // REMOVED TAX CALCULATION
+            const total = subtotal; 
             document.getElementById('subtotal-display').innerText = '₹' + subtotal.toFixed(2);
-            document.getElementById('tax-display').innerText = '₹' + tax.toFixed(2);
             document.getElementById('total-display').innerText = '₹' + total.toFixed(2);
         }
 

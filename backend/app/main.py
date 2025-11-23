@@ -41,7 +41,10 @@ from auth import (
     send_otp_email,
     send_verification_email, # <--- NEW: Imported for signup verification
     generate_otp,
-    send_admin_query_email
+    send_admin_query_email,
+
+    send_order_confirmation_email,
+    send_status_update_email
 )
 
 # Importing custom-built database models and functions
@@ -1039,14 +1042,15 @@ async def get_customer_cart(
 @app.post("/order/checkout", response_model=OrderRecordsRead, tags=["Cart & Checkout"])
 async def checkout(
     order_details: OrderCreate, 
-    customer: Customer = Depends(get_current_customer) # This endpoint is now secured
+    background_tasks: BackgroundTasks, # <--- Added BackgroundTasks
+    customer: Customer = Depends(get_current_customer)
 ):
-    # 1. Validations before hitting DB logic
+    # 1. Validations
     if not order_details.shipping_address or not order_details.shipping_city or not order_details.shipping_pincode:
         raise HTTPException(status_code=400, detail="Shipping address details are incomplete.")
         
     try:
-        # 2. Run the transaction
+        # 2. Process Checkout (Database Transaction)
         new_order = await run_in_threadpool(
             process_checkout,
             customer=customer,
@@ -1056,12 +1060,43 @@ async def checkout(
         if not new_order:
              raise HTTPException(status_code=400, detail="Checkout failed. Cart might be empty.")
 
+        # 3. --- NEW: PREPARE EMAIL DATA ---
+        # We need to fetch the item names because 'process_checkout' consumes the cart
+        # and OrderRecords usually just has IDs.
+        with Session(engine) as session:
+            # Join OrderItem with Product to get the names
+            items_db = session.exec(
+                select(OrderItem, Product.name)
+                .join(Product, Product.id == OrderItem.product_id)
+                .where(OrderItem.orderrecords_id == new_order.id)
+            ).all()
+            
+            email_items = []
+            for item, p_name in items_db:
+                email_items.append({
+                    "name": p_name,
+                    "qty": item.quantity,
+                    "price": item.price_at_purchase
+                })
+            
+            full_address = f"{new_order.shipping_address}, {new_order.shipping_city}, {new_order.shipping_pincode}"
+            
+            # 4. Send Email in Background
+            await send_order_confirmation_email(
+                email=customer.mail,
+                name=customer.name,
+                order_id=new_order.id,
+                total_price=new_order.total_price,
+                items=email_items,
+                address=full_address,
+                background_tasks=background_tasks
+            )
+
         return new_order
         
     except HTTPException as e:
-        raise e # Re-raise stock or empty cart errors
+        raise e 
     except Exception as e:
-        # Generic error for other potential failures
         print(f"Checkout Error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"An error occurred during checkout: {str(e)}")
 
@@ -1126,23 +1161,43 @@ async def get_my_orders(current_retailer: Retailer = Depends(get_current_retaile
 async def update_order(
     order_id: int,
     status_update: OrderStatusUpdate,
+    background_tasks: BackgroundTasks, # <--- CRITICAL: ADD THIS
     current_retailer: Retailer = Depends(get_current_retailer)
 ):
-    
-    # First, verify this order actually belongs to the retailer
+    # 1. Verification (Original logic)
     retailer_orders = await run_in_threadpool(get_orders_by_retailer, retailer_id=current_retailer.id)
     order_ids = [order.id for order in retailer_orders]
     
     if order_id not in order_ids:
         raise HTTPException(status_code=403, detail="Not authorized to update this order")
         
+    # 2. Get Order and Update DB
     order = await run_in_threadpool(get_order_by_id, order_id=order_id)
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
-        
-    updated_order = await run_in_threadpool(update_order_status, order=order, status_update=status_update)
-    return updated_order
+    
+    new_status = status_update.status
+    old_status = order.status # Capture status before updating
 
+    updated_order = await run_in_threadpool(update_order_status, order=order, status_update=status_update)
+
+    # 3. --- NEW: SEND EMAIL NOTIFICATION (Only if status changed) ---
+    if new_status != old_status:
+        with Session(engine) as session:
+            # Fetch Customer details required for email
+            customer = session.get(Customer, updated_order.customer_id)
+            
+            if customer:
+                await send_status_update_email(
+                    email=customer.mail,
+                    name=customer.name,
+                    order_id=updated_order.id,
+                    new_status=new_status,
+                    background_tasks=background_tasks
+                )
+    # -------------------------------------------------------------------
+    
+    return updated_order
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------
 

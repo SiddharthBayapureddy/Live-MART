@@ -202,7 +202,6 @@ oauth.register(
 
 #--------------------------------------------------------------------------------------------------------------------------------------------
 
-# In auth.py
 
 async def send_admin_query_email(form_data: dict, background_tasks: BackgroundTasks):
     # Email to the Admin
@@ -218,5 +217,138 @@ async def send_admin_query_email(form_data: dict, background_tasks: BackgroundTa
         """,
         subtype=MessageType.html
     )
+    fm = FastMail(mail_config)
+    background_tasks.add_task(fm.send_message, message)
+
+
+
+async def send_order_confirmation_email(
+    email: str, 
+    name: str, 
+    order_id: int, 
+    total_price: float, 
+    items: list, 
+    address: str, 
+    background_tasks: BackgroundTasks
+):
+    """
+    Sends an HTML order confirmation email to the customer.
+    'items' should be a list of dicts: [{'name': '...', 'qty': 1, 'price': 100}, ...]
+    """
+    
+    # 1. Build HTML Table Rows for Items
+    items_html = ""
+    for i in items:
+        items_html += f"""
+        <tr>
+            <td style='padding:8px; border-bottom:1px solid #eee;'>{i['name']}</td>
+            <td style='padding:8px; border-bottom:1px solid #eee; text-align:center;'>{i['qty']}</td>
+            <td style='padding:8px; border-bottom:1px solid #eee; text-align:right;'>₹{i['price']}</td>
+        </tr>
+        """
+
+    # 2. Construct Email Body
+    body = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
+        <div style="background-color: #000; color: #fff; padding: 20px; text-align: center;">
+            <h2 style="margin:0; color: #00f3ff;">Order Confirmed!</h2>
+            <p style="margin:5px 0 0;">Thank you for shopping with Live MART.</p>
+        </div>
+        
+        <div style="padding: 20px;">
+            <p>Hi <b>{name}</b>,</p>
+            <p>We have received your order <b>#{order_id}</b> and it is now being processed.</p>
+            
+            <h3 style="border-bottom: 2px solid #00f3ff; padding-bottom: 5px; margin-top: 20px;">Order Summary</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                <tr style="background: #f9f9f9;">
+                    <th style="padding:8px; text-align:left;">Product</th>
+                    <th style="padding:8px; text-align:center;">Qty</th>
+                    <th style="padding:8px; text-align:right;">Price</th>
+                </tr>
+                {items_html}
+                <tr>
+                    <td colspan="2" style="padding:10px; text-align:right; font-weight:bold;">Total Amount:</td>
+                    <td style="padding:10px; text-align:right; font-weight:bold; color: #00f3ff; font-size: 16px;">₹{total_price}</td>
+                </tr>
+            </table>
+            
+            <div style="background: #f9f9f9; padding: 10px; margin-top: 20px; border-radius: 4px;">
+                <h4 style="margin: 0 0 5px;">Shipping Address</h4>
+                <p style="margin: 0; font-size: 13px; color: #555;">{address}</p>
+            </div>
+            
+            <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
+                If you have any questions, simply reply to this email.<br>
+                &copy; 2025 Live MART
+            </p>
+        </div>
+    </div>
+    """
+
+    # 3. Send Message
+    message = MessageSchema(
+        subject=f"Order Confirmation - #{order_id}",
+        recipients=[email],
+        body=body,
+        subtype=MessageType.html
+    )
+    
+    fm = FastMail(mail_config)
+    background_tasks.add_task(fm.send_message, message)
+
+
+
+# ----------------------------------------------------------------------------------------------------------------------------
+
+async def send_status_update_email(
+    email: str, 
+    name: str, 
+    order_id: int, 
+    new_status: str, 
+    background_tasks: BackgroundTasks
+):
+    """
+    Sends a simple status update email.
+    """
+    
+    # Map status to a color/emoji
+    status_color = "#00f3ff"
+    if new_status == "Shipped":
+        status_color = "#ff9800"
+    elif new_status == "Delivered":
+        status_color = "#4CAF50"
+
+    body = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; background: #000; color: #fff;">
+        <div style="background-color: {status_color}; color: #000; padding: 15px; text-align: center;">
+            <h2 style="margin:0; font-size: 20px;">Order #{order_id} Update!</h2>
+        </div>
+        
+        <div style="padding: 20px; background: #1a1a1a;">
+            <p>Hi <b>{name}</b>,</p>
+            <p>There's an update regarding your recent order:</p>
+            
+            <h3 style="color: {status_color};">New Status: {new_status.upper()}</h3>
+            
+            <p>Your order is now: <b>{new_status}</b>.</p>
+            
+            { 'If your order has been shipped, please allow 3-5 days for delivery.' if new_status == 'Shipped' else ''}
+            
+            <p style="margin-top: 30px; font-size: 12px; color: #888;">
+                Thank you for your business.<br>
+                &copy; 2025 Live MART
+            </p>
+        </div>
+    </div>
+    """
+
+    message = MessageSchema(
+        subject=f"Order Update: #{order_id} is now {new_status}",
+        recipients=[email],
+        body=body,
+        subtype=MessageType.html
+    )
+    
     fm = FastMail(mail_config)
     background_tasks.add_task(fm.send_message, message)

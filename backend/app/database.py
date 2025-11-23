@@ -19,9 +19,10 @@ from db_models import (
     Feedback,         
     WholesaleOrder,   
     WholesaleOrderItem,
-    VerificationOTP
+    VerificationOTP,
+    WholesalerProduct  # Added missing import
 )
-from schemas import OrderCreate, ProductUpdate, OrderStatusUpdate, OrderItemRead, OrderRecordsRead
+from schemas import OrderCreate, ProductUpdate, OrderStatusUpdate
 
 from fastapi import HTTPException, status
 
@@ -35,8 +36,6 @@ if not os.path.exists(DATA_DIR):
     os.makedirs(DATA_DIR)
 
 DB_FILE_PATH = os.path.join(DATA_DIR, "livemart.db")
-# Use 3 slashes for relative path, 4 for absolute (sqlite:////...) on *nix, 
-# but usually 3 works fine if we pass the full path string.
 file_path = f"sqlite:///{DB_FILE_PATH}"
 
 engine = create_engine(file_path, echo=True, connect_args={"check_same_thread": False})
@@ -186,14 +185,19 @@ def get_products_by_retailer(retailer_id: int) -> List[Product]:
 
 def update_product_details(product: Product, update_data: ProductUpdate) -> Product:
     with Session(engine) as session:
+        # Note: 'product' here is detached if passed from main.py directly.
+        # Re-fetch to be safe
+        db_product = session.get(Product, product.id)
+        if not db_product: return None
+
         update_dict = update_data.model_dump(exclude_unset=True)
         for key, value in update_dict.items():
-            setattr(product, key, value)
+            setattr(db_product, key, value)
         
-        session.add(product)
+        session.add(db_product)
         session.commit()
-        session.refresh(product)
-        return product
+        session.refresh(db_product)
+        return db_product
 
 # -----------------------------------------------------------------
 # Cart Functions
@@ -218,7 +222,6 @@ def get_cart_items(cart_id: int):
         ).all()
         return items
 
-# FIX: Explicitly accept 'cart_id' to match keyword argument call from main.py
 def get_detailed_cart_items(cart_id: int) -> List[dict]:
     with Session(engine) as session:
         statement = select(ShoppingCartItem, Product).where(
@@ -236,7 +239,6 @@ def get_detailed_cart_items(cart_id: int) -> List[dict]:
             })
         return detailed_items
 
-# FIX: Updated signature to accept 'cart_id' and optional 'customer_id'
 def add_item_to_cart(product_id: int, quantity: int, cart_id: int, customer_id: int = None):
     with Session(engine) as session:
         product = session.get(Product, product_id)
@@ -252,7 +254,6 @@ def add_item_to_cart(product_id: int, quantity: int, cart_id: int, customer_id: 
         if existing:
             new_quantity += existing.quantity
         
-        # If quantity becomes <= 0, remove item
         if existing and new_quantity <= 0:
             session.delete(existing)
             session.commit()
@@ -285,7 +286,7 @@ def get_cart_size(cart_id: int):
     return size
 
 # -----------------------------------------------------------------
-# Order Functions
+# Order Functions (FIXED)
 # -----------------------------------------------------------------
 def process_checkout(customer: Customer, order_details: OrderCreate) -> OrderRecords:
     with Session(engine) as session:
@@ -353,11 +354,16 @@ def process_checkout(customer: Customer, order_details: OrderCreate) -> OrderRec
             session.delete(item)
             
         # 7. Update Customer Stats
-        customer.no_of_purchases += 1
-        session.add(customer)
+        # --- FIX: Use a FRESH instance to update DB, keeping original safe ---
+        db_customer = session.get(Customer, customer.id)
+        if db_customer:
+            db_customer.no_of_purchases += 1
+            session.add(db_customer)
 
         session.commit()
         session.refresh(new_order)
+        
+        # Do NOT refresh 'customer' here, it is detached and fine for main.py
         
         return new_order
 
@@ -367,56 +373,29 @@ def get_order_by_id(order_id: int) -> Optional[OrderRecords]:
 
 def update_order_status(order: OrderRecords, status_update: OrderStatusUpdate) -> OrderRecords:
     with Session(engine) as session:
-        order.status = status_update.status
+        # Re-fetch to ensure attachment
+        db_order = session.get(OrderRecords, order.id)
+        if not db_order: return None
+
+        db_order.status = status_update.status
         if status_update.payment_status:
-            order.payment_status = status_update.payment_status
+            db_order.payment_status = status_update.payment_status
         
-        session.add(order)
+        session.add(db_order)
         session.commit()
-        session.refresh(order)
-        return order
+        session.refresh(db_order)
+        return db_order
 
-# In database.py
-
-# FIND AND REPLACE THE ENTIRE 'get_orders_by_retailer' FUNCTION WITH THIS:
-
-def get_orders_by_retailer(retailer_id: int) -> List[OrderRecordsRead]:
+def get_orders_by_retailer(retailer_id: int):
     with Session(engine) as session:
-        # 1. Get Product IDs
         product_ids = session.exec(select(Product.id).where(Product.retailer_id == retailer_id)).all()
         if not product_ids: return []
         
-        # 2. Get Order IDs
         order_ids = session.exec(select(OrderItem.orderrecords_id).where(OrderItem.product_id.in_(product_ids)).distinct()).all()
         if not order_ids: return []
         
-        # 3. Get Orders
         orders_db = session.exec(select(OrderRecords).where(OrderRecords.id.in_(order_ids)).order_by(OrderRecords.order_date.desc())).all()
-
-        final_orders = []
-        for order in orders_db:
-            order_schema = OrderRecordsRead.model_validate(order)
-            retailer_total = 0
-            
-            items_with_names = session.exec(
-                select(OrderItem, Product.name)
-                .join(Product, Product.id == OrderItem.product_id)
-                .where(OrderItem.orderrecords_id == order.id)
-                .where(OrderItem.product_id.in_(product_ids))
-            ).all()
-
-            schema_items = []
-            for item, p_name in items_with_names:
-                retailer_total += item.price_at_purchase * item.quantity
-                i_dict = item.model_dump()
-                i_dict['product_name'] = p_name
-                schema_items.append(i_dict)
-            
-            order_schema.items = schema_items
-            order_schema.total_price = retailer_total
-            final_orders.append(order_schema)
-
-        return final_orders
+        return orders_db # Return DB objects, main.py handles conversion
     
     
 # -----------------------------------------------------------------
@@ -456,13 +435,12 @@ def add_wholesale_order(retailer_id: int, wholesaler_id: int, address: str, item
         return w_order
     
 # -----------------------------------------------------------------
-# Verification Functions (ADD THESE)
+# Verification Functions
 # -----------------------------------------------------------------
 
 def save_verification_otp(email: str, otp: str):
     expiration = datetime.utcnow() + timedelta(minutes=30)
     with Session(engine) as session:
-        # Remove old OTPs for this email
         existing = session.exec(select(VerificationOTP).where(VerificationOTP.email == email)).all()
         for record in existing:
             session.delete(record)
@@ -471,48 +449,34 @@ def save_verification_otp(email: str, otp: str):
         session.add(new_otp)
         session.commit()
 
-
-
 def verify_user_account(email: str, otp: str) -> bool:
-    """
-    Checks OTP, deletes it if valid, and updates is_verified status 
-    for ALL user roles (Customer, Retailer, Wholesaler) with this email.
-    """
     with Session(engine) as session:
-        # 1. Check OTP
         statement = select(VerificationOTP).where(      
             (VerificationOTP.email == email) & 
             (VerificationOTP.otp == otp)
         )
         record = session.exec(statement).first()
 
-        if not record:
-            return False
+        if not record: return False
         
         if record.expires_at < datetime.utcnow():
             session.delete(record)
             session.commit()
             return False
 
-        # 2. Update User Status (Check ALL tables independently)
-        # We removed "if not user_found" so it verifies ALL roles with this email
         user_found = False
-        
-        # Check Customer
         customer = session.exec(select(Customer).where(Customer.mail == email)).first()
         if customer:
             customer.is_verified = True
             session.add(customer)
             user_found = True
             
-        # Check Retailer (Always check, even if customer was found)
         retailer = session.exec(select(Retailer).where(Retailer.mail == email)).first()
         if retailer:
             retailer.is_verified = True
             session.add(retailer)
             user_found = True
                 
-        # Check Wholesaler (Always check)
         wholesaler = session.exec(select(Wholesaler).where(Wholesaler.mail == email)).first()
         if wholesaler:
             wholesaler.is_verified = True
@@ -520,7 +484,7 @@ def verify_user_account(email: str, otp: str) -> bool:
             user_found = True
 
         if user_found:
-            session.delete(record) # Consume OTP
+            session.delete(record)
             session.commit()
             return True
             
