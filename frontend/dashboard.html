@@ -765,6 +765,26 @@
             }
         }
 
+        // ----------------------------
+        // CACHE-BUST HELPER (NEW)
+        // ----------------------------
+        // Adds/sets a 'v' query param to force refresh when version changes.
+        // Accepts absolute or relative URLs.
+        function cacheBustedUrl(url, version) {
+            if (!url) return url;
+            try {
+                // Use location.origin as base so relative urls are handled
+                const u = new URL(url, location.origin);
+                if (version) u.searchParams.set('v', version);
+                else u.searchParams.set('v', Date.now());
+                return u.href;
+            } catch (e) {
+                // fallback: manual append
+                const sep = url.includes('?') ? '&' : '?';
+                return url + sep + 'v=' + (version || Date.now());
+            }
+        }
+
         // --- MAP LOGIC ---
         function toggleMap() {
             const section = document.getElementById('map-section');
@@ -886,6 +906,7 @@
             }
         }
 
+        // ---------- UPDATED renderProducts (uses cache-busting) ----------
         function renderProducts(products) {
             const grid = document.getElementById('product-grid');
             grid.innerHTML = '';
@@ -894,6 +915,10 @@
                 return;
             }
             products.forEach(p => {
+                // Prefer server-provided version field; fallback to updated_at or null
+                const version = p.image_version || p.image_updated_at || p.updated_at || p.updatedAt || null;
+                const imgSrc = cacheBustedUrl(p.image_url || 'assets/img/default.png', version);
+
                 let btnHtml = p.stock > 0 
                     ? `<button class="btn-product" onclick="addToCart(${p.id})">Add to Cart</button>`
                     : `<button class="btn-product" style="background:rgba(255,255,255,0.1); border-color:#666; color:#666; cursor:not-allowed;" disabled>Out of Stock</button>`;
@@ -903,7 +928,7 @@
                         <div class="product-card">
                             <div class="card-img-wrap">
                                 <a href="product-details.html?id=${p.id}">
-                                    <img src="${p.image_url || 'assets/img/default.png'}" alt="${p.name}">
+                                    <img src="${imgSrc}" alt="${p.name}" loading="lazy" decoding="async">
                                 </a>
                             </div>
                             <div class="card-body">
@@ -966,6 +991,7 @@
             fetchProducts(cat);
         }
 
+        // ---------- UPDATED fetchUserProfile (uses cache-busting for pfp) ----------
         async function fetchUserProfile() {
             const token = localStorage.getItem('token');
             if (!token) return;
@@ -1004,14 +1030,19 @@
                     const pfpEl = document.getElementById('dropdown-pfp');
 
                     if (pfpEl && rawPath) {
-                        // SANITIZER: Strip away any "../backend/data" junk
+                        // SANITIZER: Strip away any "../backend/data" junk and get filename if needed
                         const filename = rawPath.split(/[/\\]/).pop();
-                        
-                        // Construct the clean URL
-                        const cleanUrl = '/profile_pictures/' + filename;
+                        // If rawPath looks like a full URL (starts with http or /), prefer it; otherwise construct local path
+                        let candidate;
+                        if (/^(https?:)?\/\//i.test(rawPath) || rawPath.startsWith('/')) {
+                            candidate = rawPath;
+                        } else {
+                            candidate = '/profile_pictures/' + filename;
+                        }
 
-                        // Apply with cache busting
-                        pfpEl.src = cleanUrl + '?t=' + Date.now();
+                        // Use server-provided version if available
+                        const version = userData.image_version || userData.image_updated_at || Date.now();
+                        pfpEl.src = cacheBustedUrl(candidate, version);
                         pfpEl.style.display = 'block';
                     }
 
@@ -1022,6 +1053,6 @@
             }
         }
 
-    </script>
+        </script>
 </body>
 </html>
